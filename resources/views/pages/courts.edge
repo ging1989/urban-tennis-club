@@ -1,0 +1,42 @@
+@layout('layouts/master')
+@set('title', 'Courts')
+
+@section('content')
+<div class="main">
+
+  @if(filters.date)
+    @if(filters.startTime)
+      <h1>Courts available on {{ filters.date }} at {{ filters.startTime }}</h1>
+    @else
+      <h1>Courts available on {{ filters.date }}</h1>
+    @end
+  @else
+    <h1>All Courts</h1>
+  @end
+
+  @if(courts.length === 0)
+    <p>No courts available for the selected time.</p>
+  @else
+    <form action="/booking" method="GET">
+      <input type="hidden" name="date"      value="{{ filters.date }}">
+      <input type="hidden" name="startTime" value="{{ filters.startTime }}">
+      <input type="hidden" name="duration"  value="{{ filters.duration }}">
+
+      <div class="court-grid">
+        @each(court in courts)
+          <label class="court-card court-card-selectable" for="court-{{ court.courtId }}">
+            <input type="radio" name="courtId" id="court-{{ court.courtId }}" value="{{ court.courtId }}" style="display:none">
+            <h2>{{ court.courtName }}</h2>
+            <p class="court-price">฿{{ court.courtPricePerHr }}/hr</p>
+          </label>
+        @end
+      </div>
+
+      <div class="book-action">
+        <button type="submit" class="btn-book-now">Book Now →</button>
+      </div>
+    </form>
+  @end
+
+</div>
+@end

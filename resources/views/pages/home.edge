@@ -1,0 +1,144 @@
+@layout('layouts/master')
+@set('title', 'Urban Tennis Club')
+
+@push('styles')
+  <link rel="stylesheet" href="/css/home.css">
+@end
+
+@section('content')
+
+{{-- Hero Part --}}
+  <div class="hero">
+    <div class="hero-background"></div>
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow">Easy court booking in Bangkok</div>
+      <h1 class="hero-title">Ready to Play?</h1>
+      <p class="hero-subtitle">Find available courts, select your time, and confirm your booking in seconds.</p>
+      <div class="hero-action">
+        <a href="#courts" class="btn-primary">Find available courts →</a>
+        <a href="/coaches" class="btn-ghost">Meet our coaches</a>
+      </div>
+    </div>
+
+    <div class="hero-stat">
+      <div class="stat-card">
+        <strong class="stat-card-number">{{ courts.length }}</strong>
+        <span class="stat-card-label">Courts open</span>
+      </div>
+    </div>
+  </div>
+
+  {{-- Quick Booking --}}
+  <div class="quick-book">
+    <div class="quick-book-label">Quick booking</div>
+    <form action="/courts" method="GET" class="quick-book-form">
+      
+      <div class="form-field">
+        <label for="date">Date</label>
+        <input type="date" name="date" id="date">
+      </div>
+
+      <div class="form-field">
+        <label for="courtId">Court</label>
+        <select name="courtId" id="courtId">
+          <option value="">Any court</option>
+          @each(court in courts)
+            <option value="{{ court.courtId}}">{{ court.courtName }}</option>
+          @end
+        </select>
+      </div>
+
+        <div class="form-field">
+          <label for="startTime">Time</label>
+          <select name="startTime" id="startTime">
+            <option value=""Select time></option>
+            <option value="08.00">08.00</option>
+            <option value="09.00">09.00</option>
+            <option value="10.00">10.00</option>
+            <option value="11.00">11.00</option>
+            <option value="12.00">12.00</option>
+            <option value="13.00">13.00</option>
+            <option value="14.00">14.00</option>
+            <option value="15.00">15.00</option>
+            <option value="16.00">16.00</option>
+            <option value="17.00">17.00</option>
+            <option value="18.00">18.00</option>
+            <option value="19.00">19.00</option>
+            <option value="20.00">20.00</option>
+            <option value="21.00">21.00</option>
+            <option value="22.00">22.00</option>
+          </select>
+        </div>
+     
+
+      <div class="form-field">
+        <label for="duration">Duration</label>
+        <select name="duration" id="duration">
+          <option value="1">1 hour</option>
+          <option value="2">2 hours</option>
+          <option value="3">3 hours</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-check">Check availablity</button>
+
+    </form>
+  </div>
+
+  {{-- Courts --}}
+  <section id="courts" class="section-courts">
+    <div class="section-header">
+      <h2>Available Courts</h2>
+      <a href="/courts">View all →</a>
+    </div>
+
+    <div class="courts-grid">
+      @each(court in courts)
+        <div class="court-card">
+          <div class="court-card-thumbnail">
+            <div class="court-card-icon"></div>
+          </div>
+          <div class="court-card-body">
+            <div class="court-card-name">{{ court.courtName }}</div>
+            <div class="court-card-footer">
+              <span class="court-card-price">฿{{ court.courtPricePerHr }}<span>/hr</span></span>
+              <a href="/courts/{{ court.courtId }}/book" class="btn-book">Book →</a>
+            </div>
+          </div>
+        </div>
+      @end
+    </div>
+  </section>
+
+  {{-- Coaches --}}
+  <section class="section-coaches">
+    <div class="section-header">
+      <h2>Our Coaches</h2>
+      <a href="/coaches">All coaches →</a>
+    </div>
+
+    <div class="coaches-grid">
+      @each(coach in coaches)
+        <div class="coach-card">
+          <div class="coach-card-avatar">{{ coach.coachName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() }}</div>
+          <div class="coach-card-name">{{ coach.coachName }}</div>
+          <div class="coach-card-level">{{ coach.coachPricing.coachLevelDesc }}</div>
+          <div class="coach-card-price">฿{{ coach.coachPricing.coachPrice }}<span>/hr</span></div>
+          <div class="coarch-card-status">
+            @if(coach.coachStatus === 'available')
+            <span class="status-dot status-available"></span>Available today
+            @else
+            <span class="status-dot status-unavailable"></span>Unavailable today
+            @end
+          </div>
+        </div>
+      @end
+
+
+    </div>
+  </section>
+
+@end
+  

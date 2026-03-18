@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Court Booking</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2/dist/semantic.min.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <meta name="csrf-token" content="{{ csrfToken }}">
+</head>
+<body>
+
+  <nav class="nav-bar">
+    <div class="nav-container">
+      <div class="logo">
+        <span>Court Booking</span>
+      </div>
+      <ul class="nav-menu">
+        <li><a href="/">Home</a></li>
+        <li><a href="/courts">Courts</a></li>
+        <li><a href="#">Coach</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+      <div class="auth-menu">
+        <a href="/login">Login</a>
+        <a class="register-button" href="/register">Register</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    {{{ await $slots.main() }}}
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2/dist/semantic.min.js"></script>
+</body>
+</html>
