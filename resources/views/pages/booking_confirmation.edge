@@ -1,0 +1,59 @@
+@layout('layouts/master')
+@set('title', 'Booking Confirmed')
+
+@push('styles')
+  <link rel="stylesheet" href="/css/booking.css">
+@end
+
+@section('content')
+
+<div class="booking-wrap" style="max-width:600px;">
+  <div class="panel" style="text-align:center;padding:40px 24px;">
+
+    <div class="success-icon">✓</div>
+    <div class="success-title">Booking confirmed!</div>
+    <div class="success-ref">{{ booking.bookingId }}</div>
+
+    <div class="success-grid">
+      <div class="sc-card">
+        <div class="sc-card-label">Court</div>
+        <div class="sc-card-value">{{ booking.court.courtName }}</div>
+      </div>
+      <div class="sc-card">
+        <div class="sc-card-label">Date</div>
+        <div class="sc-card-value">{{ booking.bookingDate }}</div>
+      </div>
+      <div class="sc-card">
+        <div class="sc-card-label">Time</div>
+        <div class="sc-card-value">{{ booking.bookingStart }} – {{ booking.bookingEnd }}</div>
+      </div>
+      @if(booking.coachSchedule)
+      <div class="sc-card">
+        <div class="sc-card-label">Coach</div>
+        <div class="sc-card-value">{{ booking.coachSchedule.coach.coachName }}</div>
+      </div>
+      @end
+      <div class="sc-card">
+        <div class="sc-card-label">Name</div>
+        <div class="sc-card-value">{{ booking.customer.customerName }}</div>
+      </div>
+      <div class="sc-card">
+        <div class="sc-card-label">Payment</div>
+        <div class="sc-card-value">{{ booking.payment.paymentMethod }}</div>
+      </div>
+      <div class="sc-card-total" style="grid-column:span 2;">
+        <div class="sc-card-label">Total paid</div>
+        <div class="sc-card-value">฿{{ booking.totalPrice.toLocaleString() }}</div>
+      </div>
+    </div>
+
+    <a href="/" class="btn-primary" style="display:inline-block;max-width:180px;text-decoration:none;">
+      Back to home →
+    </a>
+
+  </div>
+</div>
+
+@end
+
+@end

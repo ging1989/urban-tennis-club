@@ -13,11 +13,12 @@ export type ScannedRoutes = {
     'courts.index': { paramsTuple?: []; params?: {} }
     'courts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'courts.availability': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'bookings.new': { paramsTuple?: []; params?: {} }
+    'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.store': { paramsTuple?: []; params?: {} }
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
-    'courts.booking': { paramsTuple?: []; params?: {} }
     'coaches.index': { paramsTuple?: []; params?: {} }
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'coaches.schedules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -34,9 +35,10 @@ export type ScannedRoutes = {
     'courts.index': { paramsTuple?: []; params?: {} }
     'courts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'courts.availability': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'bookings.new': { paramsTuple?: []; params?: {} }
+    'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
-    'courts.booking': { paramsTuple?: []; params?: {} }
     'coaches.index': { paramsTuple?: []; params?: {} }
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'coaches.schedules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -50,9 +52,10 @@ export type ScannedRoutes = {
     'courts.index': { paramsTuple?: []; params?: {} }
     'courts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'courts.availability': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'bookings.new': { paramsTuple?: []; params?: {} }
+    'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
-    'courts.booking': { paramsTuple?: []; params?: {} }
     'coaches.index': { paramsTuple?: []; params?: {} }
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'coaches.schedules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

@@ -60,8 +60,13 @@ export default class CourtsController {
     return response.ok({ court, date })
   }
 
-  async booking({ view, request }: HttpContext) {
+  async booking({ view, request, response, session }: HttpContext) {
   const courtId = request.input('courtId')
+
+  if (!courtId) {
+    session.flash('error', 'Please select a court')
+    return response.redirect().back()
+  }
 
   const courts = await Court.query()
     .where('court_status', 'available')
@@ -71,7 +76,11 @@ export default class CourtsController {
     .preload('coachPricing')
     .orderBy('coach_id', 'asc')
 
-  return view.render('pages/booking', { courts, coaches, selectedCourtId: courtId ? parseInt(courtId) : null })
+  return view.render('pages/booking', { 
+    courts, 
+    coaches, 
+    selectedCourtId: parseInt(courtId) 
+  })
 }
 
 }

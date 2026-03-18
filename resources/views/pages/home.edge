@@ -33,58 +33,35 @@
   {{-- Quick Booking --}}
   <div class="quick-book">
     <div class="quick-book-label">Quick booking</div>
-    <form action="/courts" method="GET" class="quick-book-form">
-      
+    <div class="quick-book-form">
+
       <div class="form-field">
-        <label for="date">Date</label>
-        <input type="date" name="date" id="date">
+        <label for="qb-date">Date</label>
+        <input type="date" id="qb-date">
       </div>
 
       <div class="form-field">
-        <label for="courtId">Court</label>
-        <select name="courtId" id="courtId">
+        <label for="qb-court">Court</label>
+        <select id="qb-court">
           <option value="">Any court</option>
           @each(court in courts)
-            <option value="{{ court.courtId}}">{{ court.courtName }}</option>
+            <option value="{{ court.courtId }}">{{ court.courtName }}</option>
           @end
         </select>
       </div>
 
-        <div class="form-field">
-          <label for="startTime">Time</label>
-          <select name="startTime" id="startTime">
-            <option value=""Select time></option>
-            <option value="08.00">08.00</option>
-            <option value="09.00">09.00</option>
-            <option value="10.00">10.00</option>
-            <option value="11.00">11.00</option>
-            <option value="12.00">12.00</option>
-            <option value="13.00">13.00</option>
-            <option value="14.00">14.00</option>
-            <option value="15.00">15.00</option>
-            <option value="16.00">16.00</option>
-            <option value="17.00">17.00</option>
-            <option value="18.00">18.00</option>
-            <option value="19.00">19.00</option>
-            <option value="20.00">20.00</option>
-            <option value="21.00">21.00</option>
-            <option value="22.00">22.00</option>
-          </select>
-        </div>
-     
-
       <div class="form-field">
-        <label for="duration">Duration</label>
-        <select name="duration" id="duration">
-          <option value="1">1 hour</option>
-          <option value="2">2 hours</option>
-          <option value="3">3 hours</option>
+        <label for="qb-type">Type</label>
+        <select id="qb-type">
+          <option value="all">All courts</option>
+          <option value="outdoor">Outdoor</option>
+          <option value="indoor">Indoor</option>
         </select>
       </div>
 
-      <button type="submit" class="btn-check">Check availablity</button>
+      <button class="btn-check" onclick="quickBook()">Check availability</button>
 
-    </form>
+    </div>
   </div>
 
   {{-- Courts --}}
@@ -104,7 +81,7 @@
             <div class="court-card-name">{{ court.courtName }}</div>
             <div class="court-card-footer">
               <span class="court-card-price">฿{{ court.courtPricePerHr }}<span>/hr</span></span>
-              <a href="/courts/{{ court.courtId }}/book" class="btn-book">Book →</a>
+              <a href="/bookings/new?courtId={{ court.courtId }}" class="btn-book">Book →</a>
             </div>
           </div>
         </div>
@@ -126,19 +103,38 @@
           <div class="coach-card-name">{{ coach.coachName }}</div>
           <div class="coach-card-level">{{ coach.coachPricing.coachLevelDesc }}</div>
           <div class="coach-card-price">฿{{ coach.coachPricing.coachPrice }}<span>/hr</span></div>
-          <div class="coarch-card-status">
+          <div class="coach-card-status">
             @if(coach.coachStatus === 'available')
-            <span class="status-dot status-available"></span>Available today
+              <span class="status-dot status-available"></span>Available today
             @else
-            <span class="status-dot status-unavailable"></span>Unavailable today
+              <span class="status-dot status-unavailable"></span>Unavailable today
             @end
           </div>
         </div>
       @end
-
-
     </div>
   </section>
 
-@end
-  
+  <script>
+    const today = new Date().toISOString().split('T')[0]
+    const dateInput = document.getElementById('qb-date')
+    if (dateInput) dateInput.value = today
+
+    function quickBook() {
+      const date    = document.getElementById('qb-date').value
+      const courtId = document.getElementById('qb-court').value
+      const type    = document.getElementById('qb-type').value
+
+      if (!date) { alert('Please select a date.'); return }
+
+      if (courtId) {
+        window.location.href = `/bookings/new?courtId=${courtId}&date=${date}`
+        return
+      }
+
+      const params = new URLSearchParams({ date })
+      if (type && type !== 'all') params.append('type', type)
+      window.location.href = `/courts?${params.toString()}`
+    }
+  </script>
+

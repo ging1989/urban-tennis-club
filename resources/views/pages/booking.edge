@@ -1,466 +1,445 @@
 @layout('layouts/main')
 @set('title', 'Book a Court')
 
+@section('styles')
+  <link rel="stylesheet" href="/css/booking.css">
+@endsection
+
 @section('content')
 
-<div style="max-width:860px;margin:0 auto;padding:24px 40px 60px">
+<div class="booking-wrap">
 
   {{-- STEPPER --}}
-  <div id="stepper" style="display:flex;align-items:center;justify-content:center;margin-bottom:32px;gap:0">
+  <div id="stepper">
     <div class="step-wrap" data-step="1">
       <div class="step-circle active">1</div>
       <div class="step-label active">Time slot</div>
     </div>
-    <div class="step-line" id="line-1"></div>
+    <div class="step-line" id="l1"></div>
     <div class="step-wrap" data-step="2">
       <div class="step-circle idle">2</div>
       <div class="step-label">Coach</div>
     </div>
-    <div class="step-line" id="line-2"></div>
+    <div class="step-line" id="l2"></div>
     <div class="step-wrap" data-step="3">
       <div class="step-circle idle">3</div>
       <div class="step-label">Details</div>
     </div>
-    <div class="step-line" id="line-3"></div>
+    <div class="step-line" id="l3"></div>
     <div class="step-wrap" data-step="4">
       <div class="step-circle idle">4</div>
       <div class="step-label">Payment</div>
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start">
+  <div class="booking-grid">
     <div id="main-panel">
 
       {{-- STEP 1: TIME SLOT --}}
-      <div id="step-1" class="step-panel">
-        <div style="background:white;border-radius:16px;border:1px solid var(--clay-border);padding:24px">
-          <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--clay);margin-bottom:4px">Select a court & time</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Choose your preferred court and time slot</div>
+      <div id="step-1" class="panel">
+        <div class="panel-title">Select time slots</div>
+        <div class="panel-sub" id="step1-sub">Choose up to 3 consecutive slots</div>
 
-          {{-- Court selection --}}
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
-            @each(court in courts)
-            <div class="court-opt" onclick="selectCourt({{ court.courtId }}, '{{ court.courtName }}', {{ court.courtPricePerHr }})" id="court-opt-{{ court.courtId }}">
-              <div style="height:60px;background:linear-gradient(135deg,#A83010,#C4520A);display:flex;align-items:center;justify-content:center">
-                <div style="width:50px;height:38px;border:2px solid rgba(255,255,255,.5);position:relative">
-                  <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.4)"></div>
-                  <div style="position:absolute;top:50%;left:-2px;right:-2px;height:2px;background:rgba(255,255,255,.8)"></div>
-                </div>
-              </div>
-              <div style="padding:8px 10px">
-                <div style="font-size:13px;font-weight:500">{{ court.courtName }}</div>
-                <div style="font-size:12px;color:var(--clay);font-weight:500">฿{{ court.courtPricePerHr }}/hr</div>
-              </div>
+        <div class="ct-badge">
+          <svg width="44" height="34" viewBox="0 0 44 34" fill="none">
+            <rect width="44" height="34" rx="3" fill="#2060c8"/>
+            <rect x="3" y="3" width="38" height="28" stroke="rgba(255,255,255,.9)" stroke-width="1.2" fill="none"/>
+            <line x1="3" y1="17" x2="41" y2="17" stroke="rgba(255,255,255,.9)" stroke-width="1.2"/>
+            <line x1="8" y1="3" x2="8" y2="31" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+            <line x1="36" y1="3" x2="36" y2="31" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+            <line x1="22" y1="9" x2="22" y2="25" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+            <line x1="8" y1="11" x2="36" y2="11" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+            <line x1="8" y1="23" x2="36" y2="23" stroke="rgba(255,255,255,.4)" stroke-width="1"/>
+          </svg>
+          <div>
+            <div class="ct-badge-name">{{ court.courtName }}</div>
+            <div class="ct-badge-sub">
+              {{ court.courtStatus === 'indoor' ? 'Indoor' : 'Outdoor' }} · Hard court · ฿{{ court.courtPricePerHr }}/hr
             </div>
-            @end
           </div>
-
-          {{-- แทนที่ Date + Duration grid และ slots grid เดิมทั้งหมด --}}
-
-        <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:16px">
-        <div>
-            <label style="font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Date</label>
-            <input type="date" id="booking-date" onchange="updateSummary()"
-            style="width:100%;padding:10px 12px;border:1.5px solid var(--clay-border);border-radius:8px;font-size:13px;font-family:'Outfit',sans-serif">
-        </div>
         </div>
 
-        <div style="font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Select a time slot</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px">
-        <div class="time-slot" onclick="selectSlot(this,'08:00','09:00')">
-            <div style="font-size:14px;font-weight:500">08:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 09:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'09:00','10:00')">
-            <div style="font-size:14px;font-weight:500">09:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 10:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'10:00','11:00')">
-            <div style="font-size:14px;font-weight:500">10:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 11:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'11:00','12:00')">
-            <div style="font-size:14px;font-weight:500">11:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 12:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'12:00','13:00')">
-            <div style="font-size:14px;font-weight:500">12:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 13:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'13:00','14:00')">
-            <div style="font-size:14px;font-weight:500">13:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 14:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'14:00','15:00')">
-            <div style="font-size:14px;font-weight:500">14:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 15:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'15:00','16:00')">
-            <div style="font-size:14px;font-weight:500">15:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 16:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'16:00','17:00')">
-            <div style="font-size:14px;font-weight:500">16:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 17:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'17:00','18:00')">
-            <div style="font-size:14px;font-weight:500">17:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 18:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'18:00','19:00')">
-            <div style="font-size:14px;font-weight:500">18:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 19:00</div>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'19:00','20:00')">
-            <div style="font-size:14px;font-weight:500">19:00</div>
-            <div style="font-size:10px;color:var(--muted)">– 20:00</div>
-        </div>
-        </div>
+        <div class="slot-hint">Selected: <span id="slot-hint-txt" class="slot-hint-val">none</span> — Max 3 consecutive slots</div>
+        <div class="slot-grid" id="slot-grid"></div>
 
-          <button onclick="goStep(2)" style="width:100%;padding:13px;background:var(--clay);color:white;border:none;border-radius:10px;font-size:14px;font-family:'Outfit',sans-serif;cursor:pointer;font-weight:500">
-            Continue →
-          </button>
-        </div>
+        <button class="btn-primary" onclick="goStep(2)">Continue →</button>
       </div>
 
       {{-- STEP 2: COACH --}}
-      <div id="step-2" class="step-panel" style="display:none">
-        <div style="background:white;border-radius:16px;border:1px solid var(--clay-border);padding:24px">
-          <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--clay);margin-bottom:4px">Add a coach</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Optional — skip if you don't need one</div>
+      <div id="step-2" class="panel" style="display:none;">
+        <div class="panel-title">Add a coach</div>
+        <div class="panel-sub">Optional — skip if you don't need one</div>
 
-          <div onclick="selectCoach(0, 'No coach', 0)" id="coach-opt-0"
-            style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px dashed var(--clay-border);border-radius:11px;cursor:pointer;margin-bottom:10px;font-size:13px;color:var(--muted)">
-            <div style="width:36px;height:36px;border-radius:50%;background:var(--faint);display:flex;align-items:center;justify-content:center;font-size:16px">—</div>
-            <div><div style="font-weight:500;color:var(--ink)">No coach</div><div style="font-size:11px">Court only</div></div>
+        <div class="coach-opt sel" id="coach-opt-0" onclick="pickCoach(0, 'No coach', 0)">
+          <div class="coach-av" style="background:var(--faint);color:var(--muted);">—</div>
+          <div style="flex:1;">
+            <div class="coach-name">No coach</div>
+            <div class="coach-level">Court only</div>
           </div>
+        </div>
 
-          @each(coach in coaches)
-          <div onclick="selectCoach({{ coach.coachId }}, '{{ coach.coachName }}', {{ coach.coachPricing.coachPrice }})" id="coach-opt-{{ coach.coachId }}"
-            style="display:flex;align-items:center;gap:10px;padding:12px;border:1.5px solid var(--clay-border);border-radius:11px;cursor:pointer;margin-bottom:8px;background:white;
-            {{ coach.coachStatus !== 'available' ? 'opacity:.45;pointer-events:none' : '' }}">
-            <div style="width:40px;height:40px;border-radius:50%;background:var(--clay-pale);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:15px;color:var(--clay);flex-shrink:0">
-              {{ coach.coachName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() }}
+        @each(coach in coaches)
+          <div
+            class="coach-opt{{ coach.coachStatus !== 'available' ? ' dis' : '' }}"
+            id="coach-opt-{{ coach.coachId }}"
+            onclick="pickCoach({{ coach.coachId }}, '{{ coach.coachName }}', {{ coach.coachPricing.coachPrice }})"
+          >
+            <div class="coach-av">
+              {{ coach.coachName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() }}
             </div>
-            <div style="flex:1">
-              <div style="font-size:13px;font-weight:500">{{ coach.coachName }}</div>
-              <div style="font-size:11px;color:var(--muted)">{{ coach.coachPricing.coachLevelDesc }}</div>
+            <div style="flex:1;">
+              <div class="coach-name">{{ coach.coachName }}</div>
+              <div class="coach-level">{{ coach.coachPricing.coachLevelDesc }}</div>
             </div>
-            <div style="text-align:right">
-              <div style="font-size:13px;font-weight:500;color:var(--clay)">฿{{ coach.coachPricing.coachPrice }}/hr</div>
-              <div style="font-size:10px;color:{{ coach.coachStatus === 'available' ? '#6BAC2C' : '#D4900A' }}">
+            <div style="text-align:right;">
+              <div class="coach-price">฿{{ coach.coachPricing.coachPrice }}/hr</div>
+              <div class="{{ coach.coachStatus === 'available' ? 'coach-avail' : 'coach-unavail' }}">
                 {{ coach.coachStatus === 'available' ? 'Available' : 'Unavailable' }}
               </div>
             </div>
           </div>
-          @end
+        @end
 
-          <div style="display:flex;gap:8px;margin-top:16px">
-            <button onclick="goStep(1)" style="flex:1;padding:11px;background:transparent;color:var(--clay);border:1.5px solid var(--clay-border);border-radius:10px;font-size:13px;font-family:'Outfit',sans-serif;cursor:pointer">← Back</button>
-            <button onclick="goStep(3)" style="flex:2;padding:13px;background:var(--clay);color:white;border:none;border-radius:10px;font-size:14px;font-family:'Outfit',sans-serif;cursor:pointer;font-weight:500">Continue →</button>
-          </div>
+        <div class="btn-row">
+          <button class="btn-back" onclick="goStep(1)">← Back</button>
+          <button class="btn-primary" style="flex:2;" onclick="goStep(3)">Continue →</button>
         </div>
       </div>
 
       {{-- STEP 3: DETAILS --}}
-      <div id="step-3" class="step-panel" style="display:none">
-        <div style="background:white;border-radius:16px;border:1px solid var(--clay-border);padding:24px">
-          <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--clay);margin-bottom:4px">Your details</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:20px">No account needed — just fill in your info</div>
+      <div id="step-3" class="panel" style="display:none;">
+        <div class="panel-title">Your details</div>
+        <div class="panel-sub">No account needed</div>
 
-          <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
+          <div>
+            <label class="field-label">Full name</label>
+            <input class="field-input" type="text" id="guest-name" placeholder="Somchai Jaidee">
+          </div>
+          <div class="two-col">
             <div>
-              <label style="font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Full name</label>
-              <input type="text" id="guest-name" placeholder="e.g. Somchai Jaidee"
-                style="width:100%;padding:10px 12px;border:1.5px solid var(--clay-border);border-radius:8px;font-size:13px;font-family:'Outfit',sans-serif">
+              <label class="field-label">Phone</label>
+              <input class="field-input" type="text" id="guest-phone" placeholder="0812345678">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              <div>
-                <label style="font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Phone</label>
-                <input type="text" id="guest-phone" placeholder="0812345678"
-                  style="width:100%;padding:10px 12px;border:1.5px solid var(--clay-border);border-radius:8px;font-size:13px;font-family:'Outfit',sans-serif">
-              </div>
-              <div>
-                <label style="font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Email</label>
-                <input type="email" id="guest-email" placeholder="email@example.com"
-                  style="width:100%;padding:10px 12px;border:1.5px solid var(--clay-border);border-radius:8px;font-size:13px;font-family:'Outfit',sans-serif">
-              </div>
+            <div>
+              <label class="field-label">Email</label>
+              <input class="field-input" type="email" id="guest-email" placeholder="email@example.com">
             </div>
           </div>
+        </div>
 
-          <div style="display:flex;align-items:center;gap:10px;margin:16px 0;font-size:12px;color:var(--muted)">
-            <div style="flex:1;height:1px;background:var(--clay-border)"></div>
-            or
-            <div style="flex:1;height:1px;background:var(--clay-border)"></div>
-          </div>
+        <div class="or-divider">or</div>
 
-          <a href="/login" style="display:block;width:100%;padding:11px;border:1.5px solid var(--clay-border);border-radius:9px;font-size:13px;font-family:'Outfit',sans-serif;cursor:pointer;color:var(--clay);font-weight:500;text-align:center;text-decoration:none">
-            Login as member to get discount →
-          </a>
+        <a href="/login" class="member-login-link">Login as member to get discount →</a>
 
-          <div style="display:flex;gap:8px;margin-top:16px">
-            <button onclick="goStep(2)" style="flex:1;padding:11px;background:transparent;color:var(--clay);border:1.5px solid var(--clay-border);border-radius:10px;font-size:13px;font-family:'Outfit',sans-serif;cursor:pointer">← Back</button>
-            <button onclick="goStep(4)" style="flex:2;padding:13px;background:var(--clay);color:white;border:none;border-radius:10px;font-size:14px;font-family:'Outfit',sans-serif;cursor:pointer;font-weight:500">Continue to payment →</button>
-          </div>
+        <div class="btn-row">
+          <button class="btn-back" onclick="goStep(2)">← Back</button>
+          <button class="btn-primary" style="flex:2;" onclick="goStep(4)">Continue to payment →</button>
         </div>
       </div>
 
       {{-- STEP 4: PAYMENT --}}
-      <div id="step-4" class="step-panel" style="display:none">
-        <div style="background:white;border-radius:16px;border:1px solid var(--clay-border);padding:24px">
-          <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--clay);margin-bottom:4px">Payment</div>
-          <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Choose your payment method</div>
+      <div id="step-4" class="panel" style="display:none;">
+        <div class="panel-title">Payment</div>
+        <div class="panel-sub">Choose your payment method</div>
 
-          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
-            <div class="pay-opt" onclick="selectPayment(this,'cash')">
-              <div style="font-size:18px">💵</div>
-              <div><div style="font-size:13px;font-weight:500">Cash</div><div style="font-size:11px;color:var(--muted)">Pay at the counter</div></div>
-              <div class="pay-radio" id="radio-cash"></div>
-            </div>
-            <div class="pay-opt" onclick="selectPayment(this,'qr')">
-              <div style="font-size:18px">📱</div>
-              <div><div style="font-size:13px;font-weight:500">QR Code</div><div style="font-size:11px;color:var(--muted)">PromptPay / Thai QR</div></div>
-              <div class="pay-radio" id="radio-qr"></div>
-            </div>
-            <div class="pay-opt" onclick="selectPayment(this,'transfer')">
-              <div style="font-size:18px">🏦</div>
-              <div><div style="font-size:13px;font-weight:500">Bank Transfer</div><div style="font-size:11px;color:var(--muted)">Transfer & upload slip</div></div>
-              <div class="pay-radio" id="radio-transfer"></div>
-            </div>
-            <div class="pay-opt" onclick="selectPayment(this,'card')">
-              <div style="font-size:18px">💳</div>
-              <div><div style="font-size:13px;font-weight:500">Credit / Debit Card</div><div style="font-size:11px;color:var(--muted)">Visa, Mastercard</div></div>
-              <div class="pay-radio" id="radio-card"></div>
-            </div>
-          </div>
+        <div class="pay-opt" onclick="pickPay(this,'cash')">
+          <div class="pay-icon">💵</div>
+          <div><div class="pay-name">Cash</div><div class="pay-desc">Pay at counter</div></div>
+          <div class="pay-radio" id="r-cash"></div>
+        </div>
+        <div class="pay-opt" onclick="pickPay(this,'qr')">
+          <div class="pay-icon">📱</div>
+          <div><div class="pay-name">QR Code</div><div class="pay-desc">PromptPay / Thai QR</div></div>
+          <div class="pay-radio" id="r-qr"></div>
+        </div>
+        <div class="pay-opt" onclick="pickPay(this,'transfer')">
+          <div class="pay-icon">🏦</div>
+          <div><div class="pay-name">Bank Transfer</div><div class="pay-desc">Transfer & upload slip</div></div>
+          <div class="pay-radio" id="r-transfer"></div>
+        </div>
+        <div class="pay-opt" onclick="pickPay(this,'card')">
+          <div class="pay-icon">💳</div>
+          <div><div class="pay-name">Credit / Debit Card</div><div class="pay-desc">Visa, Mastercard</div></div>
+          <div class="pay-radio" id="r-card"></div>
+        </div>
 
-          <div style="background:var(--faint);border-radius:10px;padding:14px 16px;margin-bottom:16px" id="order-summary">
-            <div style="font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Order summary</div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
-              <span style="color:var(--muted)" id="sum-court-label">Court</span>
-              <span id="sum-court-price">—</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px" id="sum-coach-row" style="display:none">
-              <span style="color:var(--muted)" id="sum-coach-label">Coach</span>
-              <span id="sum-coach-price">—</span>
-            </div>
-            <div style="height:1px;background:var(--clay-border);margin:8px 0"></div>
-            <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:500">
-              <span>Total</span>
-              <span style="color:var(--clay);font-family:'Playfair Display',serif;font-size:18px" id="sum-total">—</span>
-            </div>
-          </div>
+        <div class="order-summary-box" id="order-box"></div>
 
-          <div style="display:flex;gap:8px">
-            <button onclick="goStep(3)" style="flex:1;padding:11px;background:transparent;color:var(--clay);border:1.5px solid var(--clay-border);border-radius:10px;font-size:13px;font-family:'Outfit',sans-serif;cursor:pointer">← Back</button>
-            <button onclick="submitBooking()" style="flex:2;padding:13px;background:var(--clay);color:white;border:none;border-radius:10px;font-size:14px;font-family:'Outfit',sans-serif;cursor:pointer;font-weight:500">
-              Confirm booking →
-            </button>
-          </div>
+        <div class="btn-row">
+          <button class="btn-back" onclick="goStep(3)">← Back</button>
+          <button class="btn-primary" style="flex:2;" onclick="submitBooking()">Confirm booking →</button>
         </div>
       </div>
 
       {{-- STEP 5: SUCCESS --}}
-      <div id="step-5" class="step-panel" style="display:none">
-        <div style="background:white;border-radius:16px;border:1px solid var(--clay-border);padding:32px;text-align:center">
-          <div style="width:64px;height:64px;border-radius:50%;background:var(--clay);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:white">✓</div>
-          <h2 style="font-size:28px;color:var(--clay);margin-bottom:6px">Booking confirmed!</h2>
-          <div id="booking-ref" style="display:inline-block;font-size:13px;background:var(--clay-pale);color:var(--clay-warm);padding:4px 14px;border-radius:20px;margin-bottom:20px;font-weight:500"></div>
-          <div id="success-details" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;text-align:left"></div>
-          <a href="/" style="display:inline-block;padding:12px 28px;background:var(--clay);color:white;border-radius:9px;text-decoration:none;font-size:14px;font-weight:500">
-            Back to home →
-          </a>
-        </div>
+      <div id="step-5" class="panel" style="display:none;text-align:center;padding:36px 20px;">
+        <div class="success-icon">✓</div>
+        <div class="success-title">Booking confirmed!</div>
+        <div class="success-ref" id="bk-ref"></div>
+        <div class="success-grid" id="success-grid"></div>
+        <a href="/" class="btn-primary" style="display:inline-block;max-width:180px;text-decoration:none;">Back to home →</a>
       </div>
 
-    </div>
+    </div>{{-- /main-panel --}}
 
     {{-- SIDEBAR --}}
-    <div id="sidebar" style="background:white;border-radius:16px;border:1px solid var(--clay-border);padding:20px;position:sticky;top:80px">
-      <div style="font-family:'Playfair Display',serif;font-size:17px;color:var(--clay);margin-bottom:16px">Booking summary</div>
+    <div class="sidebar">
+      <div class="sidebar-title">Booking summary</div>
       <div id="sidebar-content">
-        <div style="font-size:13px;color:var(--muted)">Select a court to begin</div>
+        <div class="sidebar-empty">Select a time slot to begin</div>
       </div>
     </div>
-  </div>
-</div>
 
-<style>
-.step-wrap { display:flex;flex-direction:column;align-items:center;gap:0 }
-.step-circle { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-family:'Playfair Display',serif;flex-shrink:0;transition:all .2s }
-.step-circle.active { background:var(--clay);color:white;box-shadow:0 0 0 4px var(--clay-pale) }
-.step-circle.done { background:var(--clay);color:white }
-.step-circle.idle { background:white;color:var(--muted);border:1.5px solid var(--clay-border) }
-.step-label { font-size:11px;color:var(--muted);margin-top:4px;white-space:nowrap }
-.step-label.active { color:var(--clay);font-weight:500 }
-.step-line { width:60px;height:1.5px;background:var(--clay-border);margin:0 4px;margin-bottom:18px;flex-shrink:0;transition:background .2s }
-.step-line.done { background:var(--clay) }
-.court-opt { border:1.5px solid var(--clay-border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .15s }
-.court-opt:hover { border-color:var(--clay-warm) }
-.court-opt.selected { border:2px solid var(--clay);background:var(--clay-pale) }
-.time-slot { padding:9px 4px;text-align:center;font-size:12px;border:1.5px solid var(--clay-border);border-radius:8px;cursor:pointer;background:white;transition:all .12s }
-.time-slot:hover { border-color:var(--clay-warm);background:var(--clay-pale);color:var(--clay) }
-.time-slot.selected { background:var(--clay);color:white;border-color:var(--clay) }
-.pay-opt { display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--clay-border);border-radius:11px;cursor:pointer;background:white;transition:all .15s }
-.pay-opt:hover { border-color:var(--clay-warm) }
-.pay-opt.selected { border:2px solid var(--clay);background:var(--clay-pale) }
-.pay-radio { width:16px;height:16px;border-radius:50%;border:1.5px solid var(--clay-border);margin-left:auto;flex-shrink:0 }
-.pay-radio.on::after { content:'';display:block;width:8px;height:8px;border-radius:50%;background:var(--clay);margin:3px }
-</style>
+  </div>{{-- /booking-grid --}}
+</div>{{-- /booking-wrap --}}
 
 <script>
-let booking = { courtId: null, courtName: '', courtPrice: 0, date: '', start: '', end: '', dur: 1, coachId: 0, coachName: '', coachPrice: 0, payment: '' }
-let currentStep = 1
+  // ─────────────────────────────────────────────
+  // DATA — injected by Edge
+  // ─────────────────────────────────────────────
+  const COURT = {
+    id:     {{ court.courtId }},
+    name:   '{{ court.courtName }}',
+    price:  {{ court.courtPricePerHr }},
+    indoor: {{ court.courtStatus === 'indoor' ? 'true' : 'false' }},
+  }
 
-function goStep(n) {
-  document.getElementById('step-' + currentStep).style.display = 'none'
-  currentStep = n
-  document.getElementById('step-' + n).style.display = 'block'
-  updateStepper()
-  updateSummary()
-  if (n === 4) renderOrderSummary()
-}
+  const BOOKING_DATE = '{{ bookingDate }}'
 
-function updateStepper() {
-  for (let i = 1; i <= 4; i++) {
-    const wrap = document.querySelector('.step-wrap[data-step="' + i + '"]')
-    const circle = wrap.querySelector('.step-circle')
-    const label = wrap.querySelector('.step-label')
-    circle.className = 'step-circle ' + (i < currentStep ? 'done' : i === currentStep ? 'active' : 'idle')
-    circle.textContent = i < currentStep ? '✓' : i
-    label.className = 'step-label' + (i === currentStep ? ' active' : '')
-    if (i < 4) {
-      document.getElementById('line-' + i).className = 'step-line' + (i < currentStep ? ' done' : '')
+  // Booked slots come from server — array of 'HH:00' strings already taken on this date
+  const BOOKED_SLOTS = {{ JSON.stringify(bookedSlots) }}
+
+  const ALL_SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00']
+
+  // ─────────────────────────────────────────────
+  // STATE
+  // ─────────────────────────────────────────────
+  let bk = {
+    courtId:    COURT.id,
+    courtName:  COURT.name,
+    courtPrice: COURT.price,
+    date:       BOOKING_DATE,
+    slots:      [],   // array of selected 'HH:00' strings, consecutive
+    coachId:    0,
+    coachName:  '',
+    coachPrice: 0,
+    payment:    '',
+  }
+  let currentStep = 1
+
+  // ─────────────────────────────────────────────
+  // INIT
+  // ─────────────────────────────────────────────
+  buildSlots()
+  updateSidebar()
+
+  // ─────────────────────────────────────────────
+  // TIME SLOTS
+  // ─────────────────────────────────────────────
+  function buildSlots() {
+    document.getElementById('slot-grid').innerHTML = ALL_SLOTS.map(s => {
+      const endH = String(parseInt(s) + 1).padStart(2, '0')
+      const isBooked = BOOKED_SLOTS.includes(s)
+      return `<div class="ts${isBooked ? ' unavail' : ''}" id="slot-${s}" onclick="pickSlot('${s}')">
+        <div class="ts-main">${s}</div>
+        <div class="ts-sub">–${endH}:00</div>
+      </div>`
+    }).join('')
+  }
+
+  function pickSlot(s) {
+    // Deselect if already the only or part of selection
+    if (bk.slots.includes(s)) {
+      bk.slots = []
+    } else if (bk.slots.length === 0) {
+      bk.slots = [s]
+    } else {
+      // Build range between existing selection and new slot
+      const combined = [...bk.slots, s].sort((a, b) => parseInt(a) - parseInt(b))
+      const first = combined[0]
+      const last  = combined[combined.length - 1]
+      const fi = ALL_SLOTS.indexOf(first)
+      const li = ALL_SLOTS.indexOf(last)
+      const range = ALL_SLOTS.slice(fi, li + 1)
+
+      // Validate: no booked slots in range, max 3 slots
+      const valid = range.length <= 3 && range.every(x => !BOOKED_SLOTS.includes(x))
+      bk.slots = valid ? range : [s]
+    }
+
+    renderSlots()
+    updateSidebar()
+  }
+
+  function renderSlots() {
+    ALL_SLOTS.forEach(s => {
+      const el = document.getElementById('slot-' + s)
+      if (!el) return
+      el.classList.remove('sel')
+      if (bk.slots.includes(s)) el.classList.add('sel')
+    })
+
+    if (bk.slots.length > 0) {
+      const lastH = String(parseInt(bk.slots[bk.slots.length - 1]) + 1).padStart(2, '0')
+      document.getElementById('slot-hint-txt').textContent = `${bk.slots[0]} – ${lastH}:00 (${bk.slots.length}h)`
+    } else {
+      document.getElementById('slot-hint-txt').textContent = 'none'
+    }
+
+    document.getElementById('step1-sub').textContent = bk.slots.length === 3
+      ? 'Maximum 3 slots selected'
+      : `Choose up to 3 consecutive slots (${bk.slots.length}/3 selected)`
+  }
+
+  // ─────────────────────────────────────────────
+  // COACH
+  // ─────────────────────────────────────────────
+  function pickCoach(id, name, price) {
+    document.querySelectorAll('.coach-opt').forEach(el => el.classList.remove('sel'))
+    document.getElementById('coach-opt-' + id).classList.add('sel')
+    bk.coachId    = id
+    bk.coachName  = name
+    bk.coachPrice = price
+    updateSidebar()
+  }
+
+  // ─────────────────────────────────────────────
+  // PAYMENT
+  // ─────────────────────────────────────────────
+  function pickPay(el, method) {
+    document.querySelectorAll('.pay-opt').forEach(p => {
+      p.classList.remove('sel')
+      p.querySelector('.pay-radio').className = 'pay-radio'
+    })
+    el.classList.add('sel')
+    el.querySelector('.pay-radio').className = 'pay-radio on'
+    bk.payment = method
+  }
+
+  // ─────────────────────────────────────────────
+  // NAVIGATION
+  // ─────────────────────────────────────────────
+  function goStep(n) {
+    if (n === 2 && bk.slots.length === 0) { alert('Please select at least one time slot.'); return }
+    document.getElementById('step-' + currentStep).style.display = 'none'
+    currentStep = n
+    document.getElementById('step-' + n).style.display = 'block'
+    if (n === 4) renderOrderSummary()
+    updateStepper()
+    updateSidebar()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function updateStepper() {
+    for (let i = 1; i <= 4; i++) {
+      const wrap   = document.querySelector('.step-wrap[data-step="' + i + '"]')
+      const circle = wrap.querySelector('.step-circle')
+      const label  = wrap.querySelector('.step-label')
+      circle.className   = 'step-circle ' + (i < currentStep ? 'done' : i === currentStep ? 'active' : 'idle')
+      circle.textContent = i < currentStep ? '✓' : i
+      label.className    = 'step-label' + (i === currentStep ? ' active' : '')
+      if (i < 4) document.getElementById('l' + i).className = 'step-line' + (i < currentStep ? ' done' : '')
     }
   }
-}
 
-function selectCourt(id, name, price) {
-  document.querySelectorAll('.court-opt').forEach(el => el.classList.remove('selected'))
-  document.getElementById('court-opt-' + id).classList.add('selected')
-  booking.courtId = id
-  booking.courtName = name
-  booking.courtPrice = price
-  updateSummary()
-}
+  // ─────────────────────────────────────────────
+  // SIDEBAR
+  // ─────────────────────────────────────────────
+  function updateSidebar() {
+    const hrs        = bk.slots.length
+    const courtTotal = bk.courtPrice * hrs
+    const coachTotal = bk.coachPrice * hrs
+    const total      = courtTotal + coachTotal
 
-function selectSlot(el, start, end) {
-  document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'))
-  el.classList.add('selected')
-  booking.start = start
-  booking.end = end
-  updateSummary()
-}
+    let html = ''
+    html += `<div class="sum-row"><span class="sum-row-label">Court</span><span class="sum-row-value">${bk.courtName}</span></div>`
+    if (bk.date) html += `<div class="sum-row"><span class="sum-row-label">Date</span><span class="sum-row-value">${bk.date}</span></div>`
 
-function selectCoach(id, name, price) {
-  document.querySelectorAll('[id^="coach-opt-"]').forEach(el => {
-    el.style.border = '1.5px solid var(--clay-border)'
-    el.style.background = 'white'
-  })
-  const el = document.getElementById('coach-opt-' + id)
-  el.style.border = '2px solid var(--clay)'
-  el.style.background = 'var(--clay-pale)'
-  booking.coachId = id
-  booking.coachName = name
-  booking.coachPrice = price
-  updateSummary()
-}
+    if (hrs > 0) {
+      const lastH = String(parseInt(bk.slots[bk.slots.length - 1]) + 1).padStart(2, '0')
+      html += `<div class="sum-row"><span class="sum-row-label">Time</span><span class="sum-row-value">${bk.slots[0]} – ${lastH}:00</span></div>`
+      html += `<div class="sum-row"><span class="sum-row-label">Duration</span><span class="sum-row-value">${hrs}h</span></div>`
+    }
 
-function selectPayment(el, method) {
-  document.querySelectorAll('.pay-opt').forEach(p => {
-    p.classList.remove('selected')
-    p.querySelector('.pay-radio').className = 'pay-radio'
-  })
-  el.classList.add('selected')
-  el.querySelector('.pay-radio').className = 'pay-radio on'
-  booking.payment = method
-}
+    if (bk.coachId > 0) html += `<div class="sum-row"><span class="sum-row-label">Coach</span><span class="sum-row-value">${bk.coachName}</span></div>`
+    if (courtTotal > 0) html += `<div class="sum-row"><span class="sum-row-label">Court fee</span><span class="sum-row-value">฿${courtTotal.toLocaleString()}</span></div>`
+    if (coachTotal > 0) html += `<div class="sum-row"><span class="sum-row-label">Coach fee</span><span class="sum-row-value">฿${coachTotal.toLocaleString()}</span></div>`
 
-function updateSummary() {
-  booking.dur = parseInt(document.getElementById('booking-dur')?.value || 1)
-  booking.date = document.getElementById('booking-date')?.value || ''
-  const courtTotal = booking.courtPrice * booking.dur
-  const coachTotal = booking.coachPrice * booking.dur
-  const total = courtTotal + coachTotal
+    html += `<div class="sum-total-box">
+      <span class="sum-total-label">Total</span>
+      <span class="sum-total-value">฿${total.toLocaleString()}</span>
+    </div>`
 
-  let html = ''
-  if (booking.courtName) html += `<div style="display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--clay-border)"><span style="color:var(--muted)">Court</span><span style="font-weight:500">${booking.courtName}</span></div>`
-  if (booking.date) html += `<div style="display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--clay-border)"><span style="color:var(--muted)">Date</span><span style="font-weight:500">${booking.date}</span></div>`
-  if (booking.start) html += `<div style="display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--clay-border)"><span style="color:var(--muted)">Time</span><span style="font-weight:500">${booking.start} · ${booking.dur}h</span></div>`
-  if (booking.coachName && booking.coachId > 0) html += `<div style="display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--clay-border)"><span style="color:var(--muted)">Coach</span><span style="font-weight:500">${booking.coachName}</span></div>`
-  if (total > 0) html += `<div style="background:var(--clay);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;color:white;margin-top:12px"><span style="font-size:12px;opacity:.8">Total</span><strong style="font-family:'Playfair Display',serif;font-size:22px">฿${total.toLocaleString()}</strong></div>`
-
-  document.getElementById('sidebar-content').innerHTML = html || '<div style="font-size:13px;color:var(--muted)">Select a court to begin</div>'
-}
-
-function renderOrderSummary() {
-  booking.dur = parseInt(document.getElementById('booking-dur')?.value || 1)
-  const courtTotal = booking.courtPrice * booking.dur
-  const coachTotal = booking.coachPrice * booking.dur
-  const total = courtTotal + coachTotal
-  document.getElementById('sum-court-label').textContent = booking.courtName + ' × ' + booking.dur + 'h'
-  document.getElementById('sum-court-price').textContent = '฿' + courtTotal.toLocaleString()
-  if (booking.coachId > 0) {
-    document.getElementById('sum-coach-row').style.display = 'flex'
-    document.getElementById('sum-coach-label').textContent = booking.coachName + ' × ' + booking.dur + 'h'
-    document.getElementById('sum-coach-price').textContent = '฿' + coachTotal.toLocaleString()
-  }
-  document.getElementById('sum-total').textContent = '฿' + total.toLocaleString()
-}
-
-function submitBooking() {
-  if (!booking.courtId || !booking.start || !booking.payment) {
-    alert('Please complete all required fields')
-    return
-  }
-  const name = document.getElementById('guest-name').value
-  const phone = document.getElementById('guest-phone').value
-  if (!name || !phone) {
-    alert('Please fill in your name and phone number')
-    return
+    document.getElementById('sidebar-content').innerHTML = html
   }
 
-  const dur = parseInt(document.getElementById('booking-dur').value)
-  const [sh, sm] = booking.start.split(':').map(Number)
-  const endH = sh + dur
-  const endTime = String(endH).padStart(2, '0') + ':' + String(sm).padStart(2, '0')
+  function renderOrderSummary() {
+    const hrs        = bk.slots.length
+    const courtTotal = bk.courtPrice * hrs
+    const coachTotal = bk.coachPrice * hrs
+    const total      = courtTotal + coachTotal
 
-  const form = document.createElement('form')
-  form.method = 'POST'
-  form.action = '/bookings'
-
-  const fields = {
-    courtId: booking.courtId,
-    bookingDate: booking.date,
-    bookingStart: booking.start,
-    bookingEnd: endTime,
-    scheduleId: booking.coachId > 0 ? booking.coachId : '',
-    customerName: name,
-    customerPhone: phone,
-    customerEmail: document.getElementById('guest-email').value,
-    paymentMethod: booking.payment,
+    let html = `<div class="field-label" style="margin-bottom:8px;">Order summary</div>`
+    html += `<div class="sum-row"><span class="sum-row-label">${bk.courtName} × ${hrs}h</span><span>฿${courtTotal.toLocaleString()}</span></div>`
+    if (bk.coachId > 0) html += `<div class="sum-row"><span class="sum-row-label">${bk.coachName} × ${hrs}h</span><span>฿${coachTotal.toLocaleString()}</span></div>`
+    html += `<div style="height:0.5px;background:var(--clay-border);margin:8px 0;"></div>`
+    html += `<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500;">
+      <span>Total</span>
+      <span style="color:var(--clay);font-size:17px;">฿${total.toLocaleString()}</span>
+    </div>`
+    document.getElementById('order-box').innerHTML = html
   }
 
-  for (const [key, val] of Object.entries(fields)) {
-    const input = document.createElement('input')
-    input.type = 'hidden'
-    input.name = key
-    input.value = val
-    form.appendChild(input)
-  }
+  // ─────────────────────────────────────────────
+  // SUBMIT → POST /bookings
+  // ─────────────────────────────────────────────
+  function submitBooking() {
+    const name  = document.getElementById('guest-name').value.trim()
+    const phone = document.getElementById('guest-phone').value.trim()
+    const email = document.getElementById('guest-email').value.trim()
 
-  const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-  if (csrf) {
-    const csrfInput = document.createElement('input')
-    csrfInput.type = 'hidden'
-    csrfInput.name = '_csrf'
-    csrfInput.value = csrf
-    form.appendChild(csrfInput)
-  }
+    if (bk.slots.length === 0) { alert('Please select a time slot.');                  return }
+    if (!name || !phone)       { alert('Please fill in your name and phone number.');   return }
+    if (!bk.payment)           { alert('Please select a payment method.');              return }
 
-  document.body.appendChild(form)
-  form.submit()
-}
+    const lastH    = String(parseInt(bk.slots[bk.slots.length - 1]) + 1).padStart(2, '0')
+    const endTime  = `${lastH}:00`
+
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = '/bookings'
+
+    const fields = {
+      courtId:       bk.courtId,
+      bookingDate:   bk.date,
+      bookingStart:  bk.slots[0],
+      bookingEnd:    endTime,
+      scheduleId:    bk.coachId > 0 ? bk.coachId : '',
+      customerName:  name,
+      customerPhone: phone,
+      customerEmail: email,
+      paymentMethod: bk.payment,
+    }
+
+    for (const [key, val] of Object.entries(fields)) {
+      const input = document.createElement('input')
+      input.type  = 'hidden'
+      input.name  = key
+      input.value = val
+      form.appendChild(input)
+    }
+
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+    if (csrf) {
+      const c = document.createElement('input')
+      c.type = 'hidden'; c.name = '_csrf'; c.value = csrf
+      form.appendChild(c)
+    }
+
+    document.body.appendChild(form)
+    form.submit()
+  }
 </script>
 
 @endsection

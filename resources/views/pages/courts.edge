@@ -17,7 +17,7 @@
   @if(courts.length === 0)
     <p>No courts available for the selected time.</p>
   @else
-    <form action="/booking" method="GET">
+    <form action="/bookings/new" method="GET">
       <input type="hidden" name="date"      value="{{ filters.date }}">
       <input type="hidden" name="startTime" value="{{ filters.startTime }}">
       <input type="hidden" name="duration"  value="{{ filters.duration }}">
@@ -25,7 +25,7 @@
       <div class="court-grid">
         @each(court in courts)
           <label class="court-card court-card-selectable" for="court-{{ court.courtId }}">
-            <input type="radio" name="courtId" id="court-{{ court.courtId }}" value="{{ court.courtId }}" style="display:none">
+            <input type="radio" name="courtId" id="court-{{ court.courtId }}" value="{{ court.courtId }}" required style="display:none">
             <h2>{{ court.courtName }}</h2>
             <p class="court-price">฿{{ court.courtPricePerHr }}/hr</p>
           </label>
