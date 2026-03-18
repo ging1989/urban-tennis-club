@@ -7,7 +7,7 @@ import Customer from '#models/customer'
 export default class BookingsController {
 
   // GET /bookings/new?courtId=X&date=Y
-  async new({ request, view }: HttpContext) {
+  async new({ request, view, session }: HttpContext) {
     const courtId     = request.input('courtId')
     const bookingDate = request.input('date') ?? new Date().toISOString().split('T')[0]
 
@@ -38,11 +38,27 @@ export default class BookingsController {
         .orderBy('coach_id', 'asc')
     )
 
+    let discount = 0
+
+    const loggedInMemberId = session.get('memberId') as number | undefined
+    if (loggedInMemberId) {
+    const member = await Customer.query()
+      .where('customer_id', loggedInMemberId)
+      .where('customer_type', 'member')
+      .preload('tier')
+      .first()
+
+    if (member?.tier) {
+    discount = member.tier.tierDiscount // เช่น 10 (%)
+      }
+    }
+
     return view.render('pages/booking', {
       court,
       bookingDate,
       bookedSlots,
       coaches,
+      discount,
     })
   }
 

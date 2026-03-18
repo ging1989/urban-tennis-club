@@ -198,6 +198,10 @@
   // ─────────────────────────────────────────────
   // DATA — injected by Edge
   // ─────────────────────────────────────────────
+
+  // ─────────────────────────────────────────────
+  // DATA
+  // ─────────────────────────────────────────────
   const COURT = {
     id:     {{ court.courtId }},
     name:   '{{ court.courtName }}',
@@ -207,7 +211,9 @@
 
   const BOOKING_DATE = '{{ bookingDate }}'
 
-  // Booked slots come from server — array of 'HH:00' strings already taken on this date
+  // ✅ FIX สำคัญที่สุด
+  const DISCOUNT = {{ discount ?? 0 }} / 100
+
   const BOOKED_SLOTS = {{ JSON.stringify(bookedSlots) }}
 
   const ALL_SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00']
@@ -220,22 +226,21 @@
     courtName:  COURT.name,
     courtPrice: COURT.price,
     date:       BOOKING_DATE,
-    slots:      [],   // array of selected 'HH:00' strings, consecutive
+    slots:      [],
     coachId:    0,
     coachName:  '',
     coachPrice: 0,
     payment:    '',
   }
+
   let currentStep = 1
 
-  // ─────────────────────────────────────────────
   // INIT
-  // ─────────────────────────────────────────────
   buildSlots()
   updateSidebar()
 
   // ─────────────────────────────────────────────
-  // TIME SLOTS
+  // SLOT
   // ─────────────────────────────────────────────
   function buildSlots() {
     document.getElementById('slot-grid').innerHTML = ALL_SLOTS.map(s => {
@@ -249,21 +254,18 @@
   }
 
   function pickSlot(s) {
-    // Deselect if already the only or part of selection
+    if (BOOKED_SLOTS.includes(s)) return
+
     if (bk.slots.includes(s)) {
       bk.slots = []
     } else if (bk.slots.length === 0) {
       bk.slots = [s]
     } else {
-      // Build range between existing selection and new slot
       const combined = [...bk.slots, s].sort((a, b) => parseInt(a) - parseInt(b))
-      const first = combined[0]
-      const last  = combined[combined.length - 1]
-      const fi = ALL_SLOTS.indexOf(first)
-      const li = ALL_SLOTS.indexOf(last)
+      const fi = ALL_SLOTS.indexOf(combined[0])
+      const li = ALL_SLOTS.indexOf(combined[combined.length - 1])
       const range = ALL_SLOTS.slice(fi, li + 1)
 
-      // Validate: no booked slots in range, max 3 slots
       const valid = range.length <= 3 && range.every(x => !BOOKED_SLOTS.includes(x))
       bk.slots = valid ? range : [s]
     }
@@ -276,20 +278,8 @@
     ALL_SLOTS.forEach(s => {
       const el = document.getElementById('slot-' + s)
       if (!el) return
-      el.classList.remove('sel')
-      if (bk.slots.includes(s)) el.classList.add('sel')
+      el.classList.toggle('sel', bk.slots.includes(s))
     })
-
-    if (bk.slots.length > 0) {
-      const lastH = String(parseInt(bk.slots[bk.slots.length - 1]) + 1).padStart(2, '0')
-      document.getElementById('slot-hint-txt').textContent = `${bk.slots[0]} – ${lastH}:00 (${bk.slots.length}h)`
-    } else {
-      document.getElementById('slot-hint-txt').textContent = 'none'
-    }
-
-    document.getElementById('step1-sub').textContent = bk.slots.length === 3
-      ? 'Maximum 3 slots selected'
-      : `Choose up to 3 consecutive slots (${bk.slots.length}/3 selected)`
   }
 
   // ─────────────────────────────────────────────
@@ -298,9 +288,11 @@
   function pickCoach(id, name, price) {
     document.querySelectorAll('.coach-opt').forEach(el => el.classList.remove('sel'))
     document.getElementById('coach-opt-' + id).classList.add('sel')
-    bk.coachId    = id
-    bk.coachName  = name
+
+    bk.coachId = id
+    bk.coachName = name
     bk.coachPrice = price
+
     updateSidebar()
   }
 
@@ -312,133 +304,87 @@
       p.classList.remove('sel')
       p.querySelector('.pay-radio').className = 'pay-radio'
     })
+
     el.classList.add('sel')
     el.querySelector('.pay-radio').className = 'pay-radio on'
     bk.payment = method
   }
 
   // ─────────────────────────────────────────────
-  // NAVIGATION
+  // STEP
   // ─────────────────────────────────────────────
   function goStep(n) {
-    if (n === 2 && bk.slots.length === 0) { alert('Please select at least one time slot.'); return }
+    if (n === 2 && bk.slots.length === 0) {
+      alert('Please select a time slot.')
+      return
+    }
+
     document.getElementById('step-' + currentStep).style.display = 'none'
     currentStep = n
     document.getElementById('step-' + n).style.display = 'block'
-    if (n === 4) renderOrderSummary()
-    updateStepper()
-    updateSidebar()
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
 
-  function updateStepper() {
-    for (let i = 1; i <= 4; i++) {
-      const wrap   = document.querySelector('.step-wrap[data-step="' + i + '"]')
-      const circle = wrap.querySelector('.step-circle')
-      const label  = wrap.querySelector('.step-label')
-      circle.className   = 'step-circle ' + (i < currentStep ? 'done' : i === currentStep ? 'active' : 'idle')
-      circle.textContent = i < currentStep ? '✓' : i
-      label.className    = 'step-label' + (i === currentStep ? ' active' : '')
-      if (i < 4) document.getElementById('l' + i).className = 'step-line' + (i < currentStep ? ' done' : '')
-    }
+    if (n === 4) renderOrderSummary()
+    updateSidebar()
   }
 
   // ─────────────────────────────────────────────
   // SIDEBAR
   // ─────────────────────────────────────────────
   function updateSidebar() {
-    const hrs        = bk.slots.length
+    const hrs = bk.slots.length
     const courtTotal = bk.courtPrice * hrs
     const coachTotal = bk.coachPrice * hrs
-    const total      = courtTotal + coachTotal
+
+    const subtotal = courtTotal + coachTotal
+    const discountAmount = subtotal * DISCOUNT
+    const total = subtotal - discountAmount
 
     let html = ''
-    html += `<div class="sum-row"><span class="sum-row-label">Court</span><span class="sum-row-value">${bk.courtName}</span></div>`
-    if (bk.date) html += `<div class="sum-row"><span class="sum-row-label">Date</span><span class="sum-row-value">${bk.date}</span></div>`
+
+    html += `<div class="sum-row"><span>Court</span><span>${bk.courtName}</span></div>`
 
     if (hrs > 0) {
-      const lastH = String(parseInt(bk.slots[bk.slots.length - 1]) + 1).padStart(2, '0')
-      html += `<div class="sum-row"><span class="sum-row-label">Time</span><span class="sum-row-value">${bk.slots[0]} – ${lastH}:00</span></div>`
-      html += `<div class="sum-row"><span class="sum-row-label">Duration</span><span class="sum-row-value">${hrs}h</span></div>`
+      html += `<div class="sum-row"><span>Time</span><span>${bk.slots[0]}</span></div>`
     }
 
-    if (bk.coachId > 0) html += `<div class="sum-row"><span class="sum-row-label">Coach</span><span class="sum-row-value">${bk.coachName}</span></div>`
-    if (courtTotal > 0) html += `<div class="sum-row"><span class="sum-row-label">Court fee</span><span class="sum-row-value">฿${courtTotal.toLocaleString()}</span></div>`
-    if (coachTotal > 0) html += `<div class="sum-row"><span class="sum-row-label">Coach fee</span><span class="sum-row-value">฿${coachTotal.toLocaleString()}</span></div>`
+    html += `<div class="sum-row"><span>Court fee</span><span>฿${courtTotal}</span></div>`
+    html += `<div class="sum-row"><span>Coach fee</span><span>฿${coachTotal}</span></div>`
 
-    html += `<div class="sum-total-box">
-      <span class="sum-total-label">Total</span>
-      <span class="sum-total-value">฿${total.toLocaleString()}</span>
-    </div>`
+    if (DISCOUNT > 0) {
+      html += `<div class="sum-row">
+        <span>Discount (${DISCOUNT * 100}%)</span>
+        <span>-฿${discountAmount}</span>
+      </div>`
+    }
+
+    html += `<div class="sum-total-box"><b>Total: ฿${total}</b></div>`
 
     document.getElementById('sidebar-content').innerHTML = html
   }
 
+  // ─────────────────────────────────────────────
+  // ORDER SUMMARY
+  // ─────────────────────────────────────────────
   function renderOrderSummary() {
-    const hrs        = bk.slots.length
+    const hrs = bk.slots.length
     const courtTotal = bk.courtPrice * hrs
     const coachTotal = bk.coachPrice * hrs
-    const total      = courtTotal + coachTotal
 
-    let html = `<div class="field-label" style="margin-bottom:8px;">Order summary</div>`
-    html += `<div class="sum-row"><span class="sum-row-label">${bk.courtName} × ${hrs}h</span><span>฿${courtTotal.toLocaleString()}</span></div>`
-    if (bk.coachId > 0) html += `<div class="sum-row"><span class="sum-row-label">${bk.coachName} × ${hrs}h</span><span>฿${coachTotal.toLocaleString()}</span></div>`
-    html += `<div style="height:0.5px;background:var(--clay-border);margin:8px 0;"></div>`
-    html += `<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:500;">
-      <span>Total</span>
-      <span style="color:var(--clay);font-size:17px;">฿${total.toLocaleString()}</span>
-    </div>`
+    const subtotal = courtTotal + coachTotal
+    const discountAmount = subtotal * DISCOUNT
+    const total = subtotal - discountAmount
+
+    let html = `<div>Summary</div>`
+    html += `<div>Court: ฿${courtTotal}</div>`
+    html += `<div>Coach: ฿${coachTotal}</div>`
+
+    if (DISCOUNT > 0) {
+      html += `<div style="color:green">Discount: -฿${discountAmount}</div>`
+    }
+
+    html += `<div><b>Total: ฿${total}</b></div>`
+
     document.getElementById('order-box').innerHTML = html
-  }
-
-  // ─────────────────────────────────────────────
-  // SUBMIT → POST /bookings
-  // ─────────────────────────────────────────────
-  function submitBooking() {
-    const name  = document.getElementById('guest-name').value.trim()
-    const phone = document.getElementById('guest-phone').value.trim()
-    const email = document.getElementById('guest-email').value.trim()
-
-    if (bk.slots.length === 0) { alert('Please select a time slot.');                  return }
-    if (!name || !phone)       { alert('Please fill in your name and phone number.');   return }
-    if (!bk.payment)           { alert('Please select a payment method.');              return }
-
-    const lastH    = String(parseInt(bk.slots[bk.slots.length - 1]) + 1).padStart(2, '0')
-    const endTime  = `${lastH}:00`
-
-    const form = document.createElement('form')
-    form.method = 'POST'
-    form.action = '/bookings'
-
-    const fields = {
-      courtId:       bk.courtId,
-      bookingDate:   bk.date,
-      bookingStart:  bk.slots[0],
-      bookingEnd:    endTime,
-      scheduleId:    bk.coachId > 0 ? bk.coachId : '',
-      customerName:  name,
-      customerPhone: phone,
-      customerEmail: email,
-      paymentMethod: bk.payment,
-    }
-
-    for (const [key, val] of Object.entries(fields)) {
-      const input = document.createElement('input')
-      input.type  = 'hidden'
-      input.name  = key
-      input.value = val
-      form.appendChild(input)
-    }
-
-    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-    if (csrf) {
-      const c = document.createElement('input')
-      c.type = 'hidden'; c.name = '_csrf'; c.value = csrf
-      form.appendChild(c)
-    }
-
-    document.body.appendChild(form)
-    form.submit()
   }
 </script>
 

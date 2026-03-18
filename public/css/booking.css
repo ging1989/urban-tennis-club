@@ -551,3 +551,8 @@
   .qbar          { flex-direction: column; }
   .qbar-btn      { width: 100%; }
 }
+
+.ts.unavail {
+  opacity: 0.4;
+  pointer-events: none;
+}
