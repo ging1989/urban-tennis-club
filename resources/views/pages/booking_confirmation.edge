@@ -13,6 +13,11 @@
     <div class="success-icon">✓</div>
     <div class="success-title">Booking confirmed!</div>
     <div class="success-ref">{{ booking.bookingId }}</div>
+    <div class="expiry-alert-box" style="margin: 24px 0; padding: 20px; background: #fff5f5; border: 1px solid #ffcccc; border-radius: 12px;">
+      <p style="margin: 0; font-size: 14px; color: #666;">Please complete your payment by:</p>
+      <h1 id="timer" style="margin: 8px 0; font-size: 48px; color: #d9534f; font-weight: bold;">30:00</h1>
+      <p style="margin: 0; font-size: 12px; color: #d9534f;">If the payment is not completed on time, the court will be available for others to book immediately.</p>
+    </div>
 
     <div class="success-grid">
       <div class="sc-card">
@@ -47,12 +52,61 @@
       </div>
     </div>
 
+    <div class="payment-instruction" style="margin: 24px 0; padding: 20px; border-top: 1px dashed #ddd;">
+      @if(booking.payment.paymentMethod === 'qr')
+        <div class="qr-payment">
+          <p style="font-weight: bold;">Scan to pay via PromptPay</p>
+          {{-- ในอนาคตใช้ API เจน QR จริงได้ --}}
+          <img src="/images/promptpay-mock.png" style="width: 200px; margin: 12px auto;">
+        </div>
+      @else
+        <div class="bank-payment">
+          <p style="font-weight: bold;">Transfer via bank account</p>
+          <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; display: inline-block; text-align: left;">
+            <div>KBank</div>
+            <div style="font-size: 18px; font-weight: bold;">123-4-56789-0</div>
+            <div style="font-size: 13px;">Account Name: Urban Tennis Club</div>
+          </div>
+        </div>
+      @endif
+    </div>
+
     <a href="/" class="btn-primary" style="display:inline-block;max-width:180px;text-decoration:none;">
       Back to home →
     </a>
 
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // ดึงเวลาสร้างจากฐานข้อมูล (ส่งมาเป็น Timestamp มิลลิวินาที)
+    const createdAt = {{ booking.createdAt.toMillis() }};
+    const expiryTime = createdAt + (30 * 60 * 1000); // บวก 30 นาที
+    const timerDisplay = document.getElementById('timer');
+
+    const countdown = setInterval(() => {
+      const now = Date.now();
+      const distance = expiryTime - now;
+
+      if (distance < 0) {
+        clearInterval(countdown);
+        timerDisplay.innerHTML = "หมดเวลา";
+        timerDisplay.style.color = "#999";
+        // Senior Tip: อาจจะ Redirect กลับไปหน้าเลือกสนามได้ที่นี่
+        // window.location.href = '/courts';
+        return;
+      }
+
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      timerDisplay.innerHTML = 
+        String(minutes).padStart(2, '0') + ":" + 
+        String(seconds).padStart(2, '0');
+    }, 1000);
+  });
+</script>
 
 @end
 

@@ -9,6 +9,12 @@
 
 <div class="booking-wrap">
 
+  @if(flashMessages.has('error'))
+  <div class="alert-error-box">
+    {{ flashMessages.get('error') }}
+  </div>
+  @endif
+
   {{-- STEPPER --}}
   <div id="stepper">
     <div class="step-wrap" data-step="1">
@@ -156,11 +162,11 @@
         <div class="panel-title">Payment</div>
         <div class="panel-sub">Choose your payment method</div>
 
-        <div class="pay-opt" onclick="pickPay(this,'cash')">
+        {{-- <div class="pay-opt" onclick="pickPay(this,'cash')">
           <div class="pay-icon">💵</div>
           <div><div class="pay-name">Cash</div><div class="pay-desc">Pay at counter</div></div>
           <div class="pay-radio" id="r-cash"></div>
-        </div>
+        </div> --}}
         <div class="pay-opt" onclick="pickPay(this,'qr')">
           <div class="pay-icon">📱</div>
           <div><div class="pay-name">QR Code</div><div class="pay-desc">PromptPay / Thai QR</div></div>
@@ -171,11 +177,11 @@
           <div><div class="pay-name">Bank Transfer</div><div class="pay-desc">Transfer & upload slip</div></div>
           <div class="pay-radio" id="r-transfer"></div>
         </div>
-        <div class="pay-opt" onclick="pickPay(this,'card')">
+        {{-- <div class="pay-opt" onclick="pickPay(this,'card')">
           <div class="pay-icon">💳</div>
           <div><div class="pay-name">Credit / Debit Card</div><div class="pay-desc">Visa, Mastercard</div></div>
           <div class="pay-radio" id="r-card"></div>
-        </div>
+        </div> --}}
 
         <div class="btn-row">
           <button class="btn-back" onclick="goStep(3)">← Back</button>
@@ -206,6 +212,9 @@
 </div>{{-- /booking-wrap --}}
 
 <script>
+
+const CSRF_TOKEN = '{{ csrfToken }}'
+
   const COURT = {
     id:     {{ court.courtId }},
     name:   '{{ court.courtName }}',
@@ -298,6 +307,20 @@
 
   function goStep(n) {
     if (n === 2 && bk.slots.length === 0) { alert('Please select a time slot.'); return }
+    if (n === 4) {
+        // ดึงค่าจาก input หรือถ้าเป็นสมาชิกก็ดึงจากระบบ
+        const name  = document.getElementById('guest-name')?.value.trim() || '{{ auth.user?.fullName || "" }}';
+        const phone = document.getElementById('guest-phone')?.value.trim() || '{{ auth.user?.phone || "" }}';
+
+        if (!name) { 
+            alert('Please enter your name.'); 
+            return; 
+        }
+        if (!phone) { 
+            alert('Please enter your phone number.'); 
+            return; 
+        }
+    }
     document.getElementById('step-' + currentStep).style.display = 'none'
     currentStep = n
     document.getElementById('step-' + n).style.display = 'block'
@@ -333,8 +356,11 @@
     if (!bk.courtId) { alert('Court ID missing. Please refresh and try again.'); return }
     if (bk.slots.length === 0) { alert('Please select a time slot.'); return }
 
-    const name  = document.getElementById('guest-name').value.trim()
-    const phone = document.getElementById('guest-phone').value.trim()
+    // ✅ 2. Senior Tip: ทำ Fallback ให้ครบทุกฟิลด์สำหรับสมาชิก
+    const name  = document.getElementById('guest-name')?.value.trim() || '{{ auth.user?.fullName || "" }}'
+    const phone = document.getElementById('guest-phone')?.value.trim() || '{{ auth.user?.phone || "" }}'
+    const email = document.getElementById('guest-email')?.value.trim() || '{{ auth.user?.email || "" }}'
+
     if (!name)  { alert('Please enter your name.'); return }
     if (!phone) { alert('Please enter your phone number.'); return }
 
@@ -342,8 +368,7 @@
     const bookingStart = sortedSlots[0] + ':00'
     const bookingEnd   = String(parseInt(sortedSlots[sortedSlots.length - 1]) + 1).padStart(2, '0') + ':00'
 
-    const csrfMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
-    const csrf = csrfMatch ? decodeURIComponent(csrfMatch[1]) : ''
+    const csrf = CSRF_TOKEN
 
     const form = document.createElement('form')
     form.method = 'POST'
@@ -357,7 +382,7 @@
       bookingEnd,
       customerName:  name,
       customerPhone: phone,
-      customerEmail: document.getElementById('guest-email').value.trim(),
+      customerEmail: email,
       paymentMethod: bk.payment,
       scheduleId:    bk.coachId || '',
     }
@@ -372,7 +397,21 @@
 
     document.body.appendChild(form)
     form.submit()
-  }
+}
+
 </script>
+
+<form id="real-booking-form" method="POST" action="/bookings" style="display:none;">
+  {{ csrfField() }}
+  <input type="hidden" name="courtId" value="{{ court.courtId }}">
+  <input type="hidden" name="bookingDate" value="{{ bookingDate }}">
+  <input type="hidden" name="bookingStart" id="f-start">
+  <input type="hidden" name="bookingEnd" id="f-end">
+  <input type="hidden" name="customerName" id="f-name">
+  <input type="hidden" name="customerPhone" id="f-phone">
+  <input type="hidden" name="customerEmail" id="f-email">
+  <input type="hidden" name="paymentMethod" id="f-payment">
+  <input type="hidden" name="scheduleId" id="f-schedule">
+</form>
 
 @end
