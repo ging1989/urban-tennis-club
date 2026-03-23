@@ -9,7 +9,12 @@ export default class BookingsController {
   // GET /bookings/new?courtId=X&date=Y
   async new({ request, view, session }: HttpContext) {
     const courtId     = request.input('courtId')
-    const bookingDate = request.input('date') ?? new Date().toISOString().split('T')[0]
+    //const bookingDate = request.input('date') ?? new Date().toISOString().split('T')[0]
+    const rawDate = request.input('date')
+    const hasDate = !!(rawDate && rawDate !== 'null' && rawDate !== 'undefined')
+    const bookingDate = (rawDate && rawDate !== 'null' && rawDate !== 'undefined')
+      ? rawDate
+      : new Date().toISOString().split('T')[0]
 
     const court = await Court.findOrFail(courtId)
 
@@ -56,6 +61,7 @@ export default class BookingsController {
     return view.render('pages/booking', {
       court,
       bookingDate,
+      hasDate,
       bookedSlots,
       coaches,
       discount,

@@ -1,9 +1,9 @@
-@layout('layouts/main')
+@layout('layouts/master')
 @set('title', 'Book a Court')
 
-@section('styles')
+@push('styles')
   <link rel="stylesheet" href="/css/booking.css">
-@endsection
+@end
 
 @section('content')
 
@@ -57,6 +57,19 @@
               {{ court.courtStatus === 'indoor' ? 'Indoor' : 'Outdoor' }} · Hard court · ฿{{ court.courtPricePerHr }}/hr
             </div>
           </div>
+        </div>
+
+        {{-- Date picker --}}
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Date</label>
+          <input
+            type="date"
+            id="pick-date"
+            value="{{ bookingDate }}"
+            min="{{ new Date().toISOString().split('T')[0] }}"
+            style="width:100%;padding:8px 12px;border:0.5px solid var(--clay-border);border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;"
+            onchange="changeDate(this.value)"
+          >
         </div>
 
         <div class="slot-hint">Selected: <span id="slot-hint-txt" class="slot-hint-val">none</span> — Max 3 consecutive slots</div>
@@ -164,8 +177,6 @@
           <div class="pay-radio" id="r-card"></div>
         </div>
 
-        <div class="order-summary-box" id="order-box"></div>
-
         <div class="btn-row">
           <button class="btn-back" onclick="goStep(3)">← Back</button>
           <button class="btn-primary" style="flex:2;" onclick="submitBooking()">Confirm booking →</button>
@@ -195,13 +206,6 @@
 </div>{{-- /booking-wrap --}}
 
 <script>
-  // ─────────────────────────────────────────────
-  // DATA — injected by Edge
-  // ─────────────────────────────────────────────
-
-  // ─────────────────────────────────────────────
-  // DATA
-  // ─────────────────────────────────────────────
   const COURT = {
     id:     {{ court.courtId }},
     name:   '{{ court.courtName }}',
@@ -210,17 +214,10 @@
   }
 
   const BOOKING_DATE = '{{ bookingDate }}'
-
-  // ✅ FIX สำคัญที่สุด
   const DISCOUNT = {{ discount ?? 0 }} / 100
-
   const BOOKED_SLOTS = {{ JSON.stringify(bookedSlots) }}
-
   const ALL_SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00']
 
-  // ─────────────────────────────────────────────
-  // STATE
-  // ─────────────────────────────────────────────
   let bk = {
     courtId:    COURT.id,
     courtName:  COURT.name,
@@ -235,13 +232,9 @@
 
   let currentStep = 1
 
-  // INIT
   buildSlots()
   updateSidebar()
 
-  // ─────────────────────────────────────────────
-  // SLOT
-  // ─────────────────────────────────────────────
   function buildSlots() {
     document.getElementById('slot-grid').innerHTML = ALL_SLOTS.map(s => {
       const endH = String(parseInt(s) + 1).padStart(2, '0')
@@ -253,9 +246,13 @@
     }).join('')
   }
 
+  function changeDate(val) {
+    if (!val) return
+    window.location.href = `/bookings/new?courtId=${bk.courtId}&date=${val}`
+  }
+
   function pickSlot(s) {
     if (BOOKED_SLOTS.includes(s)) return
-
     if (bk.slots.includes(s)) {
       bk.slots = []
     } else if (bk.slots.length === 0) {
@@ -265,129 +262,60 @@
       const fi = ALL_SLOTS.indexOf(combined[0])
       const li = ALL_SLOTS.indexOf(combined[combined.length - 1])
       const range = ALL_SLOTS.slice(fi, li + 1)
-
       const valid = range.length <= 3 && range.every(x => !BOOKED_SLOTS.includes(x))
       bk.slots = valid ? range : [s]
     }
-
     renderSlots()
     updateSidebar()
   }
 
-  function renderSlots() {
-    ALL_SLOTS.forEach(s => {
-      const el = document.getElementById('slot-' + s)
-      if (!el) return
-      el.classList.toggle('sel', bk.slots.includes(s))
-    })
+
+  function submitBooking() {
+  if (!bk.payment) { alert('Please select a payment method.'); return }
+  if (!bk.courtId) { alert('Court ID missing. Please refresh and try again.'); return }
+  if (bk.slots.length === 0) { alert('Please select a time slot.'); return }
+
+  const name  = document.getElementById('guest-name').value.trim()
+  const phone = document.getElementById('guest-phone').value.trim()
+  if (!name)  { alert('Please enter your name.'); return }
+  if (!phone) { alert('Please enter your phone number.'); return }
+
+  const sortedSlots = [...bk.slots].sort((a, b) => parseInt(a) - parseInt(b))
+  const bookingStart = sortedSlots[0] + ':00'
+  const bookingEnd   = String(parseInt(sortedSlots[sortedSlots.length - 1]) + 1).padStart(2, '0') + ':00'
+
+  // ── ดึง CSRF token จาก cookie ──
+  const csrfMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+  const csrf = csrfMatch ? decodeURIComponent(csrfMatch[1]) : ''
+
+  const form = document.createElement('form')
+  form.method = 'POST'
+  form.action = '/bookings'
+
+  const fields = {
+    _csrf:         csrf,   // ← เปลี่ยนตรงนี้
+    courtId:       bk.courtId,
+    bookingDate:   bk.date,
+    bookingStart,
+    bookingEnd,
+    customerName:  name,
+    customerPhone: phone,
+    customerEmail: document.getElementById('guest-email').value.trim(),
+    paymentMethod: bk.payment,
+    scheduleId:    bk.coachId || '',
   }
 
-  // ─────────────────────────────────────────────
-  // COACH
-  // ─────────────────────────────────────────────
-  function pickCoach(id, name, price) {
-    document.querySelectorAll('.coach-opt').forEach(el => el.classList.remove('sel'))
-    document.getElementById('coach-opt-' + id).classList.add('sel')
-
-    bk.coachId = id
-    bk.coachName = name
-    bk.coachPrice = price
-
-    updateSidebar()
+  for (const [key, val] of Object.entries(fields)) {
+    const input = document.createElement('input')
+    input.type  = 'hidden'
+    input.name  = key
+    input.value = val
+    form.appendChild(input)
   }
 
-  // ─────────────────────────────────────────────
-  // PAYMENT
-  // ─────────────────────────────────────────────
-  function pickPay(el, method) {
-    document.querySelectorAll('.pay-opt').forEach(p => {
-      p.classList.remove('sel')
-      p.querySelector('.pay-radio').className = 'pay-radio'
-    })
-
-    el.classList.add('sel')
-    el.querySelector('.pay-radio').className = 'pay-radio on'
-    bk.payment = method
-  }
-
-  // ─────────────────────────────────────────────
-  // STEP
-  // ─────────────────────────────────────────────
-  function goStep(n) {
-    if (n === 2 && bk.slots.length === 0) {
-      alert('Please select a time slot.')
-      return
-    }
-
-    document.getElementById('step-' + currentStep).style.display = 'none'
-    currentStep = n
-    document.getElementById('step-' + n).style.display = 'block'
-
-    if (n === 4) renderOrderSummary()
-    updateSidebar()
-  }
-
-  // ─────────────────────────────────────────────
-  // SIDEBAR
-  // ─────────────────────────────────────────────
-  function updateSidebar() {
-    const hrs = bk.slots.length
-    const courtTotal = bk.courtPrice * hrs
-    const coachTotal = bk.coachPrice * hrs
-
-    const subtotal = courtTotal + coachTotal
-    const discountAmount = subtotal * DISCOUNT
-    const total = subtotal - discountAmount
-
-    let html = ''
-
-    html += `<div class="sum-row"><span>Court</span><span>${bk.courtName}</span></div>`
-
-    if (hrs > 0) {
-      html += `<div class="sum-row"><span>Time</span><span>${bk.slots[0]}</span></div>`
-    }
-
-    html += `<div class="sum-row"><span>Court fee</span><span>฿${courtTotal}</span></div>`
-    html += `<div class="sum-row"><span>Coach fee</span><span>฿${coachTotal}</span></div>`
-
-    if (DISCOUNT > 0) {
-      html += `<div class="sum-row">
-        <span>Discount (${DISCOUNT * 100}%)</span>
-        <span>-฿${discountAmount}</span>
-      </div>`
-    }
-
-    html += `<div class="sum-total-box"><b>Total: ฿${total}</b></div>`
-
-    document.getElementById('sidebar-content').innerHTML = html
-  }
-
-  // ─────────────────────────────────────────────
-  // ORDER SUMMARY
-  // ─────────────────────────────────────────────
-  function renderOrderSummary() {
-    const hrs = bk.slots.length
-    const courtTotal = bk.courtPrice * hrs
-    const coachTotal = bk.coachPrice * hrs
-
-    const subtotal = courtTotal + coachTotal
-    const discountAmount = subtotal * DISCOUNT
-    const total = subtotal - discountAmount
-
-    let html = `<div>Summary</div>`
-    html += `<div>Court: ฿${courtTotal}</div>`
-    html += `<div>Coach: ฿${coachTotal}</div>`
-
-    if (DISCOUNT > 0) {
-      html += `<div style="color:green">Discount: -฿${discountAmount}</div>`
-    }
-
-    html += `<div><b>Total: ฿${total}</b></div>`
-
-    document.getElementById('order-box').innerHTML = html
-  }
+  document.body.appendChild(form)
+  form.submit()
+}
 </script>
-
-@endsection
 
 @end
