@@ -88,8 +88,8 @@ async store({ request, response, session }: HttpContext) {
     const redirectUrl = `/bookings/new?courtId=${data.courtId}&date=${data.bookingDate}`
 
     const court = await Court.findOrFail(data.courtId)
-    if (court.courtStatus !== 'open' && court.courtStatus !== 'available' && court.courtStatus !== 'indoor') {
-      session.flash('error', 'สนามไม่เปิดให้บริการในขณะนี้')
+    if (court.courtStatus !== 'available' && court.courtStatus !== 'available' && court.courtStatus !== 'indoor') {
+      session.flash('error', 'The court is not available at the moment.')
       return response.redirect().toPath(redirectUrl)
     }
 
@@ -117,7 +117,7 @@ async store({ request, response, session }: HttpContext) {
 
       if (conflict) {
         await trx.rollback()
-        session.flash('error', 'ช่วงเวลานี้มีผู้จองไปแล้ว (หรือมีคนจองไว้และกำลังรอการชำระเงิน)')
+        session.flash('error', 'This time slot has already been booked.')
         return response.redirect().toPath(redirectUrl)
       }
 
