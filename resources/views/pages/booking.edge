@@ -15,7 +15,6 @@
   </div>
   @endif
 
-  {{-- STEPPER --}}
   <div id="stepper">
     <div class="step-wrap" data-step="1">
       <div class="step-circle active">1</div>
@@ -41,7 +40,6 @@
   <div class="booking-grid">
     <div id="main-panel">
 
-      {{-- STEP 1: TIME SLOT --}}
       <div id="step-1" class="panel">
         <div class="panel-title">Select time slots</div>
         <div class="panel-sub" id="step1-sub">Choose up to 3 consecutive slots</div>
@@ -65,7 +63,6 @@
           </div>
         </div>
 
-        {{-- Date picker --}}
         <div style="margin-bottom:14px;">
           <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Date</label>
           <input
@@ -84,7 +81,6 @@
         <button class="btn-primary" onclick="goStep(2)">Continue →</button>
       </div>
 
-      {{-- STEP 2: COACH --}}
       <div id="step-2" class="panel" style="display:none;">
         <div class="panel-title">Add a coach</div>
         <div class="panel-sub">Optional — skip if you don't need one</div>
@@ -125,7 +121,6 @@
         </div>
       </div>
 
-      {{-- STEP 3: DETAILS --}}
       <div id="step-3" class="panel" style="display:none;">
         <div class="panel-title">Your details</div>
         <div class="panel-sub">No account needed</div>
@@ -148,7 +143,6 @@
         </div>
 
         <div class="or-divider">or</div>
-
         <a href="/login" class="member-login-link">Login as member to get discount →</a>
 
         <div class="btn-row">
@@ -157,16 +151,10 @@
         </div>
       </div>
 
-      {{-- STEP 4: PAYMENT --}}
       <div id="step-4" class="panel" style="display:none;">
         <div class="panel-title">Payment</div>
         <div class="panel-sub">Choose your payment method</div>
 
-        {{-- <div class="pay-opt" onclick="pickPay(this,'cash')">
-          <div class="pay-icon">💵</div>
-          <div><div class="pay-name">Cash</div><div class="pay-desc">Pay at counter</div></div>
-          <div class="pay-radio" id="r-cash"></div>
-        </div> --}}
         <div class="pay-opt" onclick="pickPay(this,'qr')">
           <div class="pay-icon">📱</div>
           <div><div class="pay-name">QR Code</div><div class="pay-desc">PromptPay / Thai QR</div></div>
@@ -174,14 +162,9 @@
         </div>
         <div class="pay-opt" onclick="pickPay(this,'transfer')">
           <div class="pay-icon">🏦</div>
-          <div><div class="pay-name">Bank Transfer</div><div class="pay-desc">Transfer & upload slip</div></div>
+          <div><div class="pay-name">Bank Transfer</div><div class="pay-desc">Transfer and upload slip</div></div>
           <div class="pay-radio" id="r-transfer"></div>
         </div>
-        {{-- <div class="pay-opt" onclick="pickPay(this,'card')">
-          <div class="pay-icon">💳</div>
-          <div><div class="pay-name">Credit / Debit Card</div><div class="pay-desc">Visa, Mastercard</div></div>
-          <div class="pay-radio" id="r-card"></div>
-        </div> --}}
 
         <div class="btn-row">
           <button class="btn-back" onclick="goStep(3)">← Back</button>
@@ -189,7 +172,6 @@
         </div>
       </div>
 
-      {{-- STEP 5: SUCCESS --}}
       <div id="step-5" class="panel" style="display:none;text-align:center;padding:36px 20px;">
         <div class="success-icon">✓</div>
         <div class="success-title">Booking confirmed!</div>
@@ -198,9 +180,8 @@
         <a href="/" class="btn-primary" style="display:inline-block;max-width:180px;text-decoration:none;">Back to home →</a>
       </div>
 
-    </div>{{-- /main-panel --}}
+    </div>
 
-    {{-- SIDEBAR --}}
     <div class="sidebar">
       <div class="sidebar-title">Booking summary</div>
       <div id="sidebar-content">
@@ -208,23 +189,19 @@
       </div>
     </div>
 
-  </div>{{-- /booking-grid --}}
-</div>{{-- /booking-wrap --}}
+  </div>
+</div>
 
 <script>
-
-const CSRF_TOKEN = '{{ csrfToken }}'
-
+  const CSRF_TOKEN = '{{ csrfToken }}'
   const COURT = {
-    id:     {{ court.courtId }},
-    name:   '{{ court.courtName }}',
-    price:  {{ court.courtPricePerHr }},
-    indoor: {{ court.courtStatus === 'indoor' ? 'true' : 'false' }},
+    id:    {{ court.courtId }},
+    name:  '{{ court.courtName }}',
+    price: {{ court.courtPricePerHr }},
   }
-
   const BOOKING_DATE = '{{ bookingDate }}'
   const DISCOUNT = {{ discount ?? 0 }} / 100
-  const BOOKED_SLOTS = {{ JSON.stringify(bookedSlots) }}
+  const BOOKED_SLOTS = {{{ bookedSlotsJson }}}
   const ALL_SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00']
 
   let bk = {
@@ -241,37 +218,51 @@ const CSRF_TOKEN = '{{ csrfToken }}'
 
   let currentStep = 1
 
-  buildSlots()
-  updateSidebar()
+  document.addEventListener('DOMContentLoaded', function() {
+    buildSlots()
+    updateSidebar()
+  })
 
   function buildSlots() {
-    document.getElementById('slot-grid').innerHTML = ALL_SLOTS.map(s => {
-      const endH = String(parseInt(s) + 1).padStart(2, '0')
-      const isBooked = BOOKED_SLOTS.includes(s)
-      return `<div class="ts${isBooked ? ' unavail' : ''}" id="slot-${s}" onclick="pickSlot('${s}')">
-        <div class="ts-main">${s}</div>
-        <div class="ts-sub">–${endH}:00</div>
-      </div>`
-    }).join('')
+    var grid = document.getElementById('slot-grid')
+    if (!grid) return
+    var html = ''
+    for (var i = 0; i < ALL_SLOTS.length; i++) {
+      var s = ALL_SLOTS[i]
+      var endH = String(parseInt(s) + 1).padStart(2, '0')
+      var isBooked = BOOKED_SLOTS.indexOf(s) !== -1
+      if (isBooked) {
+        html += '<div class="ts unavail" id="slot-' + s + '" style="pointer-events:none;opacity:0.45;cursor:not-allowed;background:#eee;">'
+          + '<div class="ts-main">' + s + '</div>'
+          + '<div class="ts-sub">Booked</div>'
+          + '</div>'
+      } else {
+        html += '<div class="ts" id="slot-' + s + '" onclick="pickSlot(\'' + s + '\')">'
+          + '<div class="ts-main">' + s + '</div>'
+          + '<div class="ts-sub">–' + endH + ':00</div>'
+          + '</div>'
+      }
+    }
+    grid.innerHTML = html
   }
 
   function changeDate(val) {
     if (!val) return
-    window.location.href = `/bookings/new?courtId=${bk.courtId}&date=${val}`
+    window.location.href = '/bookings/new?courtId=' + bk.courtId + '&date=' + val
   }
 
   function pickSlot(s) {
-    if (BOOKED_SLOTS.includes(s)) return
-    if (bk.slots.includes(s)) {
+    if (BOOKED_SLOTS.indexOf(s) !== -1) return
+    if (bk.slots.indexOf(s) !== -1) {
       bk.slots = []
     } else if (bk.slots.length === 0) {
       bk.slots = [s]
     } else {
-      const combined = [...bk.slots, s].sort((a, b) => parseInt(a) - parseInt(b))
-      const fi = ALL_SLOTS.indexOf(combined[0])
-      const li = ALL_SLOTS.indexOf(combined[combined.length - 1])
-      const range = ALL_SLOTS.slice(fi, li + 1)
-      const valid = range.length <= 3 && range.every(x => !BOOKED_SLOTS.includes(x))
+      var combined = bk.slots.concat([s]).sort(function(a,b){ return parseInt(a)-parseInt(b) })
+      var fi = ALL_SLOTS.indexOf(combined[0])
+      var li = ALL_SLOTS.indexOf(combined[combined.length-1])
+      var range = ALL_SLOTS.slice(fi, li+1)
+      var valid = range.length <= 3 && range.every(function(x){ return BOOKED_SLOTS.indexOf(x) === -1 })
       bk.slots = valid ? range : [s]
     }
     renderSlots()
@@ -279,15 +270,20 @@ const CSRF_TOKEN = '{{ csrfToken }}'
   }
 
   function renderSlots() {
-    ALL_SLOTS.forEach(s => {
-      const el = document.getElementById('slot-' + s)
-      if (!el) return
-      el.classList.toggle('sel', bk.slots.includes(s))
-    })
+    for (var i = 0; i < ALL_SLOTS.length; i++) {
+      var s = ALL_SLOTS[i]
+      var el = document.getElementById('slot-' + s)
+      if (!el) continue
+      if (bk.slots.indexOf(s) !== -1) {
+        el.classList.add('sel')
+      } else {
+        el.classList.remove('sel')
+      }
+    }
   }
 
   function pickCoach(id, name, price) {
-    document.querySelectorAll('.coach-opt').forEach(el => el.classList.remove('sel'))
+    document.querySelectorAll('.coach-opt').forEach(function(el){ el.classList.remove('sel') })
     document.getElementById('coach-opt-' + id).classList.add('sel')
     bk.coachId = id
     bk.coachName = name
@@ -296,7 +292,7 @@ const CSRF_TOKEN = '{{ csrfToken }}'
   }
 
   function pickPay(el, method) {
-    document.querySelectorAll('.pay-opt').forEach(p => {
+    document.querySelectorAll('.pay-opt').forEach(function(p){
       p.classList.remove('sel')
       p.querySelector('.pay-radio').className = 'pay-radio'
     })
@@ -308,18 +304,10 @@ const CSRF_TOKEN = '{{ csrfToken }}'
   function goStep(n) {
     if (n === 2 && bk.slots.length === 0) { alert('Please select a time slot.'); return }
     if (n === 4) {
-        // ดึงค่าจาก input หรือถ้าเป็นสมาชิกก็ดึงจากระบบ
-        const name  = document.getElementById('guest-name')?.value.trim() || '{{ auth.user?.fullName || "" }}';
-        const phone = document.getElementById('guest-phone')?.value.trim() || '{{ auth.user?.phone || "" }}';
-
-        if (!name) { 
-            alert('Please enter your name.'); 
-            return; 
-        }
-        if (!phone) { 
-            alert('Please enter your phone number.'); 
-            return; 
-        }
+      var name  = document.getElementById('guest-name').value.trim()
+      var phone = document.getElementById('guest-phone').value.trim()
+      if (!name)  { alert('Please enter your name.'); return }
+      if (!phone) { alert('Please enter your phone number.'); return }
     }
     document.getElementById('step-' + currentStep).style.display = 'none'
     currentStep = n
@@ -328,90 +316,67 @@ const CSRF_TOKEN = '{{ csrfToken }}'
   }
 
   function updateSidebar() {
-    const hrs = bk.slots.length
-    const courtTotal = bk.courtPrice * hrs
-    const coachTotal = bk.coachPrice * hrs
-    const subtotal = courtTotal + coachTotal
-    const discountAmount = subtotal * DISCOUNT
-    const total = subtotal - discountAmount
-
-    let html = ''
-    html += `<div class="sum-row"><span>Court</span><span>${bk.courtName}</span></div>`
+    var hrs = bk.slots.length
+    var courtTotal = bk.courtPrice * hrs
+    var coachTotal = bk.coachPrice * hrs
+    var subtotal = courtTotal + coachTotal
+    var discountAmount = subtotal * DISCOUNT
+    var total = subtotal - discountAmount
+    var html = ''
+    html += '<div class="sum-row"><span>Court</span><span>' + bk.courtName + '</span></div>'
     if (hrs > 0) {
-      const [y, m, d] = bk.date.split('-')
-      const formattedDate = `${d}-${m}-${y}`
-      html += `<div class="sum-row"><span>Date</span><span>${formattedDate}</span></div>`
-      html += `<div class="sum-row"><span>Time</span><span>${bk.slots[0]} – ${String(parseInt(bk.slots[bk.slots.length-1])+1).padStart(2,'0')}:00</span></div>`
-      html += `<div class="sum-row"><span>Duration</span><span>${hrs} hr${hrs > 1 ? 's' : ''}</span></div>`
+      var parts = bk.date.split('-')
+      var formattedDate = parts[2] + '-' + parts[1] + '-' + parts[0]
+      html += '<div class="sum-row"><span>Date</span><span>' + formattedDate + '</span></div>'
+      html += '<div class="sum-row"><span>Time</span><span>' + bk.slots[0] + ' – ' + String(parseInt(bk.slots[bk.slots.length-1])+1).padStart(2,'0') + ':00</span></div>'
+      html += '<div class="sum-row"><span>Duration</span><span>' + hrs + ' hr' + (hrs > 1 ? 's' : '') + '</span></div>'
     }
-    html += `<div class="sum-row"><span>Court fee</span><span>฿${courtTotal}</span></div>`
-    html += `<div class="sum-row"><span>Coach fee</span><span>฿${coachTotal}</span></div>`
-    if (DISCOUNT > 0) html += `<div class="sum-row"><span>Discount (${DISCOUNT * 100}%)</span><span>-฿${discountAmount}</span></div>`
-    html += `<div class="sum-total-box"><b>Total: ฿${total}</b></div>`
+    html += '<div class="sum-row"><span>Court fee</span><span>฿' + courtTotal + '</span></div>'
+    html += '<div class="sum-row"><span>Coach fee</span><span>฿' + coachTotal + '</span></div>'
+    if (DISCOUNT > 0) {
+      html += '<div class="sum-row"><span>Discount (' + (DISCOUNT*100) + '%)</span><span>-฿' + discountAmount + '</span></div>'
+    }
+    html += '<div class="sum-total-box"><b>Total: ฿' + total + '</b></div>'
     document.getElementById('sidebar-content').innerHTML = html
   }
 
   function submitBooking() {
     if (!bk.payment) { alert('Please select a payment method.'); return }
-    if (!bk.courtId) { alert('Court ID missing. Please refresh and try again.'); return }
+    if (!bk.courtId) { alert('Court ID missing.'); return }
     if (bk.slots.length === 0) { alert('Please select a time slot.'); return }
-
-    // ✅ 2. Senior Tip: ทำ Fallback ให้ครบทุกฟิลด์สำหรับสมาชิก
-    const name  = document.getElementById('guest-name')?.value.trim() || '{{ auth.user?.fullName || "" }}'
-    const phone = document.getElementById('guest-phone')?.value.trim() || '{{ auth.user?.phone || "" }}'
-    const email = document.getElementById('guest-email')?.value.trim() || '{{ auth.user?.email || "" }}'
-
+    var name  = document.getElementById('guest-name').value.trim()
+    var phone = document.getElementById('guest-phone').value.trim()
+    var email = document.getElementById('guest-email').value.trim()
     if (!name)  { alert('Please enter your name.'); return }
     if (!phone) { alert('Please enter your phone number.'); return }
-
-    const sortedSlots = [...bk.slots].sort((a, b) => parseInt(a) - parseInt(b))
-    const bookingStart = sortedSlots[0] + ':00'
-    const bookingEnd   = String(parseInt(sortedSlots[sortedSlots.length - 1]) + 1).padStart(2, '0') + ':00'
-
-    const csrf = CSRF_TOKEN
-
-    const form = document.createElement('form')
+    var sortedSlots = bk.slots.slice().sort(function(a,b){ return parseInt(a)-parseInt(b) })
+    var bookingStart = sortedSlots[0] + ':00'
+    var bookingEnd = String(parseInt(sortedSlots[sortedSlots.length-1])+1).padStart(2,'0') + ':00'
+    var form = document.createElement('form')
     form.method = 'POST'
     form.action = '/bookings'
-
-    const fields = {
-      _csrf:         csrf,
-      courtId:       bk.courtId,
-      bookingDate:   bk.date,
-      bookingStart,
-      bookingEnd,
-      customerName:  name,
+    var fields = {
+      _csrf: CSRF_TOKEN,
+      courtId: bk.courtId,
+      bookingDate: bk.date,
+      bookingStart: bookingStart,
+      bookingEnd: bookingEnd,
+      customerName: name,
       customerPhone: phone,
       customerEmail: email,
       paymentMethod: bk.payment,
-      scheduleId:    bk.coachId || '',
+      scheduleId: bk.coachId || '',
     }
-
-    for (const [key, val] of Object.entries(fields)) {
-      const input = document.createElement('input')
-      input.type  = 'hidden'
-      input.name  = key
-      input.value = val
+    for (var key in fields) {
+      var input = document.createElement('input')
+      input.type = 'hidden'
+      input.name = key
+      input.value = fields[key]
       form.appendChild(input)
     }
-
     document.body.appendChild(form)
     form.submit()
-}
-
+  }
 </script>
-
-<form id="real-booking-form" method="POST" action="/bookings" style="display:none;">
-  {{ csrfField() }}
-  <input type="hidden" name="courtId" value="{{ court.courtId }}">
-  <input type="hidden" name="bookingDate" value="{{ bookingDate }}">
-  <input type="hidden" name="bookingStart" id="f-start">
-  <input type="hidden" name="bookingEnd" id="f-end">
-  <input type="hidden" name="customerName" id="f-name">
-  <input type="hidden" name="customerPhone" id="f-phone">
-  <input type="hidden" name="customerEmail" id="f-email">
-  <input type="hidden" name="paymentMethod" id="f-payment">
-  <input type="hidden" name="scheduleId" id="f-schedule">
-</form>
 
 @end

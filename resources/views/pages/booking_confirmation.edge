@@ -71,6 +71,17 @@
       @endif
     </div>
 
+    {{-- Confirm Payment Button --}}
+    @if(booking.bookingStatus === 'pending')
+      <button id="confirm-btn" onclick="confirmPayment()" class="btn-primary" style="width:100%;max-width:300px;display:block;margin:0 auto 12px;background:#2e7d32;border-color:#2e7d32;">
+        I've completed the payment
+      </button>
+    @else
+      <div style="padding:16px;background:#e8f5e9;border-radius:12px;margin-bottom:12px;">
+        <div style="color:#2e7d32;font-weight:600;">Payment Confirmed!</div>
+      </div>
+    @end
+
     <a href="/" class="btn-primary" style="display:inline-block;max-width:180px;text-decoration:none;">
       Back to home →
     </a>
@@ -106,6 +117,40 @@
         String(seconds).padStart(2, '0');
     }, 1000);
   });
+
+  async function confirmPayment() {
+  const btn = document.getElementById('confirm-btn')
+  btn.disabled = true
+  btn.textContent = 'Processing...'
+
+  const csrfMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+  const csrf = csrfMatch ? decodeURIComponent(csrfMatch[1]) : ''
+
+  try {
+    const res = await fetch('/bookings/{{ booking.bookingId }}/status', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-XSRF-TOKEN': csrf,
+      },
+      body: JSON.stringify({ status: 'confirmed' }),
+    })
+
+    if (res.ok) {
+      btn.outerHTML = `<div style="padding:16px;background:#e8f5e9;border-radius:12px;margin-bottom:12px;">
+        <div style="color:#2e7d32;font-weight:600;">✓ Payment Confirmed!</div>
+      </div>`
+    } else {
+      btn.disabled = false
+      btn.textContent = "✓ I've completed the payment"
+      alert('Something went wrong. Please try again.')
+    }
+  } catch(e) {
+    btn.disabled = false
+    btn.textContent = "✓ I've completed the payment"
+    alert('Network error. Please try again.')
+  }
+}
 </script>
 
 @end
