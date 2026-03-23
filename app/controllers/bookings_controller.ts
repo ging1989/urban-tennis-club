@@ -105,8 +105,10 @@ export default class BookingsController {
       .where('booking_date', bookingDate)
       .whereIn('booking_status', ['pending', 'confirmed'])
       .where((q) => {
-        q.whereBetween('booking_start', [bookingStart, bookingEnd])
-         .orWhereBetween('booking_end', [bookingStart, bookingEnd])
+        //q.whereBetween('booking_start', [bookingStart, bookingEnd])
+         //.orWhereBetween('booking_end', [bookingStart, bookingEnd])
+        q.where('booking_start', '<', bookingEnd)
+        .andWhere('booking_end', '>', bookingStart)
       })
       .first()
 

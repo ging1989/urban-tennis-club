@@ -269,53 +269,110 @@
     updateSidebar()
   }
 
+  function renderSlots() {
+    ALL_SLOTS.forEach(s => {
+      const el = document.getElementById('slot-' + s)
+      if (!el) return
+      el.classList.toggle('sel', bk.slots.includes(s))
+    })
+  }
+
+  function pickCoach(id, name, price) {
+    document.querySelectorAll('.coach-opt').forEach(el => el.classList.remove('sel'))
+    document.getElementById('coach-opt-' + id).classList.add('sel')
+    bk.coachId = id
+    bk.coachName = name
+    bk.coachPrice = price
+    updateSidebar()
+  }
+
+  function pickPay(el, method) {
+    document.querySelectorAll('.pay-opt').forEach(p => {
+      p.classList.remove('sel')
+      p.querySelector('.pay-radio').className = 'pay-radio'
+    })
+    el.classList.add('sel')
+    el.querySelector('.pay-radio').className = 'pay-radio on'
+    bk.payment = method
+  }
+
+  function goStep(n) {
+    if (n === 2 && bk.slots.length === 0) { alert('Please select a time slot.'); return }
+    document.getElementById('step-' + currentStep).style.display = 'none'
+    currentStep = n
+    document.getElementById('step-' + n).style.display = 'block'
+    updateSidebar()
+  }
+
+  function updateSidebar() {
+    const hrs = bk.slots.length
+    const courtTotal = bk.courtPrice * hrs
+    const coachTotal = bk.coachPrice * hrs
+    const subtotal = courtTotal + coachTotal
+    const discountAmount = subtotal * DISCOUNT
+    const total = subtotal - discountAmount
+
+    let html = ''
+    html += `<div class="sum-row"><span>Court</span><span>${bk.courtName}</span></div>`
+    if (hrs > 0) {
+      const [y, m, d] = bk.date.split('-')
+      const formattedDate = `${d}-${m}-${y}`
+      html += `<div class="sum-row"><span>Date</span><span>${formattedDate}</span></div>`
+      html += `<div class="sum-row"><span>Time</span><span>${bk.slots[0]} – ${String(parseInt(bk.slots[bk.slots.length-1])+1).padStart(2,'0')}:00</span></div>`
+      html += `<div class="sum-row"><span>Duration</span><span>${hrs} hr${hrs > 1 ? 's' : ''}</span></div>`
+    }
+    html += `<div class="sum-row"><span>Court fee</span><span>฿${courtTotal}</span></div>`
+    html += `<div class="sum-row"><span>Coach fee</span><span>฿${coachTotal}</span></div>`
+    if (DISCOUNT > 0) html += `<div class="sum-row"><span>Discount (${DISCOUNT * 100}%)</span><span>-฿${discountAmount}</span></div>`
+    html += `<div class="sum-total-box"><b>Total: ฿${total}</b></div>`
+    document.getElementById('sidebar-content').innerHTML = html
+  }
 
   function submitBooking() {
-  if (!bk.payment) { alert('Please select a payment method.'); return }
-  if (!bk.courtId) { alert('Court ID missing. Please refresh and try again.'); return }
-  if (bk.slots.length === 0) { alert('Please select a time slot.'); return }
+    if (!bk.payment) { alert('Please select a payment method.'); return }
+    if (!bk.courtId) { alert('Court ID missing. Please refresh and try again.'); return }
+    if (bk.slots.length === 0) { alert('Please select a time slot.'); return }
 
-  const name  = document.getElementById('guest-name').value.trim()
-  const phone = document.getElementById('guest-phone').value.trim()
-  if (!name)  { alert('Please enter your name.'); return }
-  if (!phone) { alert('Please enter your phone number.'); return }
+    const name  = document.getElementById('guest-name').value.trim()
+    const phone = document.getElementById('guest-phone').value.trim()
+    if (!name)  { alert('Please enter your name.'); return }
+    if (!phone) { alert('Please enter your phone number.'); return }
 
-  const sortedSlots = [...bk.slots].sort((a, b) => parseInt(a) - parseInt(b))
-  const bookingStart = sortedSlots[0] + ':00'
-  const bookingEnd   = String(parseInt(sortedSlots[sortedSlots.length - 1]) + 1).padStart(2, '0') + ':00'
+    const sortedSlots = [...bk.slots].sort((a, b) => parseInt(a) - parseInt(b))
+    const bookingStart = sortedSlots[0] + ':00'
+    const bookingEnd   = String(parseInt(sortedSlots[sortedSlots.length - 1]) + 1).padStart(2, '0') + ':00'
 
-  // ── ดึง CSRF token จาก cookie ──
-  const csrfMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
-  const csrf = csrfMatch ? decodeURIComponent(csrfMatch[1]) : ''
+    const csrfMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+    const csrf = csrfMatch ? decodeURIComponent(csrfMatch[1]) : ''
 
-  const form = document.createElement('form')
-  form.method = 'POST'
-  form.action = '/bookings'
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = '/bookings'
 
-  const fields = {
-    _csrf:         csrf,   // ← เปลี่ยนตรงนี้
-    courtId:       bk.courtId,
-    bookingDate:   bk.date,
-    bookingStart,
-    bookingEnd,
-    customerName:  name,
-    customerPhone: phone,
-    customerEmail: document.getElementById('guest-email').value.trim(),
-    paymentMethod: bk.payment,
-    scheduleId:    bk.coachId || '',
+    const fields = {
+      _csrf:         csrf,
+      courtId:       bk.courtId,
+      bookingDate:   bk.date,
+      bookingStart,
+      bookingEnd,
+      customerName:  name,
+      customerPhone: phone,
+      customerEmail: document.getElementById('guest-email').value.trim(),
+      paymentMethod: bk.payment,
+      scheduleId:    bk.coachId || '',
+    }
+
+    for (const [key, val] of Object.entries(fields)) {
+      const input = document.createElement('input')
+      input.type  = 'hidden'
+      input.name  = key
+      input.value = val
+      form.appendChild(input)
+    }
+
+    document.body.appendChild(form)
+    form.submit()
   }
-
-  for (const [key, val] of Object.entries(fields)) {
-    const input = document.createElement('input')
-    input.type  = 'hidden'
-    input.name  = key
-    input.value = val
-    form.appendChild(input)
-  }
-
-  document.body.appendChild(form)
-  form.submit()
-}
 </script>
 
 @end
