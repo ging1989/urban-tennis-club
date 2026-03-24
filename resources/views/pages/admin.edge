@@ -1,183 +1,473 @@
-@layout('layouts/master')
-@set('title', 'Admin Dashboard')
-
-@push('styles')
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Urban Tennis Club</title>
+  <meta name="csrf-token" content="{{ csrfToken }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/admin.css">
-@end
+</head>
+<body class="admin-body">
 
-@section('content')
-
-<div class="admin-wrap">
-
-  {{-- HEADER --}}
-  <div class="admin-header">
-    <div>
-      <div class="admin-title">🎾 Admin Dashboard</div>
-      <div class="admin-subtitle">Urban Tennis Club — ภาพรวมระบบ</div>
+  {{-- ── SIDEBAR ── --}}
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🎾</span>
+      <span class="logo-text">Urban Tennis</span>
     </div>
-    <a href="/" class="admin-back">← กลับหน้าหลัก</a>
-  </div>
 
-  {{-- STAT CARDS --}}
-  <div class="stat-grid">
-    <div class="stat-card">
-      <div class="stat-label">รายได้รวม</div>
-      <div class="stat-value">฿{{ stats.totalRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</div>
-      <div class="stat-sub">ทุก booking ที่ไม่ถูก cancel</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">รายได้เดือนนี้</div>
-      <div class="stat-value green">฿{{ stats.monthRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</div>
-      <div class="stat-sub">month-to-date</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Booking ทั้งหมด</div>
-      <div class="stat-value">{{ stats.totalBookings }}</div>
-      <div class="stat-sub">วันนี้ {{ stats.todayCount }} รายการ</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">รอยืนยัน</div>
-      <div class="stat-value amber">{{ stats.pendingCount }}</div>
-      <div class="stat-sub">pending bookings</div>
-    </div>
-  </div>
+    <div class="nav-label">NAVIGATION</div>
 
-  {{-- CHARTS ROW --}}
-  <div class="two-col">
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-section="dashboard">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </span>
+        Dashboard
+      </a>
+      <a href="#" class="nav-item" data-section="report">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </span>
+        Reports
+      </a>
+      <a href="#" class="nav-item" data-section="courts">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+        </span>
+        Court Management
+      </a>
+      <a href="#" class="nav-item" data-section="coaches">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        Coach Management
+      </a>
+      <a href="#" class="nav-item" data-section="members">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
+        Member Management
+      </a>
+    </nav>
 
-    {{-- Bar chart: 7 วันล่าสุด --}}
-    <div class="panel">
-      <div class="section-title">Bookings 7 วันล่าสุด</div>
-      <div class="bar-chart" id="bar-chart">
-        @each(day in last7)
-          <div class="bar-col">
-            <div class="bar-count">{{ day.count }}</div>
-            <div
-              class="bar {{ day.count === 0 ? 'zero' : '' }}"
-              style="height: {{ day.count === 0 ? '4px' : 'calc(' + day.count + ' / ' + Math.max(...last7.map(d => d.count), 1) + ' * 80px)' }}"
-            ></div>
-            <div class="bar-label">{{ day.date.slice(5) }}</div>
+    <div class="sidebar-footer">
+      <a href="/" class="footer-link">← Back to Site</a>
+    </div>
+  </aside>
+
+  {{-- ── MAIN ── --}}
+  <div class="admin-main">
+
+    {{-- Topbar --}}
+    <header class="topbar">
+      <div class="topbar-breadcrumb">
+        <span class="breadcrumb-home">Home</span>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current" id="breadcrumb-current">Dashboard</span>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-user">{{ auth.user ? (auth.user.fullName ?? auth.user.email) : '' }}</span>
+        <form action="{{ route('session.destroy') }}" method="post" style="display:inline">
+          {{ csrfField() }}
+          <button type="submit" class="btn-logout">Logout</button>
+        </form>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      {{-- ══ DASHBOARD ══ --}}
+      <section id="section-dashboard" class="admin-section active">
+        <div class="section-header">
+          <h1 class="section-title">Dashboard</h1>
+        </div>
+
+        {{-- Stat Cards --}}
+        <div class="stat-grid">
+
+          {{-- Hero card: Today's Revenue --}}
+          <div class="stat-card stat-card--hero">
+            <div class="stat-hero-label">Today's Revenue</div>
+            <div class="stat-hero-value" id="kpi-revenue"><span class="hero-currency">฿</span>{{ stats.todayRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</div>
+            <div class="stat-hero-trend">Non-cancelled bookings</div>
           </div>
-        @end
-      </div>
-    </div>
 
-    {{-- Status breakdown --}}
-    <div class="panel">
-      <div class="section-title">สถานะ Booking</div>
-      @set('total', stats.pendingCount + stats.confirmedCount + stats.cancelledCount)
-      <div class="status-row">
-        <span class="status-dot dot-confirmed"></span>
-        <span class="status-name">Confirmed</span>
-        <div class="status-bar-wrap">
-          <div class="status-bar-fill" style="width:{{ total > 0 ? (stats.confirmedCount / total * 100).toFixed(1) : 0 }}%;background:var(--green);"></div>
+          {{-- Other cards --}}
+          <div class="stat-card stat-card--center">
+            <div class="stat-label">Bookings</div>
+            <div class="stat-value" id="kpi-bookings">{{ stats.todayBookings }}</div>
+            <div class="stat-trend">Today</div>
+          </div>
+          <div class="stat-card stat-card--center">
+            <div class="stat-label">Customers</div>
+            <div class="stat-value amber" id="kpi-customers">{{ stats.todayCustomers }}</div>
+            <div class="stat-trend">Today</div>
+          </div>
+          <div class="stat-card stat-card--center">
+            <div class="stat-label">Available Courts</div>
+            <div class="stat-value" style="color:var(--red)" id="kpi-courts">{{ stats.availableCourts }}</div>
+            <div class="stat-trend">Today</div>
+          </div>
+          <div class="stat-card stat-card--center">
+            <div class="stat-label">Coach Revenue</div>
+            <div class="stat-value" style="color:var(--blue)" id="kpi-coach-revenue">฿{{ stats.todayCoachRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</div>
+            <div class="stat-trend">Today</div>
+          </div>
         </div>
-        <span class="status-count">{{ stats.confirmedCount }}</span>
-      </div>
-      <div class="status-row">
-        <span class="status-dot dot-pending"></span>
-        <span class="status-name">Pending</span>
-        <div class="status-bar-wrap">
-          <div class="status-bar-fill" style="width:{{ total > 0 ? (stats.pendingCount / total * 100).toFixed(1) : 0 }}%;background:var(--amber);"></div>
-        </div>
-        <span class="status-count">{{ stats.pendingCount }}</span>
-      </div>
-      <div class="status-row">
-        <span class="status-dot dot-cancelled"></span>
-        <span class="status-name">Cancelled</span>
-        <div class="status-bar-wrap">
-          <div class="status-bar-fill" style="width:{{ total > 0 ? (stats.cancelledCount / total * 100).toFixed(1) : 0 }}%;background:var(--red);"></div>
-        </div>
-        <span class="status-count">{{ stats.cancelledCount }}</span>
-      </div>
-    </div>
 
+        {{-- Charts Row --}}
+        <div class="two-col">
+          <div class="panel">
+            <div class="panel-title">Bookings — Last 7 Days</div>
+            <div class="bar-chart">
+              @each(day in last7)
+                <div class="bar-col">
+                  <div class="bar-count">{{ day.count }}</div>
+                  <div
+                    class="bar {{ day.count === 0 ? 'zero' : '' }}"
+                    style="height: {{ day.count === 0 ? '4px' : 'calc(' + day.count + ' / ' + Math.max(...last7.map(d => d.count), 1) + ' * 80px)' }}"
+                  ></div>
+                  <div class="bar-label">{{ day.date.slice(5) }}</div>
+                </div>
+              @end
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Booking Status</div>
+            <div class="status-row">
+              <span class="status-dot dot-confirmed"></span>
+              <span class="status-name">Confirmed</span>
+              <div class="status-bar-wrap">
+                <div class="status-bar-fill" style="width:{{ (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) > 0 ? (stats.confirmedCount / (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) * 100).toFixed(1) : 0 }}%;background:var(--green);"></div>
+              </div>
+              <span class="status-count">{{ stats.confirmedCount }}</span>
+            </div>
+            <div class="status-row">
+              <span class="status-dot dot-pending"></span>
+              <span class="status-name">Pending</span>
+              <div class="status-bar-wrap">
+                <div class="status-bar-fill" style="width:{{ (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) > 0 ? (stats.pendingCount / (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) * 100).toFixed(1) : 0 }}%;background:var(--amber);"></div>
+              </div>
+              <span class="status-count">{{ stats.pendingCount }}</span>
+            </div>
+            <div class="status-row">
+              <span class="status-dot dot-cancelled"></span>
+              <span class="status-name">Cancelled</span>
+              <div class="status-bar-wrap">
+                <div class="status-bar-fill" style="width:{{ (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) > 0 ? (stats.cancelledCount / (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) * 100).toFixed(1) : 0 }}%;background:var(--red);"></div>
+              </div>
+              <span class="status-count">{{ stats.cancelledCount }}</span>
+            </div>
+          </div>
+        </div>
+
+        {{-- Coach Charts --}}
+        <div class="two-col" style="margin-bottom:24px">
+
+          {{-- Line chart: coach revenue last 7 days --}}
+          <div class="panel">
+            <div class="panel-title">Coach Revenue — Last 7 Days</div>
+            <div class="line-chart-wrap">
+              <svg class="line-chart-svg" viewBox="0 0 420 90" preserveAspectRatio="none"
+                data-points="{{ last7CoachRevenue.map(d => d.revenue).join(',') }}">
+                <defs>
+                  <linearGradient id="coachGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#2ea043" stop-opacity="0.25"/>
+                    <stop offset="100%" stop-color="#2ea043" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path class="line-area" fill="url(#coachGrad)"/>
+                <path class="line-path" fill="none" stroke="#2ea043" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+              </svg>
+              <div class="line-labels">
+                @each(day in last7CoachRevenue)
+                  <span>{{ day.date.slice(5) }}</span>
+                @end
+              </div>
+            </div>
+          </div>
+
+          {{-- Bar chart: coach revenue today per coach --}}
+          <div class="panel">
+            <div class="panel-title">Coach Revenue Today</div>
+            @if(coachRevenueToday.length === 0)
+              <div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center">No coach bookings today</div>
+            @else
+              <div class="bar-chart" style="height:110px">
+                @each(c in coachRevenueToday)
+                  <div class="bar-col">
+                    <div class="bar-count" style="font-size:9px">฿{{ c.revenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</div>
+                    <div
+                      class="bar bar--coach"
+                      style="height: calc({{ c.revenue }} / {{ Math.max(...coachRevenueToday.map(x => x.revenue), 1) }} * 80px)"
+                    ></div>
+                    <div class="bar-label">{{ c.name }}</div>
+                  </div>
+                @end
+              </div>
+            @end
+          </div>
+
+        </div>
+
+
+      </section>
+
+      {{-- ══ REPORTS ══ --}}
+      <section id="section-report" class="admin-section">
+        <div class="section-header">
+          <h1 class="section-title">Reports</h1>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Recent Bookings (50 latest)</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Customer</th>
+                  <th>Court</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Total</th>
+                  <th>Payment</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @each(b in recentBookings)
+                  <tr>
+                    <td class="td-muted">#{{ b.bookingId }}</td>
+                    <td>{{ b.customer ? b.customer.customerName : '—' }}</td>
+                    <td>{{ b.court ? b.court.courtName : '—' }}</td>
+                    <td class="td-muted">{{ b.bookingDate }}</td>
+                    <td class="td-muted">{{ b.bookingStart }} – {{ b.bookingEnd }}</td>
+                    <td>฿{{ parseFloat(b.totalPrice).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
+                    <td class="td-muted">{{ b.payment ? b.payment.paymentMethod : '—' }}</td>
+                    <td><span class="badge badge-{{ b.bookingStatus }}">{{ b.bookingStatus }}</span></td>
+                    <td>
+                      @if(b.bookingStatus === 'pending')
+                        <div class="action-btns">
+                          <button class="btn-action confirm" data-action="confirmed" data-id="{{ b.bookingId }}">Confirm</button>
+                          <button class="btn-action cancel"  data-action="cancelled" data-id="{{ b.bookingId }}">Cancel</button>
+                        </div>
+                      @else
+                        <span class="td-muted">—</span>
+                      @end
+                    </td>
+                  </tr>
+                @end
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {{-- ══ COURT MANAGEMENT ══ --}}
+      <section id="section-courts" class="admin-section">
+        <div class="section-header">
+          <h1 class="section-title">Court Management</h1>
+        </div>
+        <div class="panel">
+          <div class="panel-title">All Courts</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Court Name</th>
+                  <th>Type</th>
+                  <th>Surface</th>
+                  <th>Price/hr</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @each(court in courts)
+                  <tr>
+                    <td class="td-muted">{{ court.courtId }}</td>
+                    <td>{{ court.courtName }}</td>
+                    <td class="td-muted">{{ court.courtType ?? '—' }}</td>
+                    <td class="td-muted">{{ court.courtSurface ?? '—' }}</td>
+                    <td>฿{{ court.courtPrice ?? '—' }}</td>
+                    <td>
+                      <span class="badge {{ court.courtStatus === 'available' ? 'badge-confirmed' : 'badge-cancelled' }}">
+                        {{ court.courtStatus ?? '—' }}
+                      </span>
+                    </td>
+                  </tr>
+                @end
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {{-- ══ COACH MANAGEMENT ══ --}}
+      <section id="section-coaches" class="admin-section">
+        <div class="section-header">
+          <h1 class="section-title">Coach Management</h1>
+        </div>
+        <div class="panel">
+          <div class="panel-title">All Coaches</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Level</th>
+                  <th>Price/hr</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @each(coach in coaches)
+                  <tr>
+                    <td class="td-muted">{{ coach.coachId }}</td>
+                    <td>{{ coach.coachName }}</td>
+                    <td class="td-muted">{{ coach.coachPricing ? coach.coachPricing.coachLevelDesc : '—' }}</td>
+                    <td>฿{{ coach.coachPricing ? coach.coachPricing.coachPrice : '—' }}</td>
+                    <td>
+                      <span class="badge {{ coach.coachStatus === 'available' ? 'badge-confirmed' : 'badge-pending' }}">
+                        {{ coach.coachStatus }}
+                      </span>
+                    </td>
+                  </tr>
+                @end
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {{-- ══ MEMBER MANAGEMENT ══ --}}
+      <section id="section-members" class="admin-section">
+        <div class="section-header">
+          <h1 class="section-title">Member Management</h1>
+        </div>
+        <div class="panel">
+          <div class="panel-title">All Members</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Type</th>
+                  <th>Tier</th>
+                </tr>
+              </thead>
+              <tbody>
+                @each(c in customers)
+                  <tr>
+                    <td class="td-muted">{{ c.customerId }}</td>
+                    <td>{{ c.customerName }}</td>
+                    <td class="td-muted">{{ c.customerEmail }}</td>
+                    <td class="td-muted">{{ c.customerPhone ?? '—' }}</td>
+                    <td><span class="badge badge-confirmed">{{ c.customerType }}</span></td>
+                    <td class="td-muted">{{ c.tier ? c.tier.tierName : '—' }}</td>
+                  </tr>
+                @end
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
   </div>
 
-  {{-- COURT REVENUE --}}
-  <div class="panel" style="margin-bottom:28px;">
-    <div class="section-title">รายได้แยกตามคอร์ท</div>
-    @set('maxRev', Math.max(...Object.values(courtRevenue), 1))
-    @each(court in courts)
-      <div class="rev-row">
-        <span class="rev-name">{{ court.courtName }}</span>
-        <div class="rev-bar-wrap">
-          <div class="rev-bar-fill" style="width:{{ ((courtRevenue[court.courtName] || 0) / maxRev * 100).toFixed(1) }}%"></div>
-        </div>
-        <span class="rev-amt">฿{{ (courtRevenue[court.courtName] || 0).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</span>
-      </div>
-    @end
-  </div>
+  <script>
+    // ── Tab switching ──
+    const navItems = document.querySelectorAll('.nav-item')
+    const sections = document.querySelectorAll('.admin-section')
+    const breadcrumb = document.getElementById('breadcrumb-current')
 
-  {{-- COACHES TABLE --}}
-  <div class="panel" style="margin-bottom:28px;">
-    <div class="section-title">โค้ชทั้งหมด</div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>ชื่อ</th>
-            <th>ระดับ</th>
-            <th>ราคา/ชม.</th>
-            <th>สถานะ</th>
-          </tr>
-        </thead>
-        <tbody>
-          @each(coach in coaches)
-            <tr>
-              <td class="td-muted">{{ coach.coachId }}</td>
-              <td>{{ coach.coachName }}</td>
-              <td class="td-muted">{{ coach.coachPricing ? coach.coachPricing.coachLevelDesc : '—' }}</td>
-              <td>฿{{ coach.coachPricing ? coach.coachPricing.coachPrice : '—' }}</td>
-              <td>
-                <span class="avail-dot {{ coach.coachStatus === 'available' ? 'avail-yes' : 'avail-no' }}"></span>
-                {{ coach.coachStatus }}
-              </td>
-            </tr>
-          @end
-        </tbody>
-      </table>
-    </div>
-  </div>
+    navItems.forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault()
+        const target = item.dataset.section
+        navItems.forEach(i => i.classList.remove('active'))
+        sections.forEach(s => s.classList.remove('active'))
+        item.classList.add('active')
+        document.getElementById('section-' + target).classList.add('active')
+        breadcrumb.textContent = item.textContent.trim()
+      })
+    })
 
-  {{-- RECENT BOOKINGS TABLE --}}
-  <div class="panel">
-    <div class="section-title">Bookings ล่าสุด (50 รายการ)</div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>ลูกค้า</th>
-            <th>คอร์ท</th>
-            <th>วันที่</th>
-            <th>เวลา</th>
-            <th>ราคารวม</th>
-            <th>ชำระ</th>
-            <th>สถานะ</th>
-          </tr>
-        </thead>
-        <tbody>
-          @each(b in recentBookings)
-            <tr>
-              <td class="td-muted">#{{ b.bookingId }}</td>
-              <td>{{ b.customer ? b.customer.customerName : '—' }}</td>
-              <td>{{ b.court ? b.court.courtName : '—' }}</td>
-              <td class="td-muted">{{ b.bookingDate }}</td>
-              <td class="td-muted">{{ b.bookingStart }} – {{ b.bookingEnd }}</td>
-              <td>฿{{ parseFloat(b.totalPrice).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
-              <td class="td-muted">{{ b.payment ? b.payment.paymentMethod : '—' }}</td>
-              <td>
-                <span class="badge badge-{{ b.bookingStatus }}">{{ b.bookingStatus }}</span>
-              </td>
-            </tr>
-          @end
-        </tbody>
-      </table>
-    </div>
-  </div>
+    // ── Line chart ──
+    function drawLineChart(svg) {
+      const raw = svg.dataset.points || ''
+      const values = raw.split(',').map(Number)
+      const n = values.length
+      if (n < 2) return
+      const W = 420, H = 90, pad = 8
+      const max = Math.max(...values, 1)
+      const pts = values.map((v, i) => [
+        pad + (i / (n - 1)) * (W - pad * 2),
+        H - pad - (v / max) * (H - pad * 2)
+      ])
+      const linePts = pts.map(([x, y]) => `${x},${y}`).join(' L ')
+      const areaD = `M ${pts[0][0]},${H} L ${pts.map(([x,y]) => `${x},${y}`).join(' L ')} L ${pts[n-1][0]},${H} Z`
+      svg.querySelector('.line-path').setAttribute('d', `M ${linePts}`)
+      svg.querySelector('.line-area').setAttribute('d', areaD)
+    }
+    document.querySelectorAll('.line-chart-svg').forEach(drawLineChart)
 
-</div>
+    // ── KPI refresh ──
+    async function refreshStats() {
+      try {
+        const res = await fetch('/admin/stats')
+        if (!res.ok) return
+        const s = await res.json()
+        document.getElementById('kpi-bookings').textContent      = s.todayBookings
+        document.getElementById('kpi-revenue').innerHTML          = '<span class="hero-currency">฿</span>' + s.todayRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 })
+        document.getElementById('kpi-customers').textContent     = s.todayCustomers
+        document.getElementById('kpi-courts').textContent        = s.availableCourts
+        document.getElementById('kpi-coach-revenue').textContent = '฿' + s.todayCoachRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 })
+      } catch {}
+    }
 
-@end
+    // Auto-poll ทุก 30 วินาที
+    setInterval(refreshStats, 30000)
+
+    // Refresh ทุกครั้งที่กด confirm/cancel
+    document.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-action]')
+      if (!btn) return
+      const action = btn.dataset.action
+      const id     = btn.dataset.id
+      if (!['confirmed', 'cancelled'].includes(action)) return
+
+      btn.disabled = true
+      const csrf = document.querySelector('meta[name="csrf-token"]').content
+      try {
+        await fetch(`/bookings/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+          body: JSON.stringify({ status: action }),
+        })
+        // อัปเดต badge ใน row
+        const row  = btn.closest('tr')
+        const badge = row.querySelector('.badge')
+        badge.className = `badge badge-${action}`
+        badge.textContent = action
+        // ซ่อน action buttons
+        row.querySelector('.action-btns').remove()
+      } finally {
+        btn.disabled = false
+        refreshStats()
+      }
+    })
+  </script>
+</body>
+</html>

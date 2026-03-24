@@ -11,6 +11,7 @@ import { middleware } from '#start/kernel'
 import { controllers } from '#generated/controllers'
 import router from '@adonisjs/core/services/router'
 
+import AdminController     from '#controllers/admin_controller'
 import HomeController      from '#controllers/home_controller'
 import CourtsController    from '#controllers/courts_controller'
 import BookingsController  from '#controllers/bookings_controller'
@@ -74,6 +75,7 @@ router.get('/payments/:bookingId',  [PaymentsController, 'show'])
 // ── Admin ──────────────────────────────────────────────────────────────
 router
   .group(() => {
-    router.get('/admin', async ({ view }) => view.render('pages/admin')).as('admin')
+    router.get('/admin',       [AdminController, 'index']).as('admin')
+    router.get('/admin/stats', [AdminController, 'statsJson']).as('admin.stats')
   })
   .use(middleware.auth())

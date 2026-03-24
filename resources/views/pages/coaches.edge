@@ -1,0 +1,62 @@
+@layout('layouts/master')
+@set('title', 'Coaches')
+
+@push('styles')
+  <link rel="stylesheet" href="/css/coaches.css">
+@end
+
+@section('content')
+  <section class="coaches-hero">
+    <div class="coaches-hero__inner">
+      <div class="coaches-hero__eyebrow">Urban Tennis Club</div>
+      <h1>Find the right coach for your game</h1>
+      <p>Browse our coaching team, compare experience levels, and choose who you want to train with before booking.</p>
+    </div>
+  </section>
+
+  <section class="coaches-listing">
+    <div class="section-header">
+      <h2>All Coaches</h2>
+      <a href="/bookings/new">Book a session →</a>
+    </div>
+
+    @if(coaches.length === 0)
+      <div class="coaches-empty">
+        No coach data available right now.
+      </div>
+    @else
+      <div class="coaches-grid">
+        @each(coach in coaches)
+          <article class="coach-card coach-card--full">
+            <div class="coach-card-avatar">
+              {{ coach.coachName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase() }}
+            </div>
+
+            <div class="coach-card-name">{{ coach.coachName }}</div>
+            <div class="coach-card-level">
+              {{ coach.coachPricing ? coach.coachPricing.coachLevelDesc : 'No level assigned' }}
+            </div>
+
+            <div class="coach-card-price">
+              @if(coach.coachPricing)
+                ฿{{ coach.coachPricing.coachPrice }}<span>/hr</span>
+              @else
+                Contact for pricing
+              @end
+            </div>
+
+            <div class="coach-card-status">
+              @if(coach.coachStatus === 'available')
+                <span class="status-dot status-available"></span>Available
+              @else
+                <span class="status-dot status-unavailable"></span>Unavailable
+              @end
+            </div>
+
+            <a href="/bookings/new" class="coach-card-action">Book with this coach</a>
+          </article>
+        @end
+      </div>
+    @end
+  </section>
+@end

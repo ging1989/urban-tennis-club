@@ -1,21 +1,33 @@
 @layout('layouts/master')
 @set('title', 'Courts')
 
+@push('styles')
+  <link rel="stylesheet" href="/css/courts.css">
+@end
+
 @section('content')
 <div class="main">
-
-  @if(filters.date)
-    @if(filters.startTime)
-      <h1>Courts available on {{ filters.date }} at {{ filters.startTime }}</h1>
+  <div class="courts-page-head">
+    <div class="courts-page-head__eyebrow">Court Selection</div>
+    @if(filters.date)
+      @if(filters.startTime)
+        <h1>Courts available on {{ filters.date }} at {{ filters.startTime }}</h1>
+        <p>Choose one available court below to continue with your booking.</p>
+      @else
+        <h1>Courts available on {{ filters.date }}</h1>
+        <p>These courts are open for the selected day.</p>
+      @end
     @else
-      <h1>Courts available on {{ filters.date }}</h1>
+      <h1>All Courts</h1>
+      <p>Browse our courts and pick the one you want to book.</p>
     @end
-  @else
-    <h1>All Courts</h1>
-  @end
+  </div>
 
   @if(courts.length === 0)
-    <p>No courts available for the selected time.</p>
+    <div class="courts-empty">
+      <h2>No courts available</h2>
+      <p>No courts are available for the selected time. Try another date or start time.</p>
+    </div>
   @else
     <form action="/bookings/new" method="GET">
       <input type="hidden" name="date"      value="{{ filters.date }}">
@@ -26,7 +38,9 @@
         @each(court in courts)
           <label class="court-card court-card-selectable" for="court-{{ court.courtId }}">
             <input type="radio" name="courtId" id="court-{{ court.courtId }}" value="{{ court.courtId }}" required style="display:none">
+            <div class="court-card-badge">Court {{ court.courtId }}</div>
             <h2>{{ court.courtName }}</h2>
+            <p class="court-card-note">Ready to book</p>
             <p class="court-price">฿{{ court.courtPricePerHr }}/hr</p>
           </label>
         @end

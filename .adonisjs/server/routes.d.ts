@@ -28,6 +28,7 @@ export type ScannedRoutes = {
     'payments.store': { paramsTuple?: []; params?: {} }
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
     'admin': { paramsTuple?: []; params?: {} }
+    'admin.stats': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'new_account.create': { paramsTuple?: []; params?: {} }
@@ -46,6 +47,7 @@ export type ScannedRoutes = {
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
     'admin': { paramsTuple?: []; params?: {} }
+    'admin.stats': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'new_account.create': { paramsTuple?: []; params?: {} }
@@ -64,6 +66,7 @@ export type ScannedRoutes = {
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
     'admin': { paramsTuple?: []; params?: {} }
+    'admin.stats': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'new_account.store': { paramsTuple?: []; params?: {} }

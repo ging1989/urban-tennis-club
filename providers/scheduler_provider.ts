@@ -6,8 +6,14 @@ export default class SchedulerProvider {
   constructor(protected app: ApplicationService) {}
 
   async ready() {
+    if (!this.app.inProduction && !this.app.inDev) return
+
     cron.schedule('*/5 * * * *', async () => {
-      await cancelExpiredBookings()
+      try {
+        await cancelExpiredBookings()
+      } catch (err) {
+        console.error('[BookingExpiry] Skipped:', err.message)
+      }
     })
   }
 }

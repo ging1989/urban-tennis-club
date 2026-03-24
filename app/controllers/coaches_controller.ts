@@ -4,12 +4,12 @@ import CoachSchedule from '#models/coach_schedule'
 
 export default class CoachesController {
 
-  async index({ response }: HttpContext) {
+  async index({ view }: HttpContext) {
     const coaches = await Coach.query()
       .preload('coachPricing')
       .orderBy('coach_id', 'asc')
 
-    return response.ok(coaches)
+    return view.render('pages/coaches', { coaches })
   }
 
   async show({ params, response }: HttpContext) {
