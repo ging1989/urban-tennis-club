@@ -1,0 +1,183 @@
+@layout('layouts/master')
+@set('title', 'Admin Dashboard')
+
+@push('styles')
+  <link rel="stylesheet" href="/css/admin.css">
+@end
+
+@section('content')
+
+<div class="admin-wrap">
+
+  {{-- HEADER --}}
+  <div class="admin-header">
+    <div>
+      <div class="admin-title">🎾 Admin Dashboard</div>
+      <div class="admin-subtitle">Urban Tennis Club — ภาพรวมระบบ</div>
+    </div>
+    <a href="/" class="admin-back">← กลับหน้าหลัก</a>
+  </div>
+
+  {{-- STAT CARDS --}}
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">รายได้รวม</div>
+      <div class="stat-value">฿{{ stats.totalRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</div>
+      <div class="stat-sub">ทุก booking ที่ไม่ถูก cancel</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">รายได้เดือนนี้</div>
+      <div class="stat-value green">฿{{ stats.monthRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</div>
+      <div class="stat-sub">month-to-date</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Booking ทั้งหมด</div>
+      <div class="stat-value">{{ stats.totalBookings }}</div>
+      <div class="stat-sub">วันนี้ {{ stats.todayCount }} รายการ</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">รอยืนยัน</div>
+      <div class="stat-value amber">{{ stats.pendingCount }}</div>
+      <div class="stat-sub">pending bookings</div>
+    </div>
+  </div>
+
+  {{-- CHARTS ROW --}}
+  <div class="two-col">
+
+    {{-- Bar chart: 7 วันล่าสุด --}}
+    <div class="panel">
+      <div class="section-title">Bookings 7 วันล่าสุด</div>
+      <div class="bar-chart" id="bar-chart">
+        @each(day in last7)
+          <div class="bar-col">
+            <div class="bar-count">{{ day.count }}</div>
+            <div
+              class="bar {{ day.count === 0 ? 'zero' : '' }}"
+              style="height: {{ day.count === 0 ? '4px' : 'calc(' + day.count + ' / ' + Math.max(...last7.map(d => d.count), 1) + ' * 80px)' }}"
+            ></div>
+            <div class="bar-label">{{ day.date.slice(5) }}</div>
+          </div>
+        @end
+      </div>
+    </div>
+
+    {{-- Status breakdown --}}
+    <div class="panel">
+      <div class="section-title">สถานะ Booking</div>
+      @set('total', stats.pendingCount + stats.confirmedCount + stats.cancelledCount)
+      <div class="status-row">
+        <span class="status-dot dot-confirmed"></span>
+        <span class="status-name">Confirmed</span>
+        <div class="status-bar-wrap">
+          <div class="status-bar-fill" style="width:{{ total > 0 ? (stats.confirmedCount / total * 100).toFixed(1) : 0 }}%;background:var(--green);"></div>
+        </div>
+        <span class="status-count">{{ stats.confirmedCount }}</span>
+      </div>
+      <div class="status-row">
+        <span class="status-dot dot-pending"></span>
+        <span class="status-name">Pending</span>
+        <div class="status-bar-wrap">
+          <div class="status-bar-fill" style="width:{{ total > 0 ? (stats.pendingCount / total * 100).toFixed(1) : 0 }}%;background:var(--amber);"></div>
+        </div>
+        <span class="status-count">{{ stats.pendingCount }}</span>
+      </div>
+      <div class="status-row">
+        <span class="status-dot dot-cancelled"></span>
+        <span class="status-name">Cancelled</span>
+        <div class="status-bar-wrap">
+          <div class="status-bar-fill" style="width:{{ total > 0 ? (stats.cancelledCount / total * 100).toFixed(1) : 0 }}%;background:var(--red);"></div>
+        </div>
+        <span class="status-count">{{ stats.cancelledCount }}</span>
+      </div>
+    </div>
+
+  </div>
+
+  {{-- COURT REVENUE --}}
+  <div class="panel" style="margin-bottom:28px;">
+    <div class="section-title">รายได้แยกตามคอร์ท</div>
+    @set('maxRev', Math.max(...Object.values(courtRevenue), 1))
+    @each(court in courts)
+      <div class="rev-row">
+        <span class="rev-name">{{ court.courtName }}</span>
+        <div class="rev-bar-wrap">
+          <div class="rev-bar-fill" style="width:{{ ((courtRevenue[court.courtName] || 0) / maxRev * 100).toFixed(1) }}%"></div>
+        </div>
+        <span class="rev-amt">฿{{ (courtRevenue[court.courtName] || 0).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</span>
+      </div>
+    @end
+  </div>
+
+  {{-- COACHES TABLE --}}
+  <div class="panel" style="margin-bottom:28px;">
+    <div class="section-title">โค้ชทั้งหมด</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ชื่อ</th>
+            <th>ระดับ</th>
+            <th>ราคา/ชม.</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          @each(coach in coaches)
+            <tr>
+              <td class="td-muted">{{ coach.coachId }}</td>
+              <td>{{ coach.coachName }}</td>
+              <td class="td-muted">{{ coach.coachPricing ? coach.coachPricing.coachLevelDesc : '—' }}</td>
+              <td>฿{{ coach.coachPricing ? coach.coachPricing.coachPrice : '—' }}</td>
+              <td>
+                <span class="avail-dot {{ coach.coachStatus === 'available' ? 'avail-yes' : 'avail-no' }}"></span>
+                {{ coach.coachStatus }}
+              </td>
+            </tr>
+          @end
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {{-- RECENT BOOKINGS TABLE --}}
+  <div class="panel">
+    <div class="section-title">Bookings ล่าสุด (50 รายการ)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>ลูกค้า</th>
+            <th>คอร์ท</th>
+            <th>วันที่</th>
+            <th>เวลา</th>
+            <th>ราคารวม</th>
+            <th>ชำระ</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          @each(b in recentBookings)
+            <tr>
+              <td class="td-muted">#{{ b.bookingId }}</td>
+              <td>{{ b.customer ? b.customer.customerName : '—' }}</td>
+              <td>{{ b.court ? b.court.courtName : '—' }}</td>
+              <td class="td-muted">{{ b.bookingDate }}</td>
+              <td class="td-muted">{{ b.bookingStart }} – {{ b.bookingEnd }}</td>
+              <td>฿{{ parseFloat(b.totalPrice).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
+              <td class="td-muted">{{ b.payment ? b.payment.paymentMethod : '—' }}</td>
+              <td>
+                <span class="badge badge-{{ b.bookingStatus }}">{{ b.bookingStatus }}</span>
+              </td>
+            </tr>
+          @end
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+@end

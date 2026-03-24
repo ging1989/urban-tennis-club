@@ -17,6 +17,7 @@ import BookingsController  from '#controllers/bookings_controller'
 import CoachesController   from '#controllers/coaches_controller'
 import CustomersController from '#controllers/customers_controller'
 import PaymentsController  from '#controllers/payments_controller'
+import AdminController from '#controllers/admin_controller'
 
 // ── Auth ──────────────────────────────────────────────────────────────────
 router
@@ -66,3 +67,6 @@ router.patch('/customers/:id/tier', [CustomersController, 'updateTier'])
 // ── Payments ──────────────────────────────────────────────────────────────
 router.post('/payments',            [PaymentsController, 'store'])
 router.get('/payments/:bookingId',  [PaymentsController, 'show'])
+
+// ── Admin ──────────────────────────────────────────────────────────────
+router.get('/admin', [AdminController, 'index'])

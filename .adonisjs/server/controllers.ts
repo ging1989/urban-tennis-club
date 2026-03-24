@@ -4,6 +4,7 @@
  */
 
 export const controllers = {
+  Admin: () => import('#controllers/admin_controller'),
   Bookings: () => import('#controllers/bookings_controller'),
   Coaches: () => import('#controllers/coaches_controller'),
   Courts: () => import('#controllers/courts_controller'),
