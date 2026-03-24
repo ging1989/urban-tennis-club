@@ -17,7 +17,6 @@ import BookingsController  from '#controllers/bookings_controller'
 import CoachesController   from '#controllers/coaches_controller'
 import CustomersController from '#controllers/customers_controller'
 import PaymentsController  from '#controllers/payments_controller'
-import AdminController from '#controllers/admin_controller'
 
 // ── Auth ──────────────────────────────────────────────────────────────────
 router
@@ -49,10 +48,14 @@ router.get('/courts/:id/availability',  [CourtsController, 'availability'])
 router.get('/bookings/new',                  [BookingsController, 'new'])
 router.get('/bookings/:id/confirmation',     [BookingsController, 'confirmation'])
 router.post('/bookings',                     [BookingsController, 'store'])
+
+router
+  .group(() => {
 router.get('/bookings/:id',                  [BookingsController, 'show'])
 router.patch('/bookings/:id/status',         [BookingsController, 'updateStatus'])
 router.get('/bookings/customer/:customerId', [BookingsController, 'byCustomer'])
-
+  })
+  .use(middleware.auth())
 
 // ── Coaches ───────────────────────────────────────────────────────────────
 router.get('/coaches',              [CoachesController, 'index'])
@@ -69,4 +72,8 @@ router.post('/payments',            [PaymentsController, 'store'])
 router.get('/payments/:bookingId',  [PaymentsController, 'show'])
 
 // ── Admin ──────────────────────────────────────────────────────────────
-router.get('/admin', [AdminController, 'index'])
+router
+  .group(() => {
+    router.get('/admin', async ({ view }) => view.render('pages/admin')).as('admin')
+  })
+  .use(middleware.auth())

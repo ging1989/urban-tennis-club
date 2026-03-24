@@ -107,7 +107,7 @@ export class CourtSchema extends BaseModel {
 }
 
 export class CustomerSchema extends BaseModel {
-  static $columns = ['createdAt', 'customerEmail', 'customerId', 'customerName', 'customerPhone', 'customerType', 'tierId', 'updatedAt'] as const
+  static $columns = ['createdAt', 'customerEmail', 'customerId', 'customerName', 'customerPhone', 'customerType', 'tierId', 'updatedAt', 'userId'] as const
   $columns = CustomerSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
@@ -125,6 +125,8 @@ export class CustomerSchema extends BaseModel {
   declare tierId: number | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+  @column()
+  declare userId: number | null
 }
 
 export class PaymentSchema extends BaseModel {
@@ -165,4 +167,23 @@ export class TierSchema extends BaseModel {
   declare tierId: number
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+}
+
+export class UserSchema extends BaseModel {
+  static $columns = ['createdAt', 'email', 'fullName', 'id', 'password', 'updatedAt', 'username'] as const
+  $columns = UserSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare email: string
+  @column()
+  declare fullName: string | null
+  @column({ isPrimary: true })
+  declare id: number
+  @column({ serializeAs: null })
+  declare password: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare username: string | null
 }

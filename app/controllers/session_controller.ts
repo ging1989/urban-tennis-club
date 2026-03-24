@@ -1,35 +1,29 @@
 import User from '#models/user'
 import type { HttpContext } from '@adonisjs/core/http'
 
-/**
- * SessionController handles user authentication and session management.
- * It provides methods for displaying the login page, authenticating users,
- * and logging out.
- */
 export default class SessionController {
-  /**
-   * Display the login page
-   */
   async create({ view }: HttpContext) {
     return view.render('pages/auth/login')
   }
 
-  /**
-   * Authenticate user credentials and create a new session
-   */
-  async store({ request, auth, response }: HttpContext) {
-    const { email, password } = request.all()
-    const user = await User.verifyCredentials(email, password)
+  async store({ request, auth, response, session }: HttpContext) {
+    const { identifier, password } = request.all()
 
-    await auth.use('web').login(user)
-    response.redirect().toRoute('home')
+    try {
+      const user = await User.verifyCredentials(identifier, password)
+      await auth.use('web').login(user)
+      return user.role === 'admin'
+        ? response.redirect().toRoute('admin')
+        : response.redirect().toRoute('home')
+    } catch {
+      session.flash('error', 'Invalid username, email, or password.')
+      session.flashExcept(['password'])
+      return response.redirect().back()
+    }
   }
 
-  /**
-   * Log out the current user and destroy their session
-   */
   async destroy({ auth, response }: HttpContext) {
     await auth.use('web').logout()
-    response.redirect().toRoute('session.create')
+    return response.redirect().toRoute('session.create')
   }
 }

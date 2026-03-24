@@ -1,34 +1,143 @@
-@layout()
-  <div class="form-container">
-    <div>
-      <h1> Login </h1>
-      <p>
-        Enter your email and password below to log in
-      </p>
-    </div>
+{{-- resources/views/pages/auth/login.edge --}}
+@layout('layouts/master')
+@set('title', 'Login')
 
-    <div>
-      @form({ route: 'session.store', method: 'POST' })
-        <div>
-          @field.root({ name: 'email' })
-            @!field.label({ text: 'Email' })
-            @!input.control({ type: 'email' })
-            @!field.error()
-          @end
-        </div>
+@push('styles')
+<style>
+  .auth-wrap {
+    min-height: calc(100vh - 68px);
+    margin-top: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+  }
+  .auth-card {
+    background: white;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 420px;
+  }
+  .auth-title {
+    font-size: 26px;
+    font-weight: 600;
+    color: #202124;
+    margin-bottom: 32px;
+  }
+  .auth-subtitle {
+    font-size: 14px;
+    color: #6b7a99;
+    margin-bottom: 28px;
+  }
+  .auth-field { margin-bottom: 18px; }
+  .auth-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7a99;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    margin-bottom: 6px;
+  }
+  .auth-field input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Google Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .auth-field input:focus { border-color: #202124; }
+  .auth-error-banner {
+    background: #fff0f0;
+    border: 1px solid #ffc0c0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #c0392b;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .auth-submit {
+    width: 100%;
+    padding: 12px;
+    background: #202124;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Google Sans', sans-serif;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+  .auth-submit:hover { background: #3c4043; }
+  .auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #6b7a99;
+  }
+  .auth-footer a {
+    color: #202124;
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>
+@end
 
-        <div>
-          @field.root({ name: 'password' })
-            @!field.label({ text: 'Password' })
-            @!input.control({ type: 'password' })
-            @!field.error()
-          @end
-        </div>
+@section('content')
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-title">Login to your account</div>
+   
+    @if(flashMessages.has('error'))
+      <div class="auth-error-banner">
+        ⚠️ {{ flashMessages.get('error') }}
+      </div>
+    @end
 
-        <div>
-          @!button({ text: 'Login', type: 'submit' })
-        </div>
-      @end
+    <form action="{{ route('session.store') }}" method="POST">
+      {{ csrfField() }}
+
+      <div class="auth-field">
+        <label for="identifier">Email or Username</label>
+        <input
+          type="text"
+          id="identifier"
+          name="identifier"
+          value="{{ flashMessages.get('identifier') ?? '' }}"
+          placeholder="Email or Username"
+          autocomplete="username"
+          required
+        >
+      </div>
+
+      <div class="auth-field">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          required
+        >
+      </div>
+
+      <button type="submit" class="auth-submit">Login</button>
+    </form>
+
+    <div class="auth-footer">
+      Don’t have an account? <a href="{{ route('new_account.create') }}">Sign up</a>
     </div>
   </div>
+</div>
 @end

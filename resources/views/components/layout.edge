@@ -24,8 +24,27 @@
         <li><a href="#">Contact</a></li>
       </ul>
       <div class="auth-menu">
-        <a href="/login">Login</a>
-        <a class="register-button" href="/register">Register</a>
+        @if(auth.user)
+          <span style="font-size: 14px; color:#6b7a99">
+            Hello, {{ auth.user.fullName ?? auth.user.email }}
+          </span>
+          <form action="{{ route('session.destroy') }}" method="post" style="display: inline;">
+            {{ csrfField() }}
+            <button type="submit" style="
+              background: transparent;
+              border: 1px solid rgba(0,0,0,0.15);
+              padding: 7px 16px;
+              border-radius: 6px;
+              font-size: 13px;
+              font-weight: 600;
+              cursor: pointer;
+              font-family: 'DM Sans', sans-serif;
+            ">Logout</button>
+          </form>
+        @else
+          <a href="{{ route('session.create') }}">Login</a>
+          <a class="register-button" href="{{ route('new_account.create') }}">Register</a>
+        @end
       </div>
     </div>
   </nav>

@@ -3,6 +3,7 @@ import type { HasMany, BelongsTo } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 import Tier from './tier.js'
 import Booking from './booking.js'
+import User from './user.js'
 
 export default class Customer extends BaseModel {
     static table = 'customers'
@@ -21,6 +22,9 @@ export default class Customer extends BaseModel {
     declare customerEmail: string
 
     @column()
+    declare userId: number | null
+
+    @column()
     declare customerType: string
 
     @column()
@@ -31,6 +35,9 @@ export default class Customer extends BaseModel {
 
     @belongsTo(() => Tier, { foreignKey: 'tierId' })
     declare tier: BelongsTo<typeof Tier>
+
+    @belongsTo(() => User, { foreignKey: 'userId' })
+    declare user: BelongsTo<typeof User>
 
     @hasMany(() => Booking, { foreignKey: 'customerId'})
     declare booking: HasMany<typeof Booking>

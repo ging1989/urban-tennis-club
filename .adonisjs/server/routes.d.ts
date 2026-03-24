@@ -27,7 +27,7 @@ export type ScannedRoutes = {
     'customers.update_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'payments.store': { paramsTuple?: []; params?: {} }
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
-    'admin.index': { paramsTuple?: []; params?: {} }
+    'admin': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'new_account.create': { paramsTuple?: []; params?: {} }
@@ -45,7 +45,7 @@ export type ScannedRoutes = {
     'coaches.schedules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
-    'admin.index': { paramsTuple?: []; params?: {} }
+    'admin': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'new_account.create': { paramsTuple?: []; params?: {} }
@@ -63,7 +63,7 @@ export type ScannedRoutes = {
     'coaches.schedules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
-    'admin.index': { paramsTuple?: []; params?: {} }
+    'admin': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'new_account.store': { paramsTuple?: []; params?: {} }
