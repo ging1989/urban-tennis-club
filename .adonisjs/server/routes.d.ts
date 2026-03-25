@@ -19,6 +19,7 @@ export type ScannedRoutes = {
     'bookings.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
+    'member.profile': { paramsTuple?: []; params?: {} }
     'coaches.index': { paramsTuple?: []; params?: {} }
     'coaches.busy': { paramsTuple?: []; params?: {} }
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -33,6 +34,9 @@ export type ScannedRoutes = {
     'admin.logout': { paramsTuple?: []; params?: {} }
     'admin': { paramsTuple?: []; params?: {} }
     'admin.stats': { paramsTuple?: []; params?: {} }
+    'admin.profile': { paramsTuple?: []; params?: {} }
+    'admin.profile.update': { paramsTuple?: []; params?: {} }
+    'admin.profile.password': { paramsTuple?: []; params?: {} }
     'admin.create_court': { paramsTuple?: []; params?: {} }
     'admin.update_court': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.delete_court': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -59,6 +63,7 @@ export type ScannedRoutes = {
     'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
+    'member.profile': { paramsTuple?: []; params?: {} }
     'coaches.index': { paramsTuple?: []; params?: {} }
     'coaches.busy': { paramsTuple?: []; params?: {} }
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -68,6 +73,7 @@ export type ScannedRoutes = {
     'admin.login': { paramsTuple?: []; params?: {} }
     'admin': { paramsTuple?: []; params?: {} }
     'admin.stats': { paramsTuple?: []; params?: {} }
+    'admin.profile': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'new_account.create': { paramsTuple?: []; params?: {} }
@@ -80,6 +86,7 @@ export type ScannedRoutes = {
     'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
+    'member.profile': { paramsTuple?: []; params?: {} }
     'coaches.index': { paramsTuple?: []; params?: {} }
     'coaches.busy': { paramsTuple?: []; params?: {} }
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -89,6 +96,7 @@ export type ScannedRoutes = {
     'admin.login': { paramsTuple?: []; params?: {} }
     'admin': { paramsTuple?: []; params?: {} }
     'admin.stats': { paramsTuple?: []; params?: {} }
+    'admin.profile': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'new_account.store': { paramsTuple?: []; params?: {} }
@@ -99,6 +107,8 @@ export type ScannedRoutes = {
     'payments.store': { paramsTuple?: []; params?: {} }
     'admin.login.store': { paramsTuple?: []; params?: {} }
     'admin.logout': { paramsTuple?: []; params?: {} }
+    'admin.profile.update': { paramsTuple?: []; params?: {} }
+    'admin.profile.password': { paramsTuple?: []; params?: {} }
     'admin.create_court': { paramsTuple?: []; params?: {} }
     'admin.create_coach': { paramsTuple?: []; params?: {} }
     'admin.create_user': { paramsTuple?: []; params?: {} }

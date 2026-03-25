@@ -16,6 +16,7 @@ export default class NewAccountController {
       username: payload.username,
       email: payload.email,
       password: payload.password,
+      role: 'member',
     })
 
     await Customer.create({

@@ -25,12 +25,15 @@
         <li><a href="/courts">Courts</a></li>
         <li><a href="/coaches">Coach</a></li>
         <li><a href="#">Contact</a></li>
+        @if(auth.user && auth.user.role !== 'admin')
+          <li><a href="/member/profile" style="color:#8B2500;font-weight:600;">My Profile</a></li>
+        @end
       </ul>
       <div class="auth-menu">
         @if(auth.user)
-          <span style="font-size: 14px; color:#6b7a99">
-            Hello, {{ auth.user.fullName ?? auth.user.email }}
-          </span>
+          <a href="/member/profile" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:#202124;background:#f0f0f0;border:1px solid #ddd;border-radius:20px;padding:6px 16px;text-decoration:none;">
+            👤 {{ auth.user.fullName ?? auth.user.email }}
+          </a>
           <form action="{{ route('session.destroy') }}" method="post" style="display: inline;">
             {{ csrfField() }}
             <button type="submit" style="

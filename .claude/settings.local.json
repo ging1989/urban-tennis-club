@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(node -e \"console.log\\(Date.now\\(\\)\\)\")",
-      "Bash(node ace:*)"
+      "Bash(node ace:*)",
+      "Read(//c/Users/ITSUPP~1/AppData/Local/Temp/claude/d--Urban-Tennis-Club-urban-tennis-club/bdc17604-b423-475e-b165-d956f9e9ab9c/tasks/**)",
+      "Bash(netstat -ano)"
     ]
   }
 }

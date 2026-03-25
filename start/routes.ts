@@ -13,6 +13,7 @@ import router from '@adonisjs/core/services/router'
 
 import AdminController        from '#controllers/admin_controller'
 import AdminSessionController from '#controllers/admin_session_controller'
+import AdminProfileController from '#controllers/admin/profile_controller'
 import HomeController      from '#controllers/home_controller'
 import CourtsController    from '#controllers/courts_controller'
 import BookingsController  from '#controllers/bookings_controller'
@@ -32,7 +33,7 @@ router
 
 router
   .group(() => {
-    router.post('logout', [controllers.Session, 'destroy'])
+    router.post('logout', [controllers.Session, 'destroy']).as('session.destroy')
   })
   .use(middleware.auth())
 
@@ -55,8 +56,9 @@ router.patch('/bookings/:id/status',         [BookingsController, 'updateStatus'
 
 router
   .group(() => {
-router.get('/bookings/:id',                  [BookingsController, 'show'])
-router.get('/bookings/customer/:customerId', [BookingsController, 'byCustomer'])
+    router.get('/bookings/:id',                  [BookingsController, 'show'])
+    router.get('/bookings/customer/:customerId', [BookingsController, 'byCustomer'])
+    router.get('/member/profile',                [CustomersController, 'profile']).as('member.profile')
   })
   .use(middleware.auth())
 
@@ -85,6 +87,9 @@ router
   .group(() => {
     router.get('/admin',                [AdminController, 'index']).as('admin')
     router.get('/admin/stats',          [AdminController, 'statsJson']).as('admin.stats')
+    router.get('/admin/profile',        [AdminProfileController, 'index']).as('admin.profile')
+    router.post('/admin/profile',       [AdminProfileController, 'update']).as('admin.profile.update')
+    router.post('/admin/profile/password', [AdminProfileController, 'password']).as('admin.profile.password')
     router.post('/admin/courts',        [AdminController, 'createCourt'])
     router.patch('/admin/courts/:id',   [AdminController, 'updateCourt'])
     router.delete('/admin/courts/:id',  [AdminController, 'deleteCourt'])
