@@ -25,9 +25,12 @@
       </ul>
       <div class="auth-menu">
         @if(auth.user)
-          <span style="font-size: 14px; color:#6b7a99">
-            Hello, {{ auth.user.fullName ?? auth.user.email }}
-          </span>
+          <a
+            href="{{ auth.user.role === 'admin' ? route('admin.profile') : route('member.profile') }}"
+            style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:#202124;background:#f0f0f0;border:1px solid #ddd;border-radius:20px;padding:6px 16px;text-decoration:none;"
+          >
+            👤 {{ auth.user.fullName ?? auth.user.email }}
+          </a>
           <form action="{{ route('session.destroy') }}" method="post" style="display: inline;">
             {{ csrfField() }}
             <button type="submit" style="

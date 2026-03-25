@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Customer from '#models/customer'
 import Tier from '#models/tier'
 import Booking from '#models/booking'
+import { DateTime } from 'luxon'
 
 export default class CustomersController {
   /**
@@ -76,6 +77,37 @@ export default class CustomersController {
       .limit(10)
 
     return view.render('pages/member/profile', { user, customer, bookings })
+  }
+
+  async updateProfile({ auth, request, response, session }: HttpContext) {
+    const user = auth.user!
+    const customer = await Customer.query().where('user_id', user.id).first()
+
+    if (!customer) {
+      session.flash('error', 'Member profile not found')
+      return response.redirect().back()
+    }
+
+    const { customerName, customerPhone, birthDate } = request.only([
+      'customerName',
+      'customerPhone',
+      'birthDate',
+    ])
+
+    const nextName = String(customerName || '').trim()
+    customer.customerName = nextName || customer.customerName
+    customer.customerPhone = String(customerPhone || '').trim()
+    customer.birthDate = birthDate ? DateTime.fromISO(String(birthDate)) : null
+
+    await customer.save()
+
+    if (nextName && user.fullName !== nextName) {
+      user.fullName = nextName
+      await user.save()
+    }
+
+    session.flash('success', 'Profile updated successfully')
+    return response.redirect().toRoute('member.profile')
   }
 
   /**

@@ -28,7 +28,7 @@
     <table class="tbl" id="bookingTable">
       <thead>
         <tr>
-          <th>ID</th><th>Customer</th><th>Court</th><th>Date</th>
+          <th>ID</th><th>Customer</th><th>Court</th><th>Booking Date</th>
           <th>Time</th><th>Total</th><th>Status</th><th>Actions</th>
         </tr>
       </thead>
@@ -40,7 +40,7 @@
             <td class="tbl-muted">#{{ b.bookingId }}</td>
             <td class="fw-6">{{ b.customer ? b.customer.customerName : '—' }}</td>
             <td class="tbl-muted">{{ b.court ? b.court.courtName : '—' }}</td>
-            <td class="tbl-muted">{{ b.bookingDate }}</td>
+            <td class="tbl-muted">{{ b.bookingDate ? b.bookingDate.toFormat('dd-MM-yyyy') : '—' }}</td>
             <td class="tbl-muted">{{ b.bookingStart }} – {{ b.bookingEnd }}</td>
             <td class="fw-6">฿{{ parseFloat(b.totalPrice).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
             <td><span class="badge badge-{{ b.bookingStatus }}">{{ b.bookingStatus }}</span></td>

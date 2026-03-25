@@ -59,6 +59,7 @@ router
     router.get('/bookings/:id',                  [BookingsController, 'show'])
     router.get('/bookings/customer/:customerId', [BookingsController, 'byCustomer'])
     router.get('/member/profile',                [CustomersController, 'profile']).as('member.profile')
+    router.post('/member/profile',               [CustomersController, 'updateProfile']).as('member.profile.update')
   })
   .use(middleware.auth())
 
@@ -87,6 +88,7 @@ router
   .group(() => {
     router.get('/admin',                [AdminController, 'index']).as('admin')
     router.get('/admin/stats',          [AdminController, 'statsJson']).as('admin.stats')
+    router.get('/admin/data',           [AdminController, 'dataJson']).as('admin.data')
     router.get('/admin/profile',        [AdminProfileController, 'index']).as('admin.profile')
     router.post('/admin/profile',       [AdminProfileController, 'update']).as('admin.profile.update')
     router.post('/admin/profile/password', [AdminProfileController, 'password']).as('admin.profile.password')

@@ -21,6 +21,9 @@ export default class Customer extends BaseModel {
     @column()
     declare customerEmail: string
 
+    @column.date()
+    declare birthDate: DateTime | null
+
     @column()
     declare userId: number | null
 

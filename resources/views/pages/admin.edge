@@ -249,30 +249,21 @@
                   <th>Total</th>
                   <th>Payment</th>
                   <th>Status</th>
-                  <th>Action</th>
+                  <th>Customer Type</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="recent-bookings-tbody">
                 @each(b in recentBookings)
                   <tr>
                     <td class="td-muted">#{{ b.bookingId }}</td>
                     <td>{{ b.customer ? b.customer.customerName : '—' }}</td>
                     <td>{{ b.court ? b.court.courtName : '—' }}</td>
-                    <td class="td-muted">{{ b.bookingDate }}</td>
+                    <td class="td-muted">{{ b.bookingDate.toFormat('dd-MM-yyyy') }}</td>
                     <td class="td-muted">{{ b.bookingStart }} – {{ b.bookingEnd }}</td>
                     <td>฿{{ parseFloat(b.totalPrice).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
                     <td class="td-muted">{{ b.payment ? b.payment.paymentMethod : '—' }}</td>
                     <td><span class="badge badge-{{ b.bookingStatus }}">{{ b.bookingStatus }}</span></td>
-                    <td>
-                      @if(b.bookingStatus === 'pending')
-                        <div class="action-btns">
-                          <button class="btn-action confirm" data-action="confirmed" data-id="{{ b.bookingId }}">Confirm</button>
-                          <button class="btn-action cancel"  data-action="cancelled" data-id="{{ b.bookingId }}">Cancel</button>
-                        </div>
-                      @else
-                        <span class="td-muted">—</span>
-                      @end
-                    </td>
+                    <td class="td-muted">{{ b.customer ? b.customer.customerType : '—' }}</td>
                   </tr>
                 @end
               </tbody>
@@ -415,7 +406,7 @@
                   <th>Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="coaches-tbody">
                 @each(coach in coaches)
                   <tr>
                     <td class="td-muted">{{ coach.coachId }}</td>
@@ -506,7 +497,7 @@
                   <th>Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="customers-tbody">
                 @each(c in customers)
                   <tr id="customer-row-{{ c.customerId }}">
                     <td class="td-muted">{{ c.customerId }}</td>
@@ -887,8 +878,143 @@
       } catch {}
     }
 
+    function formatMoney(value) {
+      return Number(value || 0).toLocaleString('th-TH', { maximumFractionDigits: 0 })
+    }
+
+    function formatDate(value) {
+      if (!value) return '—'
+      const date = new Date(value)
+      if (Number.isNaN(date.getTime())) {
+        const raw = String(value).slice(0, 10)
+        const parts = raw.split('-')
+        return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : String(value)
+      }
+      const day = String(date.getDate()).padStart(2, '0')
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const year = date.getFullYear()
+      return `${day}-${month}-${year}`
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;')
+    }
+
+    function renderRecentBookings(rows) {
+      const tbody = document.getElementById('recent-bookings-tbody')
+      if (!tbody) return
+      tbody.innerHTML = rows.map((b) => `
+        <tr>
+          <td class="td-muted">#${b.bookingId}</td>
+          <td>${escapeHtml(b.customer ? b.customer.customerName : '—')}</td>
+          <td>${escapeHtml(b.court ? b.court.courtName : '—')}</td>
+          <td class="td-muted">${escapeHtml(formatDate(b.bookingDate))}</td>
+          <td class="td-muted">${escapeHtml(b.bookingStart)} – ${escapeHtml(b.bookingEnd)}</td>
+          <td>฿${formatMoney(b.totalPrice)}</td>
+          <td class="td-muted">${escapeHtml(b.payment ? b.payment.paymentMethod : '—')}</td>
+          <td><span class="badge badge-${escapeHtml(b.bookingStatus)}">${escapeHtml(b.bookingStatus)}</span></td>
+          <td class="td-muted">${escapeHtml(b.customer ? b.customer.customerType : '—')}</td>
+        </tr>
+      `).join('')
+    }
+
+    function renderCustomers(rows) {
+      const tbody = document.getElementById('customers-tbody')
+      if (!tbody) return
+      tbody.innerHTML = rows.map((c) => `
+        <tr id="customer-row-${c.customerId}">
+          <td class="td-muted">${c.customerId}</td>
+          <td>${escapeHtml(c.customerName)}</td>
+          <td class="td-muted">${escapeHtml(c.customerEmail ?? '—')}</td>
+          <td class="td-muted">${escapeHtml(c.customerPhone ?? '—')}</td>
+          <td><span class="badge badge-confirmed">${escapeHtml(c.customerType)}</span></td>
+          <td class="td-muted">${escapeHtml(c.tier ? c.tier.tierDesc : '—')}</td>
+          <td>
+            <button class="btn-action btn-edit btn-edit-customer"
+              data-id="${c.customerId}"
+              data-name="${escapeHtml(c.customerName)}"
+              data-email="${escapeHtml(c.customerEmail ?? '')}"
+              data-phone="${escapeHtml(c.customerPhone ?? '')}"
+              data-type="${escapeHtml(c.customerType)}"
+              data-tier="${escapeHtml(c.tierId ?? '')}"
+              data-user="${escapeHtml(c.userId ?? '')}">
+              Edit
+            </button>
+          </td>
+        </tr>
+      `).join('')
+      bindCustomerEditButtons()
+    }
+
+    function renderUsers(rows) {
+      const tbody = document.getElementById('users-tbody')
+      if (!tbody) return
+      tbody.innerHTML = rows.map((u) => `
+        <tr id="user-row-${u.id}">
+          <td class="td-muted">${u.id}</td>
+          <td>${escapeHtml(u.fullName ?? '—')}</td>
+          <td class="td-muted">${escapeHtml(u.username ?? '—')}</td>
+          <td class="td-muted">${escapeHtml(u.email)}</td>
+          <td><span class="badge ${u.role === 'admin' ? 'badge-cancelled' : 'badge-confirmed'}">${escapeHtml(u.role)}</span></td>
+          <td class="td-muted">${escapeHtml(u.role === 'member' && u.customer && u.customer.tier ? u.customer.tier.tierDesc : '—')}</td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-action btn-edit btn-edit-user"
+                data-id="${u.id}"
+                data-fullname="${escapeHtml(u.fullName ?? '')}"
+                data-username="${escapeHtml(u.username ?? '')}"
+                data-email="${escapeHtml(u.email)}"
+                data-role="${escapeHtml(u.role)}">
+                Edit
+              </button>
+              <button class="btn-action cancel btn-delete-user"
+                data-id="${u.id}"
+                data-name="${escapeHtml(u.fullName ?? u.email)}">
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('')
+      bindUserEditButtons()
+      bindUserDeleteButtons()
+    }
+
+    async function refreshAdminData() {
+      try {
+        const res = await fetch('/admin/data')
+        if (!res.ok) return
+        const data = await res.json()
+        renderRecentBookings(data.recentBookings || [])
+        renderCustomers(data.customers || [])
+        renderUsers(data.users || [])
+      } catch {}
+    }
+
+    async function refreshDashboardNow() {
+      await Promise.all([refreshStats(), refreshAdminData()])
+    }
+
     // Auto-poll ทุก 30 วินาที
     setInterval(refreshStats, 30000)
+    setInterval(refreshAdminData, 30000)
+
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'admin_refresh_signal' && event.newValue) {
+        refreshDashboardNow()
+      }
+    })
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        refreshDashboardNow()
+      }
+    })
 
     // ── Coach Modal ──
     const coachOverlay  = document.getElementById('coach-modal-overlay')
@@ -1196,17 +1322,20 @@
     document.getElementById('customer-modal-cancel').addEventListener('click', closeCustomerModal)
     customerOverlay.addEventListener('click', e => { if (e.target === customerOverlay) closeCustomerModal() })
 
-    document.querySelectorAll('.btn-edit-customer').forEach(btn => {
-      btn.addEventListener('click', () => openCustomerModal({
-        id:    btn.dataset.id,
-        name:  btn.dataset.name,
-        email: btn.dataset.email,
-        phone: btn.dataset.phone,
-        type:  btn.dataset.type,
-        tier:  btn.dataset.tier,
-        user:  btn.dataset.user,
-      }))
-    })
+    function bindCustomerEditButtons() {
+      document.querySelectorAll('.btn-edit-customer').forEach(btn => {
+        btn.onclick = () => openCustomerModal({
+          id:    btn.dataset.id,
+          name:  btn.dataset.name,
+          email: btn.dataset.email,
+          phone: btn.dataset.phone,
+          type:  btn.dataset.type,
+          tier:  btn.dataset.tier,
+          user:  btn.dataset.user,
+        })
+      })
+    }
+    bindCustomerEditButtons()
 
     customerForm.addEventListener('submit', async (e) => {
       e.preventDefault()
@@ -1276,15 +1405,18 @@
     document.getElementById('user-modal-cancel').addEventListener('click', closeUserModal)
     userOverlay.addEventListener('click', e => { if (e.target === userOverlay) closeUserModal() })
 
-    document.querySelectorAll('.btn-edit-user').forEach(btn => {
-      btn.addEventListener('click', () => openUserModal({
-        id:       btn.dataset.id,
-        fullname: btn.dataset.fullname,
-        username: btn.dataset.username,
-        email:    btn.dataset.email,
-        role:     btn.dataset.role,
-      }))
-    })
+    function bindUserEditButtons() {
+      document.querySelectorAll('.btn-edit-user').forEach(btn => {
+        btn.onclick = () => openUserModal({
+          id:       btn.dataset.id,
+          fullname: btn.dataset.fullname,
+          username: btn.dataset.username,
+          email:    btn.dataset.email,
+          role:     btn.dataset.role,
+        })
+      })
+    }
+    bindUserEditButtons()
 
     userForm.addEventListener('submit', async (e) => {
       e.preventDefault()
@@ -1338,9 +1470,12 @@
     document.getElementById('user-delete-cancel').addEventListener('click', closeUserDeleteModal)
     userDeleteOverlay.addEventListener('click', e => { if (e.target === userDeleteOverlay) closeUserDeleteModal() })
 
-    document.querySelectorAll('.btn-delete-user').forEach(btn => {
-      btn.addEventListener('click', () => openUserDeleteModal(btn.dataset.id, btn.dataset.name))
-    })
+    function bindUserDeleteButtons() {
+      document.querySelectorAll('.btn-delete-user').forEach(btn => {
+        btn.onclick = () => openUserDeleteModal(btn.dataset.id, btn.dataset.name)
+      })
+    }
+    bindUserDeleteButtons()
 
     userDeleteConfirm.addEventListener('click', async () => {
       if (!pendingUserDeleteId) return

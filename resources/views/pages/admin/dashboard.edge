@@ -153,7 +153,7 @@
               <td class="tbl-muted">#{{ b.bookingId }}</td>
               <td class="fw-6">{{ b.customer ? b.customer.customerName : '—' }}</td>
               <td class="tbl-muted">{{ b.court ? b.court.courtName : '—' }}</td>
-              <td class="tbl-muted">{{ b.bookingDate }}</td>
+              <td class="tbl-muted">{{ b.bookingDate ? b.bookingDate.toFormat('dd-MM-yyyy') : '—' }}</td>
               <td class="fw-6">฿{{ parseFloat(b.totalPrice).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
               <td><span class="badge badge-{{ b.bookingStatus }}">{{ b.bookingStatus }}</span></td>
             </tr>

@@ -9,11 +9,13 @@ import Tier from '#models/tier'
 import User from '#models/user'
 import { DateTime } from 'luxon'
 
+const APP_TIMEZONE = 'Asia/Bangkok'
+
 async function getTodayStats() {
-  const today = DateTime.now().toISODate()!
+  const today = DateTime.now().setZone(APP_TIMEZONE).toISODate()!
 
   const allBookings = await Booking.query()
-  const todayBookings = allBookings.filter((b) => String(b.bookingDate) === today)
+  const todayBookings = allBookings.filter((b) => b.bookingDate?.toISODate() === today)
 
   const todayRevenue = todayBookings
     .filter((b) => b.bookingStatus !== 'cancelled')
@@ -44,25 +46,31 @@ async function getTodayStats() {
   }
 }
 
+async function getAdminCollections() {
+  const recentBookings = await Booking.query()
+    .preload('customer')
+    .preload('court')
+    .preload('payment')
+    .orderBy('created_at', 'desc')
+    .limit(50)
+
+  const customers = await Customer.query().preload('tier').orderBy('created_at', 'desc')
+  const users = await User.query().preload('customer', (q) => q.preload('tier')).orderBy('id', 'asc')
+
+  return { recentBookings, customers, users }
+}
+
 export default class AdminController {
 
   async index({ view }: HttpContext) {
     const stats = await getTodayStats()
-
-    const recentBookings = await Booking.query()
-      .preload('customer')
-      .preload('court')
-      .preload('payment')
-      .orderBy('created_at', 'desc')
-      .limit(50)
+    const { recentBookings, customers, users } = await getAdminCollections()
 
     const allBookings = await Booking.query()
     const courts   = await Court.query().orderBy('court_id', 'asc')
     const coaches  = (await Coach.query().preload('coachPricing').preload('coachSchedules')).sort((a, b) => a.coachId - b.coachId)
-    const customers = await Customer.query().preload('tier').orderBy('created_at', 'desc')
     const coachPricings = await CoachPricing.all()
     const tiers = await Tier.query().preload('members').orderBy('min_hours', 'asc')
-    const users = await User.query().preload('customer', (q) => q.preload('tier')).orderBy('id', 'asc')
     const memberUsers = users.filter((u) => u.role === 'member')
 
     // ── revenue per court ──
@@ -79,23 +87,23 @@ export default class AdminController {
     // ── bookings per day (7 วันล่าสุด) ──
     const last7: { date: string; count: number }[] = []
     for (let i = 6; i >= 0; i--) {
-      const d = DateTime.now().minus({ days: i }).toISODate()!
-      const count = allBookings.filter((b) => String(b.bookingDate) === d).length
+      const d = DateTime.now().setZone(APP_TIMEZONE).minus({ days: i }).toISODate()!
+      const count = allBookings.filter((b) => b.bookingDate?.toISODate() === d).length
       last7.push({ date: d, count })
     }
 
     // ── coach revenue per day (7 วันล่าสุด) ──
     const last7CoachRevenue: { date: string; revenue: number }[] = []
     for (let i = 6; i >= 0; i--) {
-      const d = DateTime.now().minus({ days: i }).toISODate()!
+      const d = DateTime.now().setZone(APP_TIMEZONE).minus({ days: i }).toISODate()!
       const revenue = allBookings
-        .filter((b) => String(b.bookingDate) === d && b.bookingStatus !== 'cancelled')
+        .filter((b) => b.bookingDate?.toISODate() === d && b.bookingStatus !== 'cancelled')
         .reduce((sum, b) => sum + (parseFloat(String(b.bookingCoachPrice)) || 0), 0)
       last7CoachRevenue.push({ date: d, revenue })
     }
 
     // ── coach revenue today per coach ──
-    const today = DateTime.now().toISODate()!
+    const today = DateTime.now().setZone(APP_TIMEZONE).toISODate()!
     const todayBookingsWithSchedule = await Booking.query()
       .preload('coachSchedule')
       .where('booking_date', today)
@@ -127,6 +135,11 @@ export default class AdminController {
   async statsJson({ response }: HttpContext) {
     const stats = await getTodayStats()
     return response.json(stats)
+  }
+
+  async dataJson({ response }: HttpContext) {
+    const { recentBookings, customers, users } = await getAdminCollections()
+    return response.json({ recentBookings, customers, users })
   }
 
   async createCourt({ request, response }: HttpContext) {
@@ -239,6 +252,19 @@ export default class AdminController {
     const existing = await User.findBy('email', email)
     if (existing) return response.status(409).json({ message: 'Email already in use.' })
     const user = await User.create({ fullName: fullName ?? null, username: username ?? null, email, password, role: role ?? 'member' })
+
+    if (user.role === 'member') {
+      const defaultTier = await Tier.query().where('min_hours', 0).first()
+      await Customer.create({
+        customerName: user.fullName ?? user.username ?? user.email,
+        customerEmail: user.email,
+        customerPhone: '',
+        customerType: 'member',
+        userId: user.id,
+        tierId: defaultTier?.tierId ?? null,
+      })
+    }
+
     return response.json(user)
   }
 
@@ -248,6 +274,30 @@ export default class AdminController {
     user.merge({ fullName: fullName ?? null, username: username ?? null, email, role })
     if (password) user.password = password
     await user.save()
+
+    let customer = await Customer.query().where('user_id', user.id).first()
+
+    if (user.role === 'member') {
+      if (!customer) {
+        const defaultTier = await Tier.query().where('min_hours', 0).first()
+        customer = await Customer.create({
+          customerName: user.fullName ?? user.username ?? user.email,
+          customerEmail: user.email,
+          customerPhone: '',
+          customerType: 'member',
+          userId: user.id,
+          tierId: defaultTier?.tierId ?? null,
+        })
+      } else {
+        customer.merge({
+          customerName: user.fullName ?? user.username ?? user.email,
+          customerEmail: user.email,
+          customerType: 'member',
+        })
+        await customer.save()
+      }
+    }
+
     return response.json(user)
   }
 

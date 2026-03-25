@@ -31,7 +31,10 @@
       </ul>
       <div class="auth-menu">
         @if(auth.user)
-          <a href="/member/profile" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:#202124;background:#f0f0f0;border:1px solid #ddd;border-radius:20px;padding:6px 16px;text-decoration:none;">
+          <a
+            href="{{ auth.user.role === 'admin' ? route('admin.profile') : route('member.profile') }}"
+            style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:#202124;background:#f0f0f0;border:1px solid #ddd;border-radius:20px;padding:6px 16px;text-decoration:none;"
+          >
             👤 {{ auth.user.fullName ?? auth.user.email }}
           </a>
           <form action="{{ route('session.destroy') }}" method="post" style="display: inline;">

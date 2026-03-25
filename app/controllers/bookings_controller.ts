@@ -17,51 +17,55 @@ export default class BookingsController {
 
 // app/controllers/bookings_controller.ts
 
-async new({ request, view, session, response, auth }: HttpContext) {
+async new({ request, view, response, auth }: HttpContext) {
     const courtId = request.input('courtId')
     if (!courtId) return response.redirect().toPath('/courts')
 
-    let bookingDate = request.input('date')
-    if (!bookingDate || bookingDate === 'null') {
-      bookingDate = DateTime.now().setZone('Asia/Bangkok').toISODate()
-    }
+    const rawBookingDate = request.input('date')
+    const bookingDate = rawBookingDate && rawBookingDate !== 'null' ? rawBookingDate : ''
 
     try {
       const court = await Court.findOrFail(courtId)
       const expiryTime = DateTime.now().setZone('Asia/Bangkok').minus({ minutes: 30 })
 
-      const existing = await Booking.query()
-        .where('court_id', courtId)
-        .whereRaw('DATE(booking_date) = ?', [bookingDate])
-        .where((q) => {
-          q.where('booking_status', 'confirmed')
-            .orWhere((inner) => {
-              inner.where('booking_status', 'pending')
-                   .andWhere('created_at', '>', expiryTime.toSQL())
-            })
-        })
-
       const bookedSlots: string[] = []
-      for (const b of existing) {
-        if (b.bookingStart && b.bookingEnd) {
-          const startH = parseInt(b.bookingStart.split(':')[0])
-          const endH   = parseInt(b.bookingEnd.split(':')[0])
-          for (let h = startH; h < endH; h++) {
-            bookedSlots.push(String(h).padStart(2, '0') + ':00')
+      if (bookingDate) {
+        const existing = await Booking.query()
+          .where('court_id', courtId)
+          .whereRaw('DATE(booking_date) = ?', [bookingDate])
+          .where((q) => {
+            q.where('booking_status', 'confirmed')
+              .orWhere((inner) => {
+                inner.where('booking_status', 'pending')
+                     .andWhere('created_at', '>', expiryTime.toSQL())
+              })
+          })
+
+        for (const b of existing) {
+          if (b.bookingStart && b.bookingEnd) {
+            const startH = parseInt(b.bookingStart.split(':')[0])
+            const endH   = parseInt(b.bookingEnd.split(':')[0])
+            for (let h = startH; h < endH; h++) {
+              bookedSlots.push(String(h).padStart(2, '0') + ':00')
+            }
           }
         }
       }
 
       const coaches = await Coach.query().preload('coachPricing').orderBy('coach_id', 'asc')
+      const memberProfile = auth.user && auth.user.role === 'member'
+        ? await Customer.query().where('user_id', auth.user.id).preload('tier').first()
+        : null
 
       return view.render('pages/booking', {
         court,
         bookingDate,
         bookedSlotsJson: JSON.stringify(bookedSlots), 
-        minDate: DateTime.now().toISODate(),    
+        minDate: DateTime.now().setZone('Asia/Bangkok').toISODate(),
         coaches,
-        discount: session.get('memberId') ? 10 : 0,  
-        user: auth.user                            
+        discount: memberProfile?.tier ? memberProfile.tier.tierDiscount : 0,
+        user: auth.user,
+        memberProfile,
       })
 
     } catch (error) {
@@ -72,7 +76,7 @@ async new({ request, view, session, response, auth }: HttpContext) {
   /**
    * บันทึกการจอง (พร้อมระบบ Transaction)
    */
-  async store({ request, response, session }: HttpContext) {
+  async store({ request, response, session, auth }: HttpContext) {
       const data = request.only([
         'courtId', 'coachId', 'bookingDate',
         'bookingStart', 'bookingEnd', 'customerName',
@@ -80,6 +84,11 @@ async new({ request, view, session, response, auth }: HttpContext) {
       ])
 
       const redirectUrl = `/bookings/new?courtId=${data.courtId}&date=${data.bookingDate}`
+
+      if (!data.bookingDate) {
+        session.flash('error', 'Please select the play date before booking.')
+        return response.redirect().toPath(`/bookings/new?courtId=${data.courtId}`)
+      }
 
       const court = await Court.findOrFail(data.courtId)
       
@@ -127,9 +136,18 @@ async new({ request, view, session, response, auth }: HttpContext) {
 
         let customerId: number
         let discount = 0
-        const loggedInMemberId = session.get('memberId')
-        if (loggedInMemberId) {
-          const member = await Customer.query({ client: trx }).where('customer_id', loggedInMemberId).preload('tier').firstOrFail()
+        if (auth.user && auth.user.role === 'member') {
+          const member = await Customer.query({ client: trx })
+            .where('user_id', auth.user.id)
+            .preload('tier')
+            .firstOrFail()
+
+          const nextPhone = String(data.customerPhone || '').trim()
+          if (nextPhone && nextPhone !== member.customerPhone) {
+            member.customerPhone = nextPhone
+            await member.save()
+          }
+
           customerId = member.customerId
           discount = member.tier ? member.tier.tierDiscount / 100 : 0
         } else {

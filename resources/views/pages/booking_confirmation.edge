@@ -26,7 +26,7 @@
       </div>
       <div class="sc-card">
         <div class="sc-card-label">Date</div>
-        <div class="sc-card-value">{{ booking.bookingDate }}</div>
+        <div class="sc-card-value">{{ booking.bookingDate.toFormat('dd-MM-yyyy') }}</div>
       </div>
       <div class="sc-card">
         <div class="sc-card-label">Time</div>
@@ -90,7 +90,19 @@
 </div>
 
 <script>
+  function broadcastAdminRefresh(reason) {
+    try {
+      localStorage.setItem('admin_refresh_signal', JSON.stringify({
+        reason,
+        bookingId: {{ booking.bookingId }},
+        at: Date.now(),
+      }))
+    } catch (e) {}
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
+    broadcastAdminRefresh('booking_created')
+
     // ดึงเวลาสร้างจากฐานข้อมูล (ส่งมาเป็น Timestamp มิลลิวินาที)
     const createdAt = {{ booking.createdAt.toMillis() }};
     const expiryTime = createdAt + (30 * 60 * 1000); // บวก 30 นาที
@@ -137,6 +149,7 @@
     })
 
     if (res.ok) {
+      broadcastAdminRefresh('booking_confirmed')
       btn.outerHTML = `<div style="padding:16px;background:#e8f5e9;border-radius:12px;margin-bottom:12px;">
         <div style="color:#2e7d32;font-weight:600;">✓ Payment Confirmed!</div>
       </div>`
@@ -152,4 +165,3 @@
   }
 }
 </script>
-

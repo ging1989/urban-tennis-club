@@ -69,13 +69,19 @@
             type="date"
             id="pick-date"
             value="{{ bookingDate }}"
-            min="{{ new Date().toISOString().split('T')[0] }}"
+            min="{{ minDate }}"
             style="width:100%;padding:8px 12px;border:0.5px solid var(--clay-border);border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;"
             onchange="changeDate(this.value)"
           >
         </div>
 
-        <div class="slot-hint">Selected: <span id="slot-hint-txt" class="slot-hint-val">none</span> — Max 3 consecutive slots</div>
+        <div class="slot-hint">
+          @if(bookingDate)
+            Selected: <span id="slot-hint-txt" class="slot-hint-val">none</span> — Max 3 consecutive slots
+          @else
+            Please select the play date first
+          @end
+        </div>
         <div class="slot-grid" id="slot-grid"></div>
 
         <button class="btn-primary" onclick="goStep(2)">Continue →</button>
@@ -125,27 +131,65 @@
 
       <div id="step-3" class="panel" style="display:none;">
         <div class="panel-title">Your details</div>
-        <div class="panel-sub">No account needed</div>
+        <div class="panel-sub">
+          @if(memberProfile)
+            Using details from your member account
+          @else
+            No account needed
+          @end
+        </div>
+
+        @if(memberProfile)
+          <div style="margin-bottom:14px;padding:12px 14px;border:1px solid #dfe8d8;background:#f4fbf1;border-radius:10px;font-size:13px;color:#365b2c;">
+            Logged in as <strong>{{ memberProfile.customerName }}</strong>
+            @if(discount > 0)
+              · Member discount {{ discount }}%
+            @end
+            · <a href="{{ route('member.profile') }}" style="color:#365b2c;font-weight:700;text-decoration:underline;">Edit profile</a>
+          </div>
+        @end
 
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
           <div>
             <label class="field-label">Full name</label>
-            <input class="field-input" type="text" id="guest-name" placeholder="Somchai Jaidee">
+            <input
+              class="field-input"
+              type="text"
+              id="guest-name"
+              placeholder="Somchai Jaidee"
+              value="{{ memberProfile ? memberProfile.customerName : '' }}"
+              {{ memberProfile ? 'readonly' : '' }}
+            >
           </div>
           <div class="two-col">
             <div>
               <label class="field-label">Phone</label>
-              <input class="field-input" type="text" id="guest-phone" placeholder="0812345678">
+              <input
+                class="field-input"
+                type="text"
+                id="guest-phone"
+                placeholder="0812345678"
+                value="{{ memberProfile ? memberProfile.customerPhone : '' }}"
+              >
             </div>
             <div>
               <label class="field-label">Email</label>
-              <input class="field-input" type="email" id="guest-email" placeholder="email@example.com">
+              <input
+                class="field-input"
+                type="email"
+                id="guest-email"
+                placeholder="email@example.com"
+                value="{{ memberProfile ? (memberProfile.customerEmail || user.email) : '' }}"
+                {{ memberProfile ? 'readonly' : '' }}
+              >
             </div>
           </div>
         </div>
 
-        <div class="or-divider">or</div>
-        <a href="/login" class="member-login-link">Login as member to get discount →</a>
+        @if(!memberProfile)
+          <div class="or-divider">or</div>
+          <a href="/login" class="member-login-link">Login as member to get discount →</a>
+        @end
 
         <div class="btn-row">
           <button class="btn-back" onclick="goStep(2)">← Back</button>
@@ -228,6 +272,10 @@
   function buildSlots() {
     var grid = document.getElementById('slot-grid')
     if (!grid) return
+    if (!bk.date) {
+      grid.innerHTML = '<div class="sidebar-empty" style="grid-column:1/-1;">Select a play date to view available time slots</div>'
+      return
+    }
     var html = ''
     for (var i = 0; i < ALL_SLOTS.length; i++) {
       var s = ALL_SLOTS[i]
@@ -319,6 +367,7 @@
   }
 
   async function goStep(n) {
+    if ((n === 2 || n === 3 || n === 4) && !bk.date) { alert('Please select the play date first.'); return }
     if (n === 2 && bk.slots.length === 0) { alert('Please select a time slot.'); return }
     if (n === 4) {
       var name  = document.getElementById('guest-name').value.trim()
@@ -389,6 +438,7 @@
   function submitBooking() {
     if (!bk.payment) { alert('Please select a payment method.'); return }
     if (!bk.courtId) { alert('Court ID missing.'); return }
+    if (!bk.date) { alert('Please select the play date first.'); return }
     if (bk.slots.length === 0) { alert('Please select a time slot.'); return }
     var name  = document.getElementById('guest-name').value.trim()
     var phone = document.getElementById('guest-phone').value.trim()
@@ -424,4 +474,3 @@
     form.submit()
   }
 </script>
-

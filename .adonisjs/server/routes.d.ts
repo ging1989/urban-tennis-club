@@ -20,6 +20,7 @@ export type ScannedRoutes = {
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
     'member.profile': { paramsTuple?: []; params?: {} }
+    'member.profile.update': { paramsTuple?: []; params?: {} }
     'coaches.index': { paramsTuple?: []; params?: {} }
     'coaches.busy': { paramsTuple?: []; params?: {} }
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -34,6 +35,7 @@ export type ScannedRoutes = {
     'admin.logout': { paramsTuple?: []; params?: {} }
     'admin': { paramsTuple?: []; params?: {} }
     'admin.stats': { paramsTuple?: []; params?: {} }
+    'admin.data': { paramsTuple?: []; params?: {} }
     'admin.profile': { paramsTuple?: []; params?: {} }
     'admin.profile.update': { paramsTuple?: []; params?: {} }
     'admin.profile.password': { paramsTuple?: []; params?: {} }
@@ -73,6 +75,7 @@ export type ScannedRoutes = {
     'admin.login': { paramsTuple?: []; params?: {} }
     'admin': { paramsTuple?: []; params?: {} }
     'admin.stats': { paramsTuple?: []; params?: {} }
+    'admin.data': { paramsTuple?: []; params?: {} }
     'admin.profile': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
@@ -96,6 +99,7 @@ export type ScannedRoutes = {
     'admin.login': { paramsTuple?: []; params?: {} }
     'admin': { paramsTuple?: []; params?: {} }
     'admin.stats': { paramsTuple?: []; params?: {} }
+    'admin.data': { paramsTuple?: []; params?: {} }
     'admin.profile': { paramsTuple?: []; params?: {} }
   }
   POST: {
@@ -103,6 +107,7 @@ export type ScannedRoutes = {
     'session.store': { paramsTuple?: []; params?: {} }
     'session.destroy': { paramsTuple?: []; params?: {} }
     'bookings.store': { paramsTuple?: []; params?: {} }
+    'member.profile.update': { paramsTuple?: []; params?: {} }
     'customers.register': { paramsTuple?: []; params?: {} }
     'payments.store': { paramsTuple?: []; params?: {} }
     'admin.login.store': { paramsTuple?: []; params?: {} }

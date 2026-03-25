@@ -10,7 +10,7 @@
     background: #f5f5f5;
   }
   .profile-container {
-    max-width: 760px;
+    max-width: 920px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -23,6 +23,10 @@
     padding: 28px 32px;
   }
   .profile-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     font-size: 15px;
     font-weight: 700;
     color: #202124;
@@ -30,24 +34,85 @@
     padding-bottom: 12px;
     border-bottom: 1px solid #f0f0f0;
   }
+  .profile-card-subtitle {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7a99;
+  }
+  .flash-success,
+  .flash-error {
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+  .flash-success {
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    color: #2e7d32;
+  }
+  .flash-error {
+    background: #ffebee;
+    border: 1px solid #ef9a9a;
+    color: #c62828;
+  }
+  .profile-form-grid,
   .profile-info-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
   }
+  .profile-form-group,
+  .profile-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .profile-form-group label,
   .profile-info-item label {
-    display: block;
     font-size: 11px;
     font-weight: 600;
     color: #6b7a99;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    margin-bottom: 4px;
+  }
+  .profile-form-group input {
+    padding: 10px 12px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Google Sans', sans-serif;
+    outline: none;
+    background: #fff;
+  }
+  .profile-form-group input:focus {
+    border-color: #a83010;
+  }
+  .profile-form-group input:disabled {
+    background: #f7f7f7;
+    color: #7c7c7c;
   }
   .profile-info-item span {
     font-size: 14px;
     color: #202124;
     font-weight: 500;
+  }
+  .profile-form-group.full {
+    grid-column: 1 / -1;
+  }
+  .profile-actions {
+    margin-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .profile-save-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    background: #a83010;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
   }
   .tier-badge {
     display: inline-flex;
@@ -72,14 +137,16 @@
   }
   .booking-row {
     display: grid;
-    grid-template-columns: 80px 1fr 1fr 90px 90px;
+    grid-template-columns: 70px 1fr 1.2fr 90px 90px 120px;
     gap: 12px;
     padding: 14px 0;
     border-bottom: 1px solid #f0f0f0;
     font-size: 13px;
     align-items: center;
   }
-  .booking-row:last-child { border-bottom: none; }
+  .booking-row:last-child {
+    border-bottom: none;
+  }
   .booking-row-header {
     font-size: 11px;
     font-weight: 700;
@@ -97,11 +164,31 @@
   .status-confirmed { background: #e8f5e9; color: #2e7d32; }
   .status-pending   { background: #fff8e1; color: #f57f17; }
   .status-cancelled { background: #ffebee; color: #c62828; }
+  .booking-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #f5f5f5;
+    color: #202124;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+  }
   .empty-state {
     text-align: center;
     padding: 32px 0;
     color: #6b7a99;
     font-size: 14px;
+  }
+  @media (max-width: 720px) {
+    .profile-form-grid,
+    .profile-info-grid,
+    .booking-row,
+    .booking-row-header {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 @end
@@ -109,10 +196,50 @@
 @section('content')
 <div class="profile-wrap">
   <div class="profile-container">
+    @if(flashMessages.has('success'))
+      <div class="flash-success">{{ flashMessages.get('success') }}</div>
+    @end
+    @if(flashMessages.has('error'))
+      <div class="flash-error">{{ flashMessages.get('error') }}</div>
+    @end
 
-    {{-- Member Info --}}
     <div class="profile-card">
-      <div class="profile-card-title">Member Information</div>
+      <div class="profile-card-title">
+        <span>Edit Profile</span>
+        <span class="profile-card-subtitle">Update phone number and date of birth</span>
+      </div>
+      <form action="{{ route('member.profile.update') }}" method="POST">
+        {{ csrfField() }}
+        <div class="profile-form-grid">
+          <div class="profile-form-group">
+            <label>Full Name</label>
+            <input type="text" name="customerName" value="{{ customer.customerName }}">
+          </div>
+          <div class="profile-form-group">
+            <label>Email</label>
+            <input type="email" value="{{ user.email }}" disabled>
+          </div>
+          <div class="profile-form-group">
+            <label>Phone</label>
+            <input type="text" name="customerPhone" value="{{ customer.customerPhone || '' }}" placeholder="08x-xxx-xxxx">
+          </div>
+          <div class="profile-form-group">
+            <label>Date of Birth</label>
+            <input type="date" name="birthDate" value="{{ customer.birthDate ? customer.birthDate.toFormat('yyyy-MM-dd') : '' }}">
+          </div>
+          <div class="profile-form-group full">
+            <label>Member Since</label>
+            <input type="text" value="{{ customer.createdAt.toFormat('dd MMM yyyy') }}" disabled>
+          </div>
+        </div>
+        <div class="profile-actions">
+          <button type="submit" class="profile-save-btn">Save Profile</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="profile-card">
+      <div class="profile-card-title">Current Details</div>
       <div class="profile-info-grid">
         <div class="profile-info-item">
           <label>Full Name</label>
@@ -127,13 +254,16 @@
           <span>{{ customer.customerPhone || '—' }}</span>
         </div>
         <div class="profile-info-item">
+          <label>Date of Birth</label>
+          <span>{{ customer.birthDate ? customer.birthDate.toFormat('dd MMM yyyy') : '—' }}</span>
+        </div>
+        <div class="profile-info-item">
           <label>Member Since</label>
           <span>{{ customer.createdAt.toFormat('dd MMM yyyy') }}</span>
         </div>
       </div>
     </div>
 
-    {{-- Tier / Membership Level --}}
     <div class="profile-card">
       <div class="profile-card-title">Membership Tier</div>
       @if(customer.tier)
@@ -154,9 +284,11 @@
       @end
     </div>
 
-    {{-- Booking History --}}
     <div class="profile-card">
-      <div class="profile-card-title">Recent Bookings</div>
+      <div class="profile-card-title">
+        <span>Recent Bookings</span>
+        <span class="profile-card-subtitle">Your latest 10 bookings</span>
+      </div>
       @if(bookings.length > 0)
         <div class="booking-row booking-row-header">
           <span>#</span>
@@ -164,6 +296,7 @@
           <span>Date / Time</span>
           <span>Total</span>
           <span>Status</span>
+          <span>Action</span>
         </div>
         @each(b in bookings)
           <div class="booking-row">
@@ -179,13 +312,13 @@
                 {{ b.bookingStatus }}
               </span>
             </span>
+            <a href="/bookings/{{ b.bookingId }}/confirmation" class="booking-link">View booking</a>
           </div>
         @end
       @else
         <div class="empty-state">No bookings yet.</div>
       @end
     </div>
-
   </div>
 </div>
 @end
