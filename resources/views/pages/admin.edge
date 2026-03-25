@@ -50,7 +50,13 @@
         <span class="nav-icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </span>
-        Member Management
+        Customer Management
+      </a>
+      <a href="#" class="nav-item" data-section="tiers">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </span>
+        Tier Management
       </a>
     </nav>
 
@@ -138,30 +144,30 @@
           </div>
 
           <div class="panel">
-            <div class="panel-title">Booking Status</div>
+            <div class="panel-title">Booking Status Today</div>
             <div class="status-row">
               <span class="status-dot dot-confirmed"></span>
               <span class="status-name">Confirmed</span>
               <div class="status-bar-wrap">
-                <div class="status-bar-fill" style="width:{{ (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) > 0 ? (stats.confirmedCount / (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) * 100).toFixed(1) : 0 }}%;background:var(--green);"></div>
+                <div class="status-bar-fill" id="status-confirmed-bar" style="width:{{ (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) > 0 ? (stats.confirmedCount / (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) * 100).toFixed(1) : 0 }}%;background:var(--green);"></div>
               </div>
-              <span class="status-count">{{ stats.confirmedCount }}</span>
+              <span class="status-count" id="status-confirmed-count">{{ stats.confirmedCount }}</span>
             </div>
             <div class="status-row">
               <span class="status-dot dot-pending"></span>
               <span class="status-name">Pending</span>
               <div class="status-bar-wrap">
-                <div class="status-bar-fill" style="width:{{ (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) > 0 ? (stats.pendingCount / (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) * 100).toFixed(1) : 0 }}%;background:var(--amber);"></div>
+                <div class="status-bar-fill" id="status-pending-bar" style="width:{{ (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) > 0 ? (stats.pendingCount / (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) * 100).toFixed(1) : 0 }}%;background:var(--amber);"></div>
               </div>
-              <span class="status-count">{{ stats.pendingCount }}</span>
+              <span class="status-count" id="status-pending-count">{{ stats.pendingCount }}</span>
             </div>
             <div class="status-row">
               <span class="status-dot dot-cancelled"></span>
               <span class="status-name">Cancelled</span>
               <div class="status-bar-wrap">
-                <div class="status-bar-fill" style="width:{{ (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) > 0 ? (stats.cancelledCount / (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) * 100).toFixed(1) : 0 }}%;background:var(--red);"></div>
+                <div class="status-bar-fill" id="status-cancelled-bar" style="width:{{ (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) > 0 ? (stats.cancelledCount / (stats.pendingCount + stats.confirmedCount + stats.cancelledCount) * 100).toFixed(1) : 0 }}%;background:var(--red);"></div>
               </div>
-              <span class="status-count">{{ stats.cancelledCount }}</span>
+              <span class="status-count" id="status-cancelled-count">{{ stats.cancelledCount }}</span>
             </div>
           </div>
         </div>
@@ -271,8 +277,9 @@
 
       {{-- ══ COURT MANAGEMENT ══ --}}
       <section id="section-courts" class="admin-section">
-        <div class="section-header">
+        <div class="section-header" style="display:flex;align-items:center;justify-content:space-between">
           <h1 class="section-title">Court Management</h1>
+          <button class="btn-primary" id="btn-add-court">+ Add Court</button>
         </div>
         <div class="panel">
           <div class="panel-title">All Courts</div>
@@ -282,24 +289,35 @@
                 <tr>
                   <th>#</th>
                   <th>Court Name</th>
-                  <th>Type</th>
-                  <th>Surface</th>
                   <th>Price/hr</th>
                   <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="courts-tbody">
                 @each(court in courts)
-                  <tr>
+                  <tr id="court-row-{{ court.courtId }}">
                     <td class="td-muted">{{ court.courtId }}</td>
                     <td>{{ court.courtName }}</td>
-                    <td class="td-muted">{{ court.courtType ?? '—' }}</td>
-                    <td class="td-muted">{{ court.courtSurface ?? '—' }}</td>
-                    <td>฿{{ court.courtPrice ?? '—' }}</td>
+                    <td>฿{{ court.courtPricePerHr }}</td>
                     <td>
-                      <span class="badge {{ court.courtStatus === 'available' ? 'badge-confirmed' : 'badge-cancelled' }}">
+                      <span class="badge {{ ['available','indoor','outdoor'].includes(court.courtStatus) ? 'badge-confirmed' : 'badge-cancelled' }}">
                         {{ court.courtStatus ?? '—' }}
                       </span>
+                    </td>
+                    <td>
+                      <div class="action-btns">
+                        <button class="btn-action btn-edit btn-edit-court"
+                          data-id="{{ court.courtId }}"
+                          data-name="{{ court.courtName }}"
+                          data-price="{{ court.courtPricePerHr }}"
+                          data-status="{{ court.courtStatus }}">
+                          Edit
+                        </button>
+                        <button class="btn-action cancel btn-delete-court" data-id="{{ court.courtId }}" data-name="{{ court.courtName }}">
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 @end
@@ -309,10 +327,61 @@
         </div>
       </section>
 
+      {{-- ══ COURT MODAL ══ --}}
+      <div id="court-modal-overlay" class="modal-overlay" style="display:none">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title" id="court-modal-title">Add Court</h2>
+            <button class="modal-close" id="court-modal-close">&times;</button>
+          </div>
+          <form id="court-form">
+            <input type="hidden" id="court-id" value="">
+            <div class="form-group">
+              <label class="form-label">Court Name</label>
+              <input type="text" id="court-name" class="form-input" placeholder="e.g. Court A" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price / hr (฿)</label>
+              <input type="number" id="court-price" class="form-input" placeholder="e.g. 300" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select id="court-status" class="form-input">
+                <option value="available">available</option>
+                <option value="unavailable">unavailable</option>
+              </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-secondary" id="court-modal-cancel">Cancel</button>
+              <button type="submit" class="btn-primary" id="court-submit-btn">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {{-- ══ CONFIRM DELETE MODAL ══ --}}
+      <div id="delete-modal-overlay" class="modal-overlay" style="display:none">
+        <div class="modal" style="max-width:380px">
+          <div class="modal-header">
+            <h2 class="modal-title">Delete Court</h2>
+            <button class="modal-close" id="delete-modal-close">&times;</button>
+          </div>
+          <p style="font-size:14px;color:var(--ink);margin-bottom:8px;">
+            Are you sure you want to delete <strong id="delete-court-name"></strong>?
+          </p>
+          <p style="font-size:12.5px;color:var(--muted);margin-bottom:4px;">This action cannot be undone. Courts with existing bookings cannot be deleted.</p>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="delete-modal-cancel">Cancel</button>
+            <button type="button" class="btn-primary" id="delete-confirm-btn" style="background:var(--red)">Delete</button>
+          </div>
+        </div>
+      </div>
+
       {{-- ══ COACH MANAGEMENT ══ --}}
       <section id="section-coaches" class="admin-section">
-        <div class="section-header">
+        <div class="section-header" style="display:flex;align-items:center;justify-content:space-between">
           <h1 class="section-title">Coach Management</h1>
+          <button class="btn-primary" id="btn-add-coach">+ Add Coach</button>
         </div>
         <div class="panel">
           <div class="panel-title">All Coaches</div>
@@ -325,6 +394,7 @@
                   <th>Level</th>
                   <th>Price/hr</th>
                   <th>Status</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -339,6 +409,15 @@
                         {{ coach.coachStatus }}
                       </span>
                     </td>
+                    <td>
+                      <button class="btn-action btn-edit btn-edit-coach"
+                        data-id="{{ coach.coachId }}"
+                        data-name="{{ coach.coachName }}"
+                        data-level="{{ coach.coachLevelId }}"
+                        data-status="{{ coach.coachStatus }}">
+                        Edit
+                      </button>
+                    </td>
                   </tr>
                 @end
               </tbody>
@@ -347,13 +426,49 @@
         </div>
       </section>
 
+      {{-- ══ COACH MODAL ══ --}}
+      <div id="coach-modal-overlay" class="modal-overlay" style="display:none">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title" id="coach-modal-title">Add Coach</h2>
+            <button class="modal-close" id="coach-modal-close">&times;</button>
+          </div>
+          <form id="coach-form">
+            <input type="hidden" id="coach-id" value="">
+            <div class="form-group">
+              <label class="form-label">Name</label>
+              <input type="text" id="coach-name" class="form-input" placeholder="Coach name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Level</label>
+              <select id="coach-level" class="form-input">
+                @each(p in coachPricings)
+                  <option value="{{ p.coachLevelId }}">{{ p.coachLevelDesc }} (฿{{ p.coachPrice }}/hr)</option>
+                @end
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select id="coach-status" class="form-input">
+                <option value="available">Available</option>
+                <option value="unavailable">Unavailable</option>
+              </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-secondary" id="coach-modal-cancel">Cancel</button>
+              <button type="submit" class="btn-primary" id="coach-submit-btn">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       {{-- ══ MEMBER MANAGEMENT ══ --}}
       <section id="section-members" class="admin-section">
         <div class="section-header">
-          <h1 class="section-title">Member Management</h1>
+          <h1 class="section-title">Customer Management</h1>
         </div>
         <div class="panel">
-          <div class="panel-title">All Members</div>
+          <div class="panel-title">All Customer</div>
           <div class="table-wrap">
             <table>
               <thead>
@@ -364,17 +479,29 @@
                   <th>Phone</th>
                   <th>Type</th>
                   <th>Tier</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 @each(c in customers)
-                  <tr>
+                  <tr id="customer-row-{{ c.customerId }}">
                     <td class="td-muted">{{ c.customerId }}</td>
                     <td>{{ c.customerName }}</td>
-                    <td class="td-muted">{{ c.customerEmail }}</td>
+                    <td class="td-muted">{{ c.customerEmail ?? '—' }}</td>
                     <td class="td-muted">{{ c.customerPhone ?? '—' }}</td>
                     <td><span class="badge badge-confirmed">{{ c.customerType }}</span></td>
-                    <td class="td-muted">{{ c.tier ? c.tier.tierName : '—' }}</td>
+                    <td class="td-muted">{{ c.tier ? c.tier.tierDesc : '—' }}</td>
+                    <td>
+                      <button class="btn-action btn-edit btn-edit-customer"
+                        data-id="{{ c.customerId }}"
+                        data-name="{{ c.customerName }}"
+                        data-email="{{ c.customerEmail ?? '' }}"
+                        data-phone="{{ c.customerPhone ?? '' }}"
+                        data-type="{{ c.customerType }}"
+                        data-tier="{{ c.tierId ?? '' }}">
+                        Edit
+                      </button>
+                    </td>
                   </tr>
                 @end
               </tbody>
@@ -382,6 +509,150 @@
           </div>
         </div>
       </section>
+
+      {{-- ══ CUSTOMER EDIT MODAL ══ --}}
+      <div id="customer-modal-overlay" class="modal-overlay" style="display:none">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Edit Customer</h2>
+            <button class="modal-close" id="customer-modal-close">&times;</button>
+          </div>
+          <form id="customer-form">
+            <input type="hidden" id="customer-id" value="">
+            <div class="form-group">
+              <label class="form-label">Name</label>
+              <input type="text" id="customer-name" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" id="customer-email" class="form-input" placeholder="—">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="text" id="customer-phone" class="form-input" placeholder="—">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Type</label>
+              <select id="customer-type" class="form-input">
+                <option value="guest">guest</option>
+                <option value="member">member</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tier</label>
+              <select id="customer-tier" class="form-input">
+                <option value="">— No tier —</option>
+                @each(t in tiers)
+                  <option value="{{ t.tierId }}">{{ t.tierDesc }} ({{ t.tierDiscount }}% off, min {{ t.minHours }} hrs)</option>
+                @end
+              </select>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-secondary" id="customer-modal-cancel">Cancel</button>
+              <button type="submit" class="btn-primary" id="customer-submit-btn">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {{-- ══ TIER MANAGEMENT ══ --}}
+      <section id="section-tiers" class="admin-section">
+        <div class="section-header" style="display:flex;align-items:center;justify-content:space-between">
+          <h1 class="section-title">Tier Management</h1>
+          <button class="btn-primary" id="btn-add-tier">+ Add Tier</button>
+        </div>
+        <div class="panel">
+          <div class="panel-title">All Tiers</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Tier Name</th>
+                  <th>Min Hours</th>
+                  <th>Discount (%)</th>
+                  <th>Members</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="tiers-tbody">
+                @each(tier in tiers)
+                  <tr id="tier-row-{{ tier.tierId }}">
+                    <td class="td-muted">{{ tier.tierId }}</td>
+                    <td>{{ tier.tierDesc }}</td>
+                    <td class="td-muted">{{ tier.minHours }} hrs</td>
+                    <td><span class="badge badge-confirmed">{{ tier.tierDiscount }}%</span></td>
+                    <td class="td-muted">{{ tier.members ? tier.members.length : 0 }}</td>
+                    <td>
+                      <div class="action-btns">
+                        <button class="btn-action btn-edit btn-edit-tier"
+                          data-id="{{ tier.tierId }}"
+                          data-desc="{{ tier.tierDesc }}"
+                          data-hours="{{ tier.minHours }}"
+                          data-discount="{{ tier.tierDiscount }}">
+                          Edit
+                        </button>
+                        <button class="btn-action cancel btn-delete-tier"
+                          data-id="{{ tier.tierId }}"
+                          data-desc="{{ tier.tierDesc }}">
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                @end
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {{-- ══ TIER MODAL ══ --}}
+      <div id="tier-modal-overlay" class="modal-overlay" style="display:none">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title" id="tier-modal-title">Add Tier</h2>
+            <button class="modal-close" id="tier-modal-close">&times;</button>
+          </div>
+          <form id="tier-form">
+            <input type="hidden" id="tier-id" value="">
+            <div class="form-group">
+              <label class="form-label">Tier Name</label>
+              <input type="text" id="tier-desc" class="form-input" placeholder="e.g. Silver" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Minimum Hours</label>
+              <input type="number" id="tier-hours" class="form-input" placeholder="e.g. 10" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Discount (%)</label>
+              <input type="number" id="tier-discount" class="form-input" placeholder="e.g. 10" min="0" max="100" required>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-secondary" id="tier-modal-cancel">Cancel</button>
+              <button type="submit" class="btn-primary" id="tier-submit-btn">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {{-- ══ TIER DELETE MODAL ══ --}}
+      <div id="tier-delete-overlay" class="modal-overlay" style="display:none">
+        <div class="modal" style="max-width:380px">
+          <div class="modal-header">
+            <h2 class="modal-title">Delete Tier</h2>
+            <button class="modal-close" id="tier-delete-close">&times;</button>
+          </div>
+          <p style="font-size:14px;color:var(--ink);margin-bottom:8px;">
+            Are you sure you want to delete <strong id="delete-tier-desc"></strong>?
+          </p>
+          <p style="font-size:12.5px;color:var(--muted);margin-bottom:4px;">Tiers that have members assigned cannot be deleted.</p>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="tier-delete-cancel">Cancel</button>
+            <button type="button" class="btn-primary" id="tier-delete-confirm" style="background:var(--red)">Delete</button>
+          </div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -429,16 +700,391 @@
         const res = await fetch('/admin/stats')
         if (!res.ok) return
         const s = await res.json()
+        const totalStatus = s.pendingCount + s.confirmedCount + s.cancelledCount
         document.getElementById('kpi-bookings').textContent      = s.todayBookings
         document.getElementById('kpi-revenue').innerHTML          = '<span class="hero-currency">฿</span>' + s.todayRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 })
         document.getElementById('kpi-customers').textContent     = s.todayCustomers
         document.getElementById('kpi-courts').textContent        = s.availableCourts
         document.getElementById('kpi-coach-revenue').textContent = '฿' + s.todayCoachRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 })
+        document.getElementById('status-confirmed-count').textContent = s.confirmedCount
+        document.getElementById('status-pending-count').textContent = s.pendingCount
+        document.getElementById('status-cancelled-count').textContent = s.cancelledCount
+        document.getElementById('status-confirmed-bar').style.width = `${totalStatus > 0 ? ((s.confirmedCount / totalStatus) * 100).toFixed(1) : 0}%`
+        document.getElementById('status-pending-bar').style.width = `${totalStatus > 0 ? ((s.pendingCount / totalStatus) * 100).toFixed(1) : 0}%`
+        document.getElementById('status-cancelled-bar').style.width = `${totalStatus > 0 ? ((s.cancelledCount / totalStatus) * 100).toFixed(1) : 0}%`
       } catch {}
     }
 
     // Auto-poll ทุก 30 วินาที
     setInterval(refreshStats, 30000)
+
+    // ── Coach Modal ──
+    const coachOverlay  = document.getElementById('coach-modal-overlay')
+    const coachTitle    = document.getElementById('coach-modal-title')
+    const coachForm     = document.getElementById('coach-form')
+    const coachIdInput  = document.getElementById('coach-id')
+    const coachName     = document.getElementById('coach-name')
+    const coachLevel    = document.getElementById('coach-level')
+    const coachStatus   = document.getElementById('coach-status')
+    const coachSubmit   = document.getElementById('coach-submit-btn')
+
+    function openCoachModal({ id = '', name = '', level = '', status = 'available' } = {}) {
+      coachIdInput.value  = id
+      coachName.value     = name
+      coachLevel.value    = level
+      coachStatus.value   = status
+      coachTitle.textContent = id ? 'Edit Coach' : 'Add Coach'
+      coachSubmit.textContent = id ? 'Save Changes' : 'Add Coach'
+      coachOverlay.style.display = 'flex'
+    }
+    function closeCoachModal() {
+      coachOverlay.style.display = 'none'
+      coachForm.reset()
+    }
+
+    document.getElementById('btn-add-coach').addEventListener('click', () => openCoachModal())
+    document.getElementById('coach-modal-close').addEventListener('click', closeCoachModal)
+    document.getElementById('coach-modal-cancel').addEventListener('click', closeCoachModal)
+    coachOverlay.addEventListener('click', e => { if (e.target === coachOverlay) closeCoachModal() })
+
+    document.querySelectorAll('.btn-edit-coach').forEach(btn => {
+      btn.addEventListener('click', () => openCoachModal({
+        id:     btn.dataset.id,
+        name:   btn.dataset.name,
+        level:  btn.dataset.level,
+        status: btn.dataset.status,
+      }))
+    })
+
+    // ── Court Modal ──
+    const courtOverlay   = document.getElementById('court-modal-overlay')
+    const courtModalTitle = document.getElementById('court-modal-title')
+    const courtForm      = document.getElementById('court-form')
+    const courtIdInput   = document.getElementById('court-id')
+    const courtNameInput = document.getElementById('court-name')
+    const courtPrice     = document.getElementById('court-price')
+    const courtStatus    = document.getElementById('court-status')
+    const courtSubmit    = document.getElementById('court-submit-btn')
+
+    function openCourtModal({ id = '', name = '', price = '', status = 'available' } = {}) {
+      courtIdInput.value   = id
+      courtNameInput.value = name
+      courtPrice.value     = price
+      courtStatus.value    = status
+      courtModalTitle.textContent = id ? 'Edit Court' : 'Add Court'
+      courtSubmit.textContent     = id ? 'Save Changes' : 'Add Court'
+      courtOverlay.style.display  = 'flex'
+    }
+    function closeCourtModal() {
+      courtOverlay.style.display = 'none'
+      courtForm.reset()
+    }
+
+    document.getElementById('btn-add-court').addEventListener('click', () => openCourtModal())
+    document.getElementById('court-modal-close').addEventListener('click', closeCourtModal)
+    document.getElementById('court-modal-cancel').addEventListener('click', closeCourtModal)
+    courtOverlay.addEventListener('click', e => { if (e.target === courtOverlay) closeCourtModal() })
+
+    document.querySelectorAll('.btn-edit-court').forEach(btn => {
+      btn.addEventListener('click', () => openCourtModal({
+        id:     btn.dataset.id,
+        name:   btn.dataset.name,
+        price:  btn.dataset.price,
+        status: btn.dataset.status,
+      }))
+    })
+
+    courtForm.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const id   = courtIdInput.value
+      const csrf = document.querySelector('meta[name="csrf-token"]').content
+      const body = {
+        courtName:      courtNameInput.value,
+        courtPricePerHr: parseFloat(courtPrice.value),
+        courtStatus:    courtStatus.value,
+      }
+      courtSubmit.disabled = true
+      try {
+        const url    = id ? `/admin/courts/${id}` : '/admin/courts'
+        const method = id ? 'PATCH' : 'POST'
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+          body: JSON.stringify(body),
+        })
+        if (res.ok) {
+          closeCourtModal()
+          location.reload()
+        } else {
+          const err = await res.json().catch(() => ({}))
+          alert(err.message || 'Error saving court')
+        }
+      } finally {
+        courtSubmit.disabled = false
+      }
+    })
+
+    // ── Delete Court Modal ──
+    const deleteOverlay    = document.getElementById('delete-modal-overlay')
+    const deleteCourtName  = document.getElementById('delete-court-name')
+    const deleteConfirmBtn = document.getElementById('delete-confirm-btn')
+    let pendingDeleteId    = null
+
+    function openDeleteModal(id, name) {
+      pendingDeleteId = id
+      deleteCourtName.textContent = name
+      deleteOverlay.style.display = 'flex'
+    }
+    function closeDeleteModal() {
+      deleteOverlay.style.display = 'none'
+      pendingDeleteId = null
+    }
+
+    document.getElementById('delete-modal-close').addEventListener('click', closeDeleteModal)
+    document.getElementById('delete-modal-cancel').addEventListener('click', closeDeleteModal)
+    deleteOverlay.addEventListener('click', e => { if (e.target === deleteOverlay) closeDeleteModal() })
+
+    document.querySelectorAll('.btn-delete-court').forEach(btn => {
+      btn.addEventListener('click', () => openDeleteModal(btn.dataset.id, btn.dataset.name))
+    })
+
+    deleteConfirmBtn.addEventListener('click', async () => {
+      if (!pendingDeleteId) return
+      const csrf = document.querySelector('meta[name="csrf-token"]').content
+      deleteConfirmBtn.disabled = true
+      try {
+        const res = await fetch(`/admin/courts/${pendingDeleteId}`, {
+          method: 'DELETE',
+          headers: { 'X-CSRF-TOKEN': csrf },
+        })
+        if (res.ok) {
+          closeDeleteModal()
+          const row = document.getElementById(`court-row-${pendingDeleteId}`)
+          if (row) row.remove()
+        } else {
+          const err = await res.json().catch(() => ({}))
+          alert(err.message || 'Cannot delete court')
+          closeDeleteModal()
+        }
+      } finally {
+        deleteConfirmBtn.disabled = false
+      }
+    })
+
+    coachForm.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const id     = coachIdInput.value
+      const csrf   = document.querySelector('meta[name="csrf-token"]').content
+      const body   = {
+        coachName:    coachName.value,
+        coachLevelId: parseInt(coachLevel.value),
+        coachStatus:  coachStatus.value,
+      }
+      coachSubmit.disabled = true
+      try {
+        const url    = id ? `/admin/coaches/${id}` : '/admin/coaches'
+        const method = id ? 'PATCH' : 'POST'
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+          body: JSON.stringify(body),
+        })
+        if (res.ok) {
+          closeCoachModal()
+          location.reload()
+        } else {
+          const err = await res.json().catch(() => ({}))
+          alert(err.message || 'Error saving coach')
+        }
+      } finally {
+        coachSubmit.disabled = false
+      }
+    })
+
+    // ── Customer Edit Modal ──
+    const customerOverlay = document.getElementById('customer-modal-overlay')
+    const customerForm    = document.getElementById('customer-form')
+    const customerIdInput = document.getElementById('customer-id')
+    const customerName    = document.getElementById('customer-name')
+    const customerEmail   = document.getElementById('customer-email')
+    const customerPhone   = document.getElementById('customer-phone')
+    const customerType    = document.getElementById('customer-type')
+    const customerTier    = document.getElementById('customer-tier')
+    const customerSubmit  = document.getElementById('customer-submit-btn')
+
+    function openCustomerModal({ id, name, email, phone, type, tier }) {
+      customerIdInput.value = id
+      customerName.value    = name
+      customerEmail.value   = email
+      customerPhone.value   = phone
+      customerType.value    = type
+      customerTier.value    = tier
+      customerOverlay.style.display = 'flex'
+    }
+    function closeCustomerModal() {
+      customerOverlay.style.display = 'none'
+      customerForm.reset()
+    }
+
+    document.getElementById('customer-modal-close').addEventListener('click', closeCustomerModal)
+    document.getElementById('customer-modal-cancel').addEventListener('click', closeCustomerModal)
+    customerOverlay.addEventListener('click', e => { if (e.target === customerOverlay) closeCustomerModal() })
+
+    document.querySelectorAll('.btn-edit-customer').forEach(btn => {
+      btn.addEventListener('click', () => openCustomerModal({
+        id:    btn.dataset.id,
+        name:  btn.dataset.name,
+        email: btn.dataset.email,
+        phone: btn.dataset.phone,
+        type:  btn.dataset.type,
+        tier:  btn.dataset.tier,
+      }))
+    })
+
+    customerForm.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const id   = customerIdInput.value
+      const csrf = document.querySelector('meta[name="csrf-token"]').content
+      const body = {
+        customerName:  customerName.value,
+        customerEmail: customerEmail.value || null,
+        customerPhone: customerPhone.value || null,
+        customerType:  customerType.value,
+        tierId:        customerTier.value ? parseInt(customerTier.value) : null,
+      }
+      customerSubmit.disabled = true
+      try {
+        const res = await fetch(`/admin/customers/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+          body: JSON.stringify(body),
+        })
+        if (res.ok) {
+          closeCustomerModal()
+          location.reload()
+        } else {
+          const err = await res.json().catch(() => ({}))
+          alert(err.message || 'Error saving customer')
+        }
+      } finally {
+        customerSubmit.disabled = false
+      }
+    })
+
+    // ── Tier Modal ──
+    const tierOverlay    = document.getElementById('tier-modal-overlay')
+    const tierModalTitle = document.getElementById('tier-modal-title')
+    const tierForm       = document.getElementById('tier-form')
+    const tierIdInput    = document.getElementById('tier-id')
+    const tierDesc       = document.getElementById('tier-desc')
+    const tierHours      = document.getElementById('tier-hours')
+    const tierDiscount   = document.getElementById('tier-discount')
+    const tierSubmit     = document.getElementById('tier-submit-btn')
+
+    function openTierModal({ id = '', desc = '', hours = '', discount = '' } = {}) {
+      tierIdInput.value  = id
+      tierDesc.value     = desc
+      tierHours.value    = hours
+      tierDiscount.value = discount
+      tierModalTitle.textContent = id ? 'Edit Tier' : 'Add Tier'
+      tierSubmit.textContent     = id ? 'Save Changes' : 'Add Tier'
+      tierOverlay.style.display  = 'flex'
+    }
+    function closeTierModal() {
+      tierOverlay.style.display = 'none'
+      tierForm.reset()
+    }
+
+    document.getElementById('btn-add-tier').addEventListener('click', () => openTierModal())
+    document.getElementById('tier-modal-close').addEventListener('click', closeTierModal)
+    document.getElementById('tier-modal-cancel').addEventListener('click', closeTierModal)
+    tierOverlay.addEventListener('click', e => { if (e.target === tierOverlay) closeTierModal() })
+
+    document.querySelectorAll('.btn-edit-tier').forEach(btn => {
+      btn.addEventListener('click', () => openTierModal({
+        id:       btn.dataset.id,
+        desc:     btn.dataset.desc,
+        hours:    btn.dataset.hours,
+        discount: btn.dataset.discount,
+      }))
+    })
+
+    tierForm.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const id   = tierIdInput.value
+      const csrf = document.querySelector('meta[name="csrf-token"]').content
+      const body = {
+        tierDesc:     tierDesc.value,
+        minHours:     parseInt(tierHours.value),
+        tierDiscount: parseInt(tierDiscount.value),
+      }
+      tierSubmit.disabled = true
+      try {
+        const url    = id ? `/admin/tiers/${id}` : '/admin/tiers'
+        const method = id ? 'PATCH' : 'POST'
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+          body: JSON.stringify(body),
+        })
+        if (res.ok) {
+          closeTierModal()
+          location.reload()
+        } else {
+          const err = await res.json().catch(() => ({}))
+          alert(err.message || 'Error saving tier')
+        }
+      } finally {
+        tierSubmit.disabled = false
+      }
+    })
+
+    // ── Delete Tier Modal ──
+    const tierDeleteOverlay = document.getElementById('tier-delete-overlay')
+    const deleteTierDesc    = document.getElementById('delete-tier-desc')
+    const tierDeleteConfirm = document.getElementById('tier-delete-confirm')
+    let pendingTierDeleteId = null
+
+    function openTierDeleteModal(id, desc) {
+      pendingTierDeleteId = id
+      deleteTierDesc.textContent = desc
+      tierDeleteOverlay.style.display = 'flex'
+    }
+    function closeTierDeleteModal() {
+      tierDeleteOverlay.style.display = 'none'
+      pendingTierDeleteId = null
+    }
+
+    document.getElementById('tier-delete-close').addEventListener('click', closeTierDeleteModal)
+    document.getElementById('tier-delete-cancel').addEventListener('click', closeTierDeleteModal)
+    tierDeleteOverlay.addEventListener('click', e => { if (e.target === tierDeleteOverlay) closeTierDeleteModal() })
+
+    document.querySelectorAll('.btn-delete-tier').forEach(btn => {
+      btn.addEventListener('click', () => openTierDeleteModal(btn.dataset.id, btn.dataset.desc))
+    })
+
+    tierDeleteConfirm.addEventListener('click', async () => {
+      if (!pendingTierDeleteId) return
+      const csrf = document.querySelector('meta[name="csrf-token"]').content
+      tierDeleteConfirm.disabled = true
+      try {
+        const res = await fetch(`/admin/tiers/${pendingTierDeleteId}`, {
+          method: 'DELETE',
+          headers: { 'X-CSRF-TOKEN': csrf },
+        })
+        if (res.ok) {
+          closeTierDeleteModal()
+          const row = document.getElementById(`tier-row-${pendingTierDeleteId}`)
+          if (row) row.remove()
+        } else {
+          const err = await res.json().catch(() => ({}))
+          alert(err.message || 'Cannot delete tier')
+          closeTierDeleteModal()
+        }
+      } finally {
+        tierDeleteConfirm.disabled = false
+      }
+    })
 
     // Refresh ทุกครั้งที่กด confirm/cancel
     document.addEventListener('click', async (e) => {

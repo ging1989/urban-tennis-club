@@ -1,0 +1,71 @@
+@layout('layouts/admin')
+@set('title', 'Court Management')
+@set('currentPage', 'courts')
+@set('breadcrumb', 'Courts')
+
+@section('content')
+
+<div class="pg-hdr">
+  <div>
+    <div class="pg-title">Court Management</div>
+    <div class="pg-sub">Manage your tennis courts</div>
+  </div>
+  <div class="pg-hdr-actions">
+    <a href="{{ route('admin.courts.create') }}" class="btn btn-primary">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Add Court
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>ID</th><th>Court Name</th><th>Status</th><th>Price/hr</th><th>Bookings</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @each(court in courts)
+          <tr>
+            <td class="tbl-muted">#{{ court.courtId }}</td>
+            <td class="fw-6">{{ court.courtName }}</td>
+            <td><span class="badge badge-{{ court.courtStatus }}">{{ court.courtStatus }}</span></td>
+            <td>฿{{ parseFloat(court.courtPricePerHr).toLocaleString('th-TH') }}/hr</td>
+            <td class="tbl-muted">{{ court.bookingCount }}</td>
+            <td>
+              <div class="flex gap-2">
+                <a href="{{ route('admin.courts.edit', [court.courtId]) }}" class="btn btn-secondary btn-sm">Edit</a>
+                <button onclick="deleteCourt({{ court.courtId }}, '{{ court.courtName }}')" class="btn btn-danger btn-sm">Delete</button>
+              </div>
+            </td>
+          </tr>
+        @end
+        @if(courts.length === 0)
+          <tr><td colspan="6" style="text-align:center;color:var(--txt3);padding:32px;">No courts yet. <a href="{{ route('admin.courts.create') }}" style="color:var(--accent);">Add one</a></td></tr>
+        @end
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@end
+
+@push('scripts')
+<script>
+async function deleteCourt(id, name) {
+  const ok = await showConfirm(`Delete "${name}"?`, 'This will permanently delete the court.', 'Delete')
+  if (!ok) return
+  const res = await apiPost(`/admin/courts/${id}/delete`)
+  if (res.ok || res.redirected) {
+    showToast(`Court "${name}" deleted.`, 'success')
+    setTimeout(() => location.reload(), 800)
+  } else {
+    showToast('Failed to delete court.', 'error')
+  }
+}
+</script>
+@end

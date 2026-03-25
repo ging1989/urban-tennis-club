@@ -1,0 +1,117 @@
+@layout('layouts/admin')
+@set('title', 'Settings')
+@set('currentPage', 'settings')
+@set('breadcrumb', 'Settings')
+
+@section('content')
+
+<div class="pg-hdr">
+  <div>
+    <div class="pg-title">Settings</div>
+    <div class="pg-sub">Configure your club preferences</div>
+  </div>
+</div>
+
+<form action="{{ route('admin.settings.update') }}" method="POST">
+  {{ csrfField() }}
+
+  <div class="grid-2 mb-6">
+    {{-- Club Info --}}
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">Club Information</div></div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Club Name</label>
+          <input type="text" name="clubName" class="form-control" value="Urban Tennis Club">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control" placeholder="e.g. 02-xxx-xxxx">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" placeholder="info@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <textarea name="address" class="form-control" rows="3" placeholder="Club address"></textarea>
+        </div>
+      </div>
+    </div>
+
+    {{-- Operating Hours --}}
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">Operating Hours</div></div>
+      <div class="card-body">
+        <div class="form-row mb-4">
+          <div class="form-group">
+            <label class="form-label">Opening Time</label>
+            <input type="time" name="openTime" class="form-control" value="06:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Closing Time</label>
+            <input type="time" name="closeTime" class="form-control" value="22:00">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Open Days</label>
+          @set('days', ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'])
+          <div class="flex gap-2" style="flex-wrap:wrap;margin-top:6px;">
+            @each(day in days)
+              <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;">
+                <input type="checkbox" name="openDays[]" value="{{ day }}" checked style="cursor:pointer;">
+                {{ day.slice(0,3) }}
+              </label>
+            @end
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- Booking Rules --}}
+  <div class="card mb-6">
+    <div class="card-hdr"><div class="card-title">Booking Rules</div></div>
+    <div class="card-body">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Min Booking Duration (hours)</label>
+          <input type="number" name="minDuration" class="form-control" value="1" min="0.5" step="0.5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max Booking Duration (hours)</label>
+          <input type="number" name="maxDuration" class="form-control" value="4" min="1" step="0.5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Advance Booking (days)</label>
+          <input type="number" name="advanceDays" class="form-control" value="30" min="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cancellation Deadline (hours)</label>
+          <input type="number" name="cancelHours" class="form-control" value="24" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="toggle-wrap">
+          <input type="checkbox" class="toggle-input" name="requirePayment" checked>
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">Require payment at time of booking</span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="toggle-wrap">
+          <input type="checkbox" class="toggle-input" name="autoConfirm">
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">Auto-confirm bookings</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-2">
+    <button type="submit" class="btn btn-primary">Save Settings</button>
+    <button type="reset" class="btn btn-secondary">Reset</button>
+  </div>
+</form>
+
+@end

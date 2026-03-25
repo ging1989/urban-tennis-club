@@ -1,0 +1,100 @@
+@layout('layouts/admin')
+@set('title', 'Payments')
+@set('currentPage', 'payments')
+@set('breadcrumb', 'Payments')
+
+@section('content')
+
+<div class="pg-hdr">
+  <div>
+    <div class="pg-title">Payments & Transactions</div>
+    <div class="pg-sub">Total Revenue: <strong>฿{{ totalRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</strong></div>
+  </div>
+  <div class="pg-hdr-actions">
+    <button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="filter-bar">
+    <input type="text" id="searchInput" class="form-control" placeholder="Search customer…" oninput="filterTable()">
+    <select id="methodFilter" class="form-control" onchange="filterTable()">
+      <option value="">All Methods</option>
+      <option value="promptpay">PromptPay</option>
+      <option value="credit_card">Credit Card</option>
+      <option value="cash">Cash</option>
+    </select>
+    <div class="filter-spacer"></div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="tbl" id="payTable">
+      <thead>
+        <tr>
+          <th>Payment ID</th><th>Booking</th><th>Customer</th><th>Court</th>
+          <th>Amount</th><th>Method</th><th>Status</th><th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        @each(p in payments)
+          <tr data-customer="{{ p.booking && p.booking.customer ? p.booking.customer.customerName.toLowerCase() : '' }}"
+              data-method="{{ p.paymentMethod ?? '' }}">
+            <td class="tbl-muted">#{{ p.paymentId }}</td>
+            <td class="tbl-muted">{{ p.booking ? '#' + p.booking.bookingId : '—' }}</td>
+            <td class="fw-6">{{ p.booking && p.booking.customer ? p.booking.customer.customerName : '—' }}</td>
+            <td class="tbl-muted">{{ p.booking && p.booking.court ? p.booking.court.courtName : '—' }}</td>
+            <td class="fw-6">฿{{ parseFloat(p.amount).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
+            <td>
+              @if(p.paymentMethod === 'promptpay')
+                📱 PromptPay
+              @elseif(p.paymentMethod === 'credit_card')
+                💳 Credit Card
+              @else
+                💵 {{ p.paymentMethod ?? 'Cash' }}
+              @end
+            </td>
+            <td><span class="badge badge-{{ p.paymentStatus ?? 'confirmed' }}">{{ p.paymentStatus ?? 'paid' }}</span></td>
+            <td class="tbl-muted">{{ p.createdAt ? p.createdAt.toFormat('dd MMM yyyy') : '—' }}</td>
+          </tr>
+        @end
+        @if(payments.length === 0)
+          <tr><td colspan="8" style="text-align:center;color:var(--txt3);padding:32px;">No payments yet</td></tr>
+        @end
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@end
+
+@push('scripts')
+<script>
+const payData = {{{ JSON.stringify(payments.map(p => ({
+  id: p.paymentId,
+  booking: p.booking ? p.booking.bookingId : '',
+  customer: p.booking && p.booking.customer ? p.booking.customer.customerName : '',
+  amount: p.amount,
+  method: p.paymentMethod,
+  status: p.paymentStatus,
+}))) }}}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase()
+  const m = document.getElementById('methodFilter').value
+  document.querySelectorAll('#payTable tbody tr[data-customer]').forEach(row => {
+    const matchQ = !q || row.dataset.customer.includes(q)
+    const matchM = !m || row.dataset.method === m
+    row.style.display = (matchQ && matchM) ? '' : 'none'
+  })
+}
+
+function exportCSV() {
+  const rows = [['PaymentID','BookingID','Customer','Amount','Method','Status']]
+  payData.forEach(p => rows.push([p.id, p.booking, p.customer, p.amount, p.method, p.status]))
+  const csv = rows.map(r => r.join(',')).join('\n')
+  const a = document.createElement('a')
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv)
+  a.download = 'payments.csv'
+  a.click()
+}
+</script>
+@end

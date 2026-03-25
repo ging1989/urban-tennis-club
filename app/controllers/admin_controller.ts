@@ -2,7 +2,9 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Booking from '#models/booking'
 import Court from '#models/court'
 import Coach from '#models/coach'
+import CoachPricing from '#models/coach_pricing'
 import Customer from '#models/customer'
+import Tier from '#models/tier'
 import { DateTime } from 'luxon'
 
 async function getTodayStats() {
@@ -23,9 +25,9 @@ async function getTodayStats() {
 
   const availableCourts = await Court.query().where('court_status', 'available')
 
-  const pendingCount   = allBookings.filter((b) => b.bookingStatus === 'pending').length
-  const confirmedCount = allBookings.filter((b) => b.bookingStatus === 'confirmed').length
-  const cancelledCount = allBookings.filter((b) => b.bookingStatus === 'cancelled').length
+  const pendingCount   = todayBookings.filter((b) => b.bookingStatus === 'pending').length
+  const confirmedCount = todayBookings.filter((b) => b.bookingStatus === 'confirmed').length
+  const cancelledCount = todayBookings.filter((b) => b.bookingStatus === 'cancelled').length
 
   return {
     todayBookings: todayBookings.length,
@@ -53,9 +55,11 @@ export default class AdminController {
       .limit(50)
 
     const allBookings = await Booking.query()
-    const courts   = await Court.all()
-    const coaches  = await Coach.query().preload('coachPricing')
+    const courts   = await Court.query().orderBy('court_id', 'asc')
+    const coaches  = (await Coach.query().preload('coachPricing')).sort((a, b) => a.coachId - b.coachId)
     const customers = await Customer.query().preload('tier').orderBy('created_at', 'desc')
+    const coachPricings = await CoachPricing.all()
+    const tiers = await Tier.query().preload('members').orderBy('min_hours', 'asc')
 
     // ── revenue per court ──
     const courtRevenue: Record<string, number> = {}
@@ -104,7 +108,9 @@ export default class AdminController {
       stats,
       courts,
       coaches,
+      coachPricings,
       customers,
+      tiers,
       courtRevenue,
       last7,
       last7CoachRevenue,
@@ -115,6 +121,78 @@ export default class AdminController {
   async statsJson({ response }: HttpContext) {
     const stats = await getTodayStats()
     return response.json(stats)
+  }
+
+  async createCourt({ request, response }: HttpContext) {
+    const { courtName, courtPricePerHr, courtStatus } = request.only(['courtName', 'courtPricePerHr', 'courtStatus'])
+    const court = await Court.create({ courtName, courtPricePerHr, courtStatus: courtStatus ?? 'available' })
+    return response.json(court)
+  }
+
+  async updateCourt({ params, request, response }: HttpContext) {
+    const court = await Court.findOrFail(params.id)
+    const { courtName, courtPricePerHr, courtStatus } = request.only(['courtName', 'courtPricePerHr', 'courtStatus'])
+    court.merge({ courtName, courtPricePerHr, courtStatus })
+    await court.save()
+    return response.json(court)
+  }
+
+  async deleteCourt({ params, response }: HttpContext) {
+    const court = await Court.findOrFail(params.id)
+    try {
+      await court.delete()
+      return response.json({ message: 'Court deleted' })
+    } catch {
+      return response.status(409).json({ message: 'Cannot delete court: it has existing bookings.' })
+    }
+  }
+
+  async createCoach({ request, response }: HttpContext) {
+    const { coachName, coachLevelId, coachStatus } = request.only(['coachName', 'coachLevelId', 'coachStatus'])
+    const coach = await Coach.create({ coachName, coachLevelId, coachStatus: coachStatus ?? 'available' })
+    return response.json(coach)
+  }
+
+  async updateCoach({ params, request, response }: HttpContext) {
+    const coach = await Coach.findOrFail(params.id)
+    const { coachName, coachLevelId, coachStatus } = request.only(['coachName', 'coachLevelId', 'coachStatus'])
+    coach.merge({ coachName, coachLevelId, coachStatus })
+    await coach.save()
+    return response.json(coach)
+  }
+
+  async updateCustomer({ params, request, response }: HttpContext) {
+    const customer = await Customer.findOrFail(params.id)
+    const { customerName, customerEmail, customerPhone, customerType, tierId } = request.only([
+      'customerName', 'customerEmail', 'customerPhone', 'customerType', 'tierId',
+    ])
+    customer.merge({ customerName, customerEmail, customerPhone, customerType, tierId: tierId ?? null })
+    await customer.save()
+    return response.json(customer)
+  }
+
+  async createTier({ request, response }: HttpContext) {
+    const { tierDesc, minHours, tierDiscount } = request.only(['tierDesc', 'minHours', 'tierDiscount'])
+    const tier = await Tier.create({ tierDesc, minHours, tierDiscount })
+    return response.json(tier)
+  }
+
+  async updateTier({ params, request, response }: HttpContext) {
+    const tier = await Tier.findOrFail(params.id)
+    const { tierDesc, minHours, tierDiscount } = request.only(['tierDesc', 'minHours', 'tierDiscount'])
+    tier.merge({ tierDesc, minHours, tierDiscount })
+    await tier.save()
+    return response.json(tier)
+  }
+
+  async deleteTier({ params, response }: HttpContext) {
+    const tier = await Tier.findOrFail(params.id)
+    try {
+      await tier.delete()
+      return response.json({ message: 'Tier deleted' })
+    } catch {
+      return response.status(409).json({ message: 'Cannot delete tier: it has members assigned.' })
+    }
   }
 
 }

@@ -20,6 +20,7 @@ export type ScannedRoutes = {
     'bookings.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
     'coaches.index': { paramsTuple?: []; params?: {} }
+    'coaches.busy': { paramsTuple?: []; params?: {} }
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'coaches.schedules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'customers.register': { paramsTuple?: []; params?: {} }
@@ -29,6 +30,15 @@ export type ScannedRoutes = {
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
     'admin': { paramsTuple?: []; params?: {} }
     'admin.stats': { paramsTuple?: []; params?: {} }
+    'admin.create_court': { paramsTuple?: []; params?: {} }
+    'admin.update_court': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.delete_court': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.create_coach': { paramsTuple?: []; params?: {} }
+    'admin.update_coach': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.update_customer': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.create_tier': { paramsTuple?: []; params?: {} }
+    'admin.update_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.delete_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'new_account.create': { paramsTuple?: []; params?: {} }
@@ -42,6 +52,7 @@ export type ScannedRoutes = {
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
     'coaches.index': { paramsTuple?: []; params?: {} }
+    'coaches.busy': { paramsTuple?: []; params?: {} }
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'coaches.schedules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -61,6 +72,7 @@ export type ScannedRoutes = {
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
     'coaches.index': { paramsTuple?: []; params?: {} }
+    'coaches.busy': { paramsTuple?: []; params?: {} }
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'coaches.schedules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -75,10 +87,21 @@ export type ScannedRoutes = {
     'bookings.store': { paramsTuple?: []; params?: {} }
     'customers.register': { paramsTuple?: []; params?: {} }
     'payments.store': { paramsTuple?: []; params?: {} }
+    'admin.create_court': { paramsTuple?: []; params?: {} }
+    'admin.create_coach': { paramsTuple?: []; params?: {} }
+    'admin.create_tier': { paramsTuple?: []; params?: {} }
   }
   PATCH: {
     'bookings.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'customers.update_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.update_court': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.update_coach': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.update_customer': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.update_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
+  DELETE: {
+    'admin.delete_court': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.delete_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

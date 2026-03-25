@@ -1,0 +1,107 @@
+@layout('layouts/admin')
+@set('title', 'My Profile')
+@set('currentPage', 'profile')
+@set('breadcrumb', 'My Profile')
+
+@section('content')
+
+<div class="pg-hdr">
+  <div>
+    <div class="pg-title">My Profile</div>
+    <div class="pg-sub">Manage your account information</div>
+  </div>
+</div>
+
+<div class="grid-c12">
+
+  {{-- Profile sidebar --}}
+  <div class="card" style="align-self:start;">
+    <div class="card-body" style="text-align:center;">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--accent);
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:28px;font-weight:700;color:white;margin:0 auto 12px;">
+        {{ (auth.user.fullName ?? auth.user.email).charAt(0).toUpperCase() }}
+      </div>
+      <div style="font-size:15px;font-weight:700;">{{ auth.user.fullName ?? '—' }}</div>
+      <div style="font-size:12px;color:var(--txt3);margin-top:3px;">{{ auth.user.email }}</div>
+      <div style="margin-top:10px;"><span class="badge badge-admin">Administrator</span></div>
+    </div>
+  </div>
+
+  {{-- Profile forms --}}
+  <div>
+    {{-- Update profile --}}
+    <div class="card mb-6">
+      <div class="card-hdr"><div class="card-title">Profile Information</div></div>
+      <div class="card-body">
+        <form action="{{ route('admin.profile.update') }}" method="POST">
+          {{ csrfField() }}
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" name="fullName" class="form-control" value="{{ auth.user.fullName ?? '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Username</label>
+              <input type="text" name="username" class="form-control" value="{{ auth.user.username ?? '' }}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" value="{{ auth.user.email }}">
+          </div>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+    {{-- Change password --}}
+    <div class="card">
+      <div class="card-hdr"><div class="card-title">Change Password</div></div>
+      <div class="card-body">
+        <form action="{{ route('admin.profile.password') }}" method="POST">
+          {{ csrfField() }}
+          <div class="form-group">
+            <label class="form-label">Current Password</label>
+            <input type="password" name="currentPassword" class="form-control" placeholder="Enter current password">
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input type="password" name="newPassword" id="newPassword" class="form-control"
+                   placeholder="Min 8 characters" oninput="checkPwStrength(this.value)">
+            <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwFill"></div></div>
+            <div class="pw-strength-text text-muted" id="pwText"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" name="confirmPassword" class="form-control" placeholder="Repeat new password">
+          </div>
+          <button type="submit" class="btn btn-primary">Change Password</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+@end
+
+@push('scripts')
+<script>
+function checkPwStrength(val) {
+  const fill = document.getElementById('pwFill')
+  const text = document.getElementById('pwText')
+  let score = 0
+  if (val.length >= 8) score++
+  if (/[A-Z]/.test(val)) score++
+  if (/[0-9]/.test(val)) score++
+  if (/[^A-Za-z0-9]/.test(val)) score++
+  const colors = ['', '#dc2626', '#d97706', '#16a34a', '#15803d']
+  const labels = ['', 'Weak', 'Fair', 'Strong', 'Very Strong']
+  fill.style.width = `${score * 25}%`
+  fill.style.background = colors[score] || ''
+  text.textContent = val.length === 0 ? '' : labels[score] || ''
+  text.style.color = colors[score] || ''
+}
+</script>
+@end

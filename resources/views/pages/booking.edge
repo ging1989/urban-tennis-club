@@ -97,6 +97,8 @@
           <div
             class="coach-opt{{ coach.coachStatus !== 'available' ? ' dis' : '' }}"
             id="coach-opt-{{ coach.coachId }}"
+            data-coach-id="{{ coach.coachId }}"
+            data-base-status="{{ coach.coachStatus }}"
             onclick="pickCoach({{ coach.coachId }}, '{{ coach.coachName }}', {{ coach.coachPricing.coachPrice }})"
           >
             <div class="coach-av">
@@ -108,7 +110,7 @@
             </div>
             <div style="text-align:right;">
               <div class="coach-price">฿{{ coach.coachPricing.coachPrice }}/hr</div>
-              <div class="{{ coach.coachStatus === 'available' ? 'coach-avail' : 'coach-unavail' }}">
+              <div class="{{ coach.coachStatus === 'available' ? 'coach-avail' : 'coach-unavail' }} coach-avail-label">
                 {{ coach.coachStatus === 'available' ? 'Available' : 'Unavailable' }}
               </div>
             </div>
@@ -301,7 +303,7 @@
     bk.payment = method
   }
 
-  function goStep(n) {
+  async function goStep(n) {
     if (n === 2 && bk.slots.length === 0) { alert('Please select a time slot.'); return }
     if (n === 4) {
       var name  = document.getElementById('guest-name').value.trim()
@@ -313,6 +315,34 @@
     currentStep = n
     document.getElementById('step-' + n).style.display = 'block'
     updateSidebar()
+
+    if (n === 2 && bk.slots.length > 0) {
+      await refreshCoachAvailability()
+    }
+  }
+
+  async function refreshCoachAvailability() {
+    var sortedSlots = bk.slots.slice().sort(function(a, b) { return parseInt(a) - parseInt(b) })
+    var start = sortedSlots[0]
+    var end   = String(parseInt(sortedSlots[sortedSlots.length - 1]) + 1).padStart(2, '0') + ':00'
+    try {
+      var res = await fetch('/coaches/busy?date=' + bk.date + '&start=' + start + '&end=' + end)
+      if (!res.ok) return
+      var data = await res.json()
+      var busyIds = data.busyCoachIds || []
+      document.querySelectorAll('.coach-opt[data-coach-id]').forEach(function(el) {
+        var id = parseInt(el.dataset.coachId)
+        if (busyIds.indexOf(id) !== -1) {
+          el.classList.add('dis')
+          el.querySelector('.coach-avail-label').textContent = 'Booked'
+          el.querySelector('.coach-avail-label').className = 'coach-unavail coach-avail-label'
+        } else if (el.dataset.baseStatus === 'available') {
+          el.classList.remove('dis')
+          el.querySelector('.coach-avail-label').textContent = 'Available'
+          el.querySelector('.coach-avail-label').className = 'coach-avail coach-avail-label'
+        }
+      })
+    } catch (e) {}
   }
 
   function updateSidebar() {

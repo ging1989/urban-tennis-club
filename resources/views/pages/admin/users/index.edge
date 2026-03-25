@@ -1,0 +1,149 @@
+@layout('layouts/admin')
+@set('title', 'User Management')
+@set('currentPage', 'users')
+@set('breadcrumb', 'Users')
+
+@section('content')
+
+<div class="pg-hdr">
+  <div>
+    <div class="pg-title">User Management</div>
+    <div class="pg-sub">Manage registered accounts</div>
+  </div>
+</div>
+
+{{-- Users table --}}
+<div class="card mb-6">
+  <div class="card-hdr">
+    <div class="card-title">Registered Users</div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Username</th><th>Role</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        @each(user in users)
+          <tr>
+            <td class="tbl-muted">#{{ user.id }}</td>
+            <td class="fw-6">{{ user.fullName ?? '—' }}</td>
+            <td class="tbl-muted">{{ user.email }}</td>
+            <td class="tbl-muted">{{ user.username ?? '—' }}</td>
+            <td><span class="badge badge-{{ user.role }}">{{ user.role }}</span></td>
+            <td>
+              <div class="flex gap-2">
+                <button onclick="openUserModal({{ user.id }}, '{{ user.fullName ?? '' }}', '{{ user.role }}')" class="btn btn-secondary btn-sm">Edit</button>
+                @if(user.id !== currentUserId)
+                  <button onclick="deleteUser({{ user.id }}, '{{ user.fullName ?? user.email }}')" class="btn btn-danger btn-sm">Delete</button>
+                @end
+              </div>
+            </td>
+          </tr>
+        @end
+        @if(users.length === 0)
+          <tr><td colspan="6" style="text-align:center;color:var(--txt3);padding:24px;">No users found</td></tr>
+        @end
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{{-- Customers table --}}
+<div class="card">
+  <div class="card-hdr">
+    <div class="card-title">Customers</div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Tier</th></tr>
+      </thead>
+      <tbody>
+        @each(c in customers)
+          <tr>
+            <td class="tbl-muted">#{{ c.customerId }}</td>
+            <td class="fw-6">{{ c.customerName }}</td>
+            <td class="tbl-muted">{{ c.customerPhone ?? '—' }}</td>
+            <td class="tbl-muted">{{ c.customerEmail ?? '—' }}</td>
+            <td><span class="badge badge-member">{{ c.tier ? c.tier.tierName : 'Standard' }}</span></td>
+          </tr>
+        @end
+        @if(customers.length === 0)
+          <tr><td colspan="5" style="text-align:center;color:var(--txt3);padding:24px;">No customers yet</td></tr>
+        @end
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{{-- Edit User Modal --}}
+<div class="modal-overlay" id="userModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="modal-title">Edit User</div>
+      <button class="modal-close" onclick="closeUserModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" id="editFullName" class="form-control" placeholder="Full name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select id="editRole" class="form-control">
+          <option value="member">Member</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeUserModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save</button>
+    </div>
+  </div>
+</div>
+
+@end
+
+@push('scripts')
+<script>
+let editingUserId = null
+function openUserModal(id, fullName, role) {
+  editingUserId = id
+  document.getElementById('editFullName').value = fullName
+  document.getElementById('editRole').value = role
+  document.getElementById('userModal').classList.add('open')
+}
+function closeUserModal() {
+  document.getElementById('userModal').classList.remove('open')
+  editingUserId = null
+}
+async function saveUser() {
+  if (!editingUserId) return
+  const fullName = document.getElementById('editFullName').value
+  const role     = document.getElementById('editRole').value
+  const res = await apiPost(`/admin/users/${editingUserId}`, { fullName, role })
+  if (res.ok || res.redirected) {
+    showToast('User updated.', 'success')
+    closeUserModal()
+    setTimeout(() => location.reload(), 800)
+  } else {
+    showToast('Failed to update user.', 'error')
+  }
+}
+async function deleteUser(id, name) {
+  const ok = await showConfirm(`Delete "${name}"?`, 'This will permanently delete the user account.', 'Delete')
+  if (!ok) return
+  const res = await apiPost(`/admin/users/${id}/delete`)
+  if (res.ok || res.redirected) {
+    showToast('User deleted.', 'success')
+    setTimeout(() => location.reload(), 800)
+  } else {
+    showToast('Failed to delete user.', 'error')
+  }
+}
+document.getElementById('userModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeUserModal()
+})
+</script>
+@end

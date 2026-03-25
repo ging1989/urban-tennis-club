@@ -5,6 +5,16 @@
 
 export const controllers = {
   Admin: () => import('#controllers/admin_controller'),
+  AdminSession: () => import('#controllers/admin_session_controller'),
+  admin: {
+    Bookings: () => import('#controllers/admin/bookings_controller'),
+    Courts: () => import('#controllers/admin/courts_controller'),
+    Payments: () => import('#controllers/admin/payments_controller'),
+    Profile: () => import('#controllers/admin/profile_controller'),
+    Reports: () => import('#controllers/admin/reports_controller'),
+    Settings: () => import('#controllers/admin/settings_controller'),
+    Users: () => import('#controllers/admin/users_controller'),
+  },
   Bookings: () => import('#controllers/bookings_controller'),
   Coaches: () => import('#controllers/coaches_controller'),
   Courts: () => import('#controllers/courts_controller'),

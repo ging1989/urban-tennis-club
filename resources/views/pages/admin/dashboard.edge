@@ -1,0 +1,237 @@
+@layout('layouts/admin')
+@set('title', 'Dashboard')
+@set('currentPage', 'dashboard')
+@set('breadcrumb', 'Dashboard')
+
+@section('content')
+
+<div class="pg-hdr">
+  <div>
+    <div class="pg-title">Dashboard</div>
+    <div class="pg-sub">Welcome back, {{ auth.user.fullName ?? auth.user.email }}</div>
+  </div>
+  <div class="pg-hdr-actions">
+    <a href="{{ route('admin.bookings') }}" class="btn btn-primary">View Bookings</a>
+  </div>
+</div>
+
+{{-- ── STAT CARDS ── --}}
+<div class="stat-grid mb-6">
+  <div class="stat-card">
+    <div class="stat-card-top">
+      <div>
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value">฿{{ stats.totalRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</div>
+        <div class="stat-delta">Month: <span class="up">฿{{ stats.monthRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</span></div>
+      </div>
+      <div class="stat-icon green">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-top">
+      <div>
+        <div class="stat-label">Total Bookings</div>
+        <div class="stat-value">{{ stats.totalBookings }}</div>
+        <div class="stat-delta">Today: <span class="up">{{ stats.todayCount }}</span></div>
+      </div>
+      <div class="stat-icon blue">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-top">
+      <div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-value">{{ stats.pendingCount }}</div>
+        <div class="stat-delta">Need attention</div>
+      </div>
+      <div class="stat-icon amber">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card-top">
+      <div>
+        <div class="stat-label">Courts</div>
+        <div class="stat-value">{{ courts.length }}</div>
+        <div class="stat-delta">Active courts</div>
+      </div>
+      <div class="stat-icon purple">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 3h18v18H3z"/><line x1="12" y1="3" x2="12" y2="21"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- ── CHARTS ROW ── --}}
+<div class="grid-c21 mb-6">
+  <div class="card">
+    <div class="card-hdr">
+      <div>
+        <div class="card-title">Booking Trends</div>
+        <div class="card-sub">Last 7 days</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:180px;">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title">Booking Status</div>
+    </div>
+    <div class="card-body">
+      <div class="chart-container" style="height:140px; display:flex; align-items:center; justify-content:center;">
+        <canvas id="statusChart" width="140" height="140" style="max-width:140px;max-height:140px;"></canvas>
+      </div>
+      <div style="margin-top:12px;">
+        @set('total', stats.pendingCount + stats.confirmedCount + stats.cancelledCount)
+        <div class="status-row">
+          <span class="status-dot dot-confirmed"></span>
+          <span class="status-name">Confirmed</span>
+          <div class="status-track"><div class="status-fill" style="width:{{ total > 0 ? (stats.confirmedCount/total*100).toFixed(0) : 0 }}%;background:var(--green);"></div></div>
+          <span class="status-count">{{ stats.confirmedCount }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot dot-pending"></span>
+          <span class="status-name">Pending</span>
+          <div class="status-track"><div class="status-fill" style="width:{{ total > 0 ? (stats.pendingCount/total*100).toFixed(0) : 0 }}%;background:var(--amber);"></div></div>
+          <span class="status-count">{{ stats.pendingCount }}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-dot dot-cancelled"></span>
+          <span class="status-name">Cancelled</span>
+          <div class="status-track"><div class="status-fill" style="width:{{ total > 0 ? (stats.cancelledCount/total*100).toFixed(0) : 0 }}%;background:var(--red);"></div></div>
+          <span class="status-count">{{ stats.cancelledCount }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- ── RECENT BOOKINGS + COURT REVENUE ── --}}
+<div class="grid-c21 mb-6">
+  <div class="card">
+    <div class="card-hdr">
+      <div>
+        <div class="card-title">Recent Bookings</div>
+        <div class="card-sub">Latest 10 records</div>
+      </div>
+      <a href="{{ route('admin.bookings') }}" class="btn btn-secondary btn-sm">View all</a>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>ID</th><th>Customer</th><th>Court</th><th>Date</th><th>Total</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @each(b in recentBookings.slice(0, 10))
+            <tr>
+              <td class="tbl-muted">#{{ b.bookingId }}</td>
+              <td class="fw-6">{{ b.customer ? b.customer.customerName : '—' }}</td>
+              <td class="tbl-muted">{{ b.court ? b.court.courtName : '—' }}</td>
+              <td class="tbl-muted">{{ b.bookingDate }}</td>
+              <td class="fw-6">฿{{ parseFloat(b.totalPrice).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
+              <td><span class="badge badge-{{ b.bookingStatus }}">{{ b.bookingStatus }}</span></td>
+            </tr>
+          @end
+          @if(recentBookings.length === 0)
+            <tr><td colspan="6" style="text-align:center;color:var(--txt3);padding:24px;">No bookings yet</td></tr>
+          @end
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title">Revenue by Court</div>
+    </div>
+    <div class="card-body">
+      @set('maxRev', Math.max(...Object.values(courtRevenue), 1))
+      @each(court in courts)
+        <div class="court-rev-row">
+          <span class="court-rev-name">{{ court.courtName }}</span>
+          <div class="court-rev-track">
+            <div class="court-rev-fill" style="width:{{ ((courtRevenue[court.courtName] || 0) / maxRev * 100).toFixed(0) }}%"></div>
+          </div>
+          <span class="court-rev-amt">฿{{ (courtRevenue[court.courtName] || 0).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</span>
+        </div>
+      @end
+      @if(courts.length === 0)
+        <div class="empty"><div class="empty-desc">No court data available</div></div>
+      @end
+    </div>
+  </div>
+</div>
+
+@end
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+const trendData = {{{ JSON.stringify(last7) }}}
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
+  data: {
+    labels: trendData.map(d => d.date.slice(5)),
+    datasets: [{
+      label: 'Bookings',
+      data: trendData.map(d => d.count),
+      borderColor: '#16a34a',
+      backgroundColor: 'rgba(22,163,74,.08)',
+      borderWidth: 2, pointRadius: 4,
+      pointBackgroundColor: '#16a34a',
+      tension: 0.35, fill: true,
+    }],
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+      x: { ticks: { font: { size: 11 } }, grid: { display: false } },
+    },
+  },
+})
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Confirmed', 'Pending', 'Cancelled'],
+    datasets: [{
+      data: [{{ stats.confirmedCount }}, {{ stats.pendingCount }}, {{ stats.cancelledCount }}],
+      backgroundColor: ['#16a34a', '#d97706', '#dc2626'],
+      borderWidth: 2, borderColor: '#fff',
+    }],
+  },
+  options: {
+    responsive: false, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    cutout: '65%',
+  },
+})
+</script>
+@end

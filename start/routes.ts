@@ -59,9 +59,10 @@ router.get('/bookings/customer/:customerId', [BookingsController, 'byCustomer'])
   .use(middleware.auth())
 
 // ── Coaches ───────────────────────────────────────────────────────────────
-router.get('/coaches',              [CoachesController, 'index'])
-router.get('/coaches/:id',          [CoachesController, 'show'])
-router.get('/coaches/:id/schedules',[CoachesController, 'schedules'])
+router.get('/coaches',               [CoachesController, 'index'])
+router.get('/coaches/busy',          [CoachesController, 'busy'])
+router.get('/coaches/:id',           [CoachesController, 'show'])
+router.get('/coaches/:id/schedules', [CoachesController, 'schedules'])
 
 // ── Customers ─────────────────────────────────────────────────────────────
 router.post('/customers/register',  [CustomersController, 'register'])
@@ -75,7 +76,16 @@ router.get('/payments/:bookingId',  [PaymentsController, 'show'])
 // ── Admin ──────────────────────────────────────────────────────────────
 router
   .group(() => {
-    router.get('/admin',       [AdminController, 'index']).as('admin')
-    router.get('/admin/stats', [AdminController, 'statsJson']).as('admin.stats')
+    router.get('/admin',                [AdminController, 'index']).as('admin')
+    router.get('/admin/stats',          [AdminController, 'statsJson']).as('admin.stats')
+    router.post('/admin/courts',        [AdminController, 'createCourt'])
+    router.patch('/admin/courts/:id',   [AdminController, 'updateCourt'])
+    router.delete('/admin/courts/:id',  [AdminController, 'deleteCourt'])
+    router.post('/admin/coaches',       [AdminController, 'createCoach'])
+    router.patch('/admin/coaches/:id',  [AdminController, 'updateCoach'])
+    router.patch('/admin/customers/:id', [AdminController, 'updateCustomer'])
+    router.post('/admin/tiers',         [AdminController, 'createTier'])
+    router.patch('/admin/tiers/:id',    [AdminController, 'updateTier'])
+    router.delete('/admin/tiers/:id',   [AdminController, 'deleteTier'])
   })
   .use(middleware.auth())

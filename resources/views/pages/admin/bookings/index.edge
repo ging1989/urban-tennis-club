@@ -1,0 +1,99 @@
+@layout('layouts/admin')
+@set('title', 'Booking Management')
+@set('currentPage', 'bookings')
+@set('breadcrumb', 'Bookings')
+
+@section('content')
+
+<div class="pg-hdr">
+  <div>
+    <div class="pg-title">Booking Management</div>
+    <div class="pg-sub">{{ bookings.length }} total bookings</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="filter-bar">
+    <input type="text" id="searchInput" class="form-control" placeholder="Search customer / court…" oninput="filterTable()">
+    <select id="statusFilter" class="form-control" onchange="filterTable()">
+      <option value="">All Status</option>
+      <option value="pending">Pending</option>
+      <option value="confirmed">Confirmed</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+    <div class="filter-spacer"></div>
+    <span class="text-muted text-sm" id="resultCount"></span>
+  </div>
+  <div class="tbl-wrap">
+    <table class="tbl" id="bookingTable">
+      <thead>
+        <tr>
+          <th>ID</th><th>Customer</th><th>Court</th><th>Date</th>
+          <th>Time</th><th>Total</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @each(b in bookings)
+          <tr data-customer="{{ b.customer ? b.customer.customerName.toLowerCase() : '' }}"
+              data-court="{{ b.court ? b.court.courtName.toLowerCase() : '' }}"
+              data-status="{{ b.bookingStatus }}">
+            <td class="tbl-muted">#{{ b.bookingId }}</td>
+            <td class="fw-6">{{ b.customer ? b.customer.customerName : '—' }}</td>
+            <td class="tbl-muted">{{ b.court ? b.court.courtName : '—' }}</td>
+            <td class="tbl-muted">{{ b.bookingDate }}</td>
+            <td class="tbl-muted">{{ b.bookingStart }} – {{ b.bookingEnd }}</td>
+            <td class="fw-6">฿{{ parseFloat(b.totalPrice).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
+            <td><span class="badge badge-{{ b.bookingStatus }}">{{ b.bookingStatus }}</span></td>
+            <td>
+              <select class="form-control" style="width:130px;font-size:12px;padding:4px 8px;"
+                      onchange="changeStatus({{ b.bookingId }}, this.value, this)">
+                <option value="pending"   {{ b.bookingStatus === 'pending'   ? 'selected' : '' }}>Pending</option>
+                <option value="confirmed" {{ b.bookingStatus === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                <option value="cancelled" {{ b.bookingStatus === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+              </select>
+            </td>
+          </tr>
+        @end
+        @if(bookings.length === 0)
+          <tr><td colspan="8" style="text-align:center;color:var(--txt3);padding:32px;">No bookings yet</td></tr>
+        @end
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@end
+
+@push('scripts')
+<script>
+function filterTable() {
+  const q   = document.getElementById('searchInput').value.toLowerCase()
+  const st  = document.getElementById('statusFilter').value
+  const rows = document.querySelectorAll('#bookingTable tbody tr[data-status]')
+  let visible = 0
+  rows.forEach(row => {
+    const matchQ  = !q || row.dataset.customer.includes(q) || row.dataset.court.includes(q)
+    const matchSt = !st || row.dataset.status === st
+    row.style.display = (matchQ && matchSt) ? '' : 'none'
+    if (matchQ && matchSt) visible++
+  })
+  document.getElementById('resultCount').textContent = `${visible} bookings`
+}
+
+async function changeStatus(id, status, sel) {
+  const res = await apiPost(`/admin/bookings/${id}/status`, { status })
+  if (res.ok || res.redirected) {
+    showToast(`Booking #${id} → ${status}`, 'success')
+    const row = sel.closest('tr')
+    row.dataset.status = status
+    row.querySelector('.badge').className = `badge badge-${status}`
+    row.querySelector('.badge').textContent = status
+  } else {
+    showToast('Failed to update status.', 'error')
+    location.reload()
+  }
+}
+
+filterTable()
+</script>
+@end
