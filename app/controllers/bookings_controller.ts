@@ -54,15 +54,14 @@ async new({ request, view, session, response, auth }: HttpContext) {
 
       const coaches = await Coach.query().preload('coachPricing').orderBy('coach_id', 'asc')
 
-      // ✅ เตรียมข้อมูลให้ View ให้คลีนที่สุด
       return view.render('pages/booking', {
         court,
         bookingDate,
-        bookedSlotsJson: JSON.stringify(bookedSlots), // ✅ แปลงเป็น JSON จากตรงนี้เลย
-        minDate: DateTime.now().toISODate(),         // ✅ คำนวณวันที่ขั้นต่ำจากตรงนี้
+        bookedSlotsJson: JSON.stringify(bookedSlots), 
+        minDate: DateTime.now().toISODate(),    
         coaches,
-        discount: session.get('memberId') ? 10 : 0,  // ตัวอย่าง Logic ส่วนลด
-        user: auth.user                              // ✅ ส่ง User object ไปเลย
+        discount: session.get('memberId') ? 10 : 0,  
+        user: auth.user                            
       })
 
     } catch (error) {
@@ -75,7 +74,7 @@ async new({ request, view, session, response, auth }: HttpContext) {
    */
   async store({ request, response, session }: HttpContext) {
       const data = request.only([
-        'courtId', 'scheduleId', 'bookingDate',
+        'courtId', 'coachId', 'bookingDate',
         'bookingStart', 'bookingEnd', 'customerName',
         'customerPhone', 'customerEmail', 'paymentMethod',
       ])
@@ -140,13 +139,20 @@ async new({ request, view, session, response, auth }: HttpContext) {
 
         const courtPrice = court.courtPricePerHr * hours
         let coachPrice = 0
-        if (data.scheduleId) {
-          const schedule = await CoachSchedule.query({ client: trx }).where('schedule_id', data.scheduleId).preload('coach', (q) => q.preload('coachPricing')).firstOrFail()
+        let scheduleId: number | null = null
+        if (data.coachId) {
+          const dayOfWeek = DateTime.fromISO(data.bookingDate).weekday % 7
+          const schedule = await CoachSchedule.query({ client: trx })
+            .where('coach_id', data.coachId)
+            .where('avail_date', dayOfWeek)
+            .preload('coach', (q) => q.preload('coachPricing'))
+            .firstOrFail()
+          scheduleId = schedule.scheduleId
           coachPrice = schedule.coach.coachPricing.coachPrice * hours
         }
         const totalPrice = (courtPrice + coachPrice) * (1 - discount)
 
-        const booking = await Booking.create({ customerId, courtId: data.courtId, scheduleId: data.scheduleId || null, bookingDate: data.bookingDate, bookingStart: data.bookingStart, bookingEnd: data.bookingEnd, bookingCourtPrice: courtPrice, bookingCoachPrice: coachPrice || null, totalPrice, bookingStatus: 'pending' }, { client: trx })
+        const booking = await Booking.create({ customerId, courtId: data.courtId, scheduleId, bookingDate: data.bookingDate, bookingStart: data.bookingStart, bookingEnd: data.bookingEnd, bookingCourtPrice: courtPrice, bookingCoachPrice: coachPrice || null, totalPrice, bookingStatus: 'pending' }, { client: trx })
 
         await Payment.create({ bookingId: booking.bookingId, paymentType: 'booking', amount: totalPrice, paymentMethod: data.paymentMethod, paymentStatus: 'pending' }, { client: trx })
 

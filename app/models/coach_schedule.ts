@@ -1,6 +1,5 @@
 import { column, BaseModel, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
-import { DateTime } from 'luxon'
 import Coach from './coach.js'
 import Booking from './booking.js'
 
@@ -14,8 +13,8 @@ export default class CoachSchedule extends BaseModel {
     @column()
     declare coachId: number
 
-    @column.date()
-    declare availDate: DateTime
+    @column({ columnName: 'avail_date' })
+    declare dayOfWeek: number  // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
 
     @column()
     declare startTime: string

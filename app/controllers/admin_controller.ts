@@ -2,9 +2,11 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Booking from '#models/booking'
 import Court from '#models/court'
 import Coach from '#models/coach'
+import CoachSchedule from '#models/coach_schedule'
 import CoachPricing from '#models/coach_pricing'
 import Customer from '#models/customer'
 import Tier from '#models/tier'
+import User from '#models/user'
 import { DateTime } from 'luxon'
 
 async function getTodayStats() {
@@ -56,10 +58,12 @@ export default class AdminController {
 
     const allBookings = await Booking.query()
     const courts   = await Court.query().orderBy('court_id', 'asc')
-    const coaches  = (await Coach.query().preload('coachPricing')).sort((a, b) => a.coachId - b.coachId)
+    const coaches  = (await Coach.query().preload('coachPricing').preload('coachSchedules')).sort((a, b) => a.coachId - b.coachId)
     const customers = await Customer.query().preload('tier').orderBy('created_at', 'desc')
     const coachPricings = await CoachPricing.all()
     const tiers = await Tier.query().preload('members').orderBy('min_hours', 'asc')
+    const users = await User.query().preload('customer', (q) => q.preload('tier')).orderBy('id', 'asc')
+    const memberUsers = users.filter((u) => u.role === 'member')
 
     // ── revenue per court ──
     const courtRevenue: Record<string, number> = {}
@@ -111,6 +115,8 @@ export default class AdminController {
       coachPricings,
       customers,
       tiers,
+      users,
+      memberUsers,
       courtRevenue,
       last7,
       last7CoachRevenue,
@@ -161,12 +167,45 @@ export default class AdminController {
     return response.json(coach)
   }
 
+  async upsertCoachSchedule({ params, request, response }: HttpContext) {
+    // params.coachId, body: { dayOfWeek, startTime, endTime }
+    const { dayOfWeek, startTime, endTime } = request.only(['dayOfWeek', 'startTime', 'endTime'])
+    const existing = await CoachSchedule.query()
+      .where('coach_id', params.coachId)
+      .where('avail_date', dayOfWeek)
+      .first()
+    if (existing) {
+      existing.merge({ startTime, endTime })
+      await existing.save()
+      return response.json(existing)
+    }
+    const schedule = await CoachSchedule.create({ coachId: params.coachId, dayOfWeek, startTime, endTime })
+    return response.json(schedule)
+  }
+
+  async deleteCoachSchedule({ params, response }: HttpContext) {
+    // params.coachId, params.day
+    const schedule = await CoachSchedule.query()
+      .where('coach_id', params.coachId)
+      .where('avail_date', params.day)
+      .firstOrFail()
+    await schedule.delete()
+    return response.json({ message: 'Schedule removed' })
+  }
+
   async updateCustomer({ params, request, response }: HttpContext) {
     const customer = await Customer.findOrFail(params.id)
-    const { customerName, customerEmail, customerPhone, customerType, tierId } = request.only([
-      'customerName', 'customerEmail', 'customerPhone', 'customerType', 'tierId',
+    const { customerName, customerEmail, customerPhone, customerType, tierId, userId } = request.only([
+      'customerName', 'customerEmail', 'customerPhone', 'customerType', 'tierId', 'userId',
     ])
-    customer.merge({ customerName, customerEmail, customerPhone, customerType, tierId: tierId ?? null })
+    customer.merge({
+      customerName,
+      customerEmail: customerEmail ?? null,
+      customerPhone: customerPhone ?? null,
+      customerType,
+      tierId: tierId ?? null,
+      userId: customerType === 'member' ? (userId ?? null) : null,
+    })
     await customer.save()
     return response.json(customer)
   }
@@ -193,6 +232,32 @@ export default class AdminController {
     } catch {
       return response.status(409).json({ message: 'Cannot delete tier: it has members assigned.' })
     }
+  }
+
+  async createUser({ request, response }: HttpContext) {
+    const { fullName, username, email, password, role } = request.only(['fullName', 'username', 'email', 'password', 'role'])
+    const existing = await User.findBy('email', email)
+    if (existing) return response.status(409).json({ message: 'Email already in use.' })
+    const user = await User.create({ fullName: fullName ?? null, username: username ?? null, email, password, role: role ?? 'member' })
+    return response.json(user)
+  }
+
+  async updateUser({ params, request, response }: HttpContext) {
+    const user = await User.findOrFail(params.id)
+    const { fullName, username, email, password, role } = request.only(['fullName', 'username', 'email', 'password', 'role'])
+    user.merge({ fullName: fullName ?? null, username: username ?? null, email, role })
+    if (password) user.password = password
+    await user.save()
+    return response.json(user)
+  }
+
+  async deleteUser({ params, auth, response }: HttpContext) {
+    if (auth.user!.id === Number(params.id)) {
+      return response.status(400).json({ message: 'Cannot delete your own account.' })
+    }
+    const user = await User.findOrFail(params.id)
+    await user.delete()
+    return response.json({ message: 'User deleted' })
   }
 
 }

@@ -30,9 +30,11 @@ export default class CoachesController {
       return response.badRequest({ message: 'date is required' })
     }
 
+    const dayOfWeek = DateTime.fromISO(date).weekday % 7  // luxon: 1=Mon..7=Sun → 0=Sun..6=Sat
+
     const schedules = await CoachSchedule.query()
       .where('coach_id', params.id)
-      .where('avail_date', date)
+      .where('avail_date', dayOfWeek)
       .preload('coach', (q) => q.preload('coachPricing'))
 
     return response.ok(schedules)
@@ -47,8 +49,16 @@ export default class CoachesController {
       return response.badRequest({ message: 'date, start, end are required' })
     }
 
-    const expiryTime = DateTime.now().minus({ minutes: 30 }).toSQL()!
+    const dayOfWeek = DateTime.fromISO(date).weekday % 7  // 0=Sun..6=Sat
 
+    // coaches that have NO schedule for this day of week → unavailable
+    const allCoaches = await Coach.query().preload('coachSchedules')
+    const noScheduleIds = allCoaches
+      .filter((c) => !c.coachSchedules.some((s) => s.dayOfWeek === dayOfWeek))
+      .map((c) => c.coachId)
+
+    // coaches already booked in this time range
+    const expiryTime = DateTime.now().minus({ minutes: 30 }).toSQL()!
     const bookings = await Booking.query()
       .whereNotNull('schedule_id')
       .whereRaw('DATE(booking_date) = ?', [date])
@@ -62,11 +72,11 @@ export default class CoachesController {
       .where('booking_end', '>', start)
       .preload('coachSchedule')
 
-    const busyCoachIds = [...new Set(
-      bookings
-        .filter((b) => b.coachSchedule)
-        .map((b) => b.coachSchedule.coachId)
-    )]
+    const bookedIds = bookings
+      .filter((b) => b.coachSchedule)
+      .map((b) => b.coachSchedule.coachId)
+
+    const busyCoachIds = [...new Set([...noScheduleIds, ...bookedIds])]
 
     return response.ok({ busyCoachIds })
   }

@@ -11,7 +11,8 @@ import { middleware } from '#start/kernel'
 import { controllers } from '#generated/controllers'
 import router from '@adonisjs/core/services/router'
 
-import AdminController     from '#controllers/admin_controller'
+import AdminController        from '#controllers/admin_controller'
+import AdminSessionController from '#controllers/admin_session_controller'
 import HomeController      from '#controllers/home_controller'
 import CourtsController    from '#controllers/courts_controller'
 import BookingsController  from '#controllers/bookings_controller'
@@ -24,8 +25,8 @@ router
   .group(() => {
     router.get('signup', [controllers.NewAccount, 'create'])
     router.post('signup', [controllers.NewAccount, 'store'])
-    router.get('login',  [controllers.Session,    'create'])
-    router.post('login', [controllers.Session,    'store'])
+    router.get('login',  [controllers.Session,    'create']).as('session.create')
+    router.post('login', [controllers.Session,    'store']).as('session.store')
   })
   .use(middleware.guest())
 
@@ -50,10 +51,11 @@ router.get('/bookings/new',                  [BookingsController, 'new'])
 router.get('/bookings/:id/confirmation',     [BookingsController, 'confirmation'])
 router.post('/bookings',                     [BookingsController, 'store'])
 
+router.patch('/bookings/:id/status',         [BookingsController, 'updateStatus'])
+
 router
   .group(() => {
 router.get('/bookings/:id',                  [BookingsController, 'show'])
-router.patch('/bookings/:id/status',         [BookingsController, 'updateStatus'])
 router.get('/bookings/customer/:customerId', [BookingsController, 'byCustomer'])
   })
   .use(middleware.auth())
@@ -73,6 +75,11 @@ router.patch('/customers/:id/tier', [CustomersController, 'updateTier'])
 router.post('/payments',            [PaymentsController, 'store'])
 router.get('/payments/:bookingId',  [PaymentsController, 'show'])
 
+// ── Admin Auth ─────────────────────────────────────────────────────────
+router.get('/admin/login',  [AdminSessionController, 'create']).as('admin.login')
+router.post('/admin/login', [AdminSessionController, 'store']).as('admin.login.store')
+router.post('/admin/logout',[AdminSessionController, 'destroy']).as('admin.logout')
+
 // ── Admin ──────────────────────────────────────────────────────────────
 router
   .group(() => {
@@ -81,11 +88,16 @@ router
     router.post('/admin/courts',        [AdminController, 'createCourt'])
     router.patch('/admin/courts/:id',   [AdminController, 'updateCourt'])
     router.delete('/admin/courts/:id',  [AdminController, 'deleteCourt'])
-    router.post('/admin/coaches',       [AdminController, 'createCoach'])
-    router.patch('/admin/coaches/:id',  [AdminController, 'updateCoach'])
+    router.post('/admin/coaches',                          [AdminController, 'createCoach'])
+    router.patch('/admin/coaches/:id',                     [AdminController, 'updateCoach'])
+    router.put('/admin/coaches/:coachId/schedule',         [AdminController, 'upsertCoachSchedule'])
+    router.delete('/admin/coaches/:coachId/schedule/:day', [AdminController, 'deleteCoachSchedule'])
     router.patch('/admin/customers/:id', [AdminController, 'updateCustomer'])
+    router.post('/admin/users',          [AdminController, 'createUser'])
+    router.patch('/admin/users/:id',     [AdminController, 'updateUser'])
+    router.delete('/admin/users/:id',    [AdminController, 'deleteUser'])
     router.post('/admin/tiers',         [AdminController, 'createTier'])
     router.patch('/admin/tiers/:id',    [AdminController, 'updateTier'])
     router.delete('/admin/tiers/:id',   [AdminController, 'deleteTier'])
   })
-  .use(middleware.auth())
+  .use(middleware.admin())

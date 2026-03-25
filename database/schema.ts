@@ -56,8 +56,8 @@ export class CoachPricingSchema extends BaseModel {
 export class CoachScheduleSchema extends BaseModel {
   static $columns = ['availDate', 'coachId', 'createdAt', 'endTime', 'scheduleId', 'startTime', 'updatedAt'] as const
   $columns = CoachScheduleSchema.$columns
-  @column.date()
-  declare availDate: DateTime | null
+  @column()
+  declare availDate: boolean | null
   @column()
   declare coachId: number | null
   @column.dateTime({ autoCreate: true })
