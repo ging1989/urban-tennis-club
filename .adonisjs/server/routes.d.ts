@@ -38,6 +38,7 @@ export type ScannedRoutes = {
     'admin': { paramsTuple?: []; params?: {} }
     'admin.stats': { paramsTuple?: []; params?: {} }
     'admin.data': { paramsTuple?: []; params?: {} }
+    'admin.reports': { paramsTuple?: []; params?: {} }
     'admin.profile': { paramsTuple?: []; params?: {} }
     'admin.profile.update': { paramsTuple?: []; params?: {} }
     'admin.profile.password': { paramsTuple?: []; params?: {} }
@@ -79,6 +80,7 @@ export type ScannedRoutes = {
     'admin': { paramsTuple?: []; params?: {} }
     'admin.stats': { paramsTuple?: []; params?: {} }
     'admin.data': { paramsTuple?: []; params?: {} }
+    'admin.reports': { paramsTuple?: []; params?: {} }
     'admin.profile': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
@@ -104,6 +106,7 @@ export type ScannedRoutes = {
     'admin': { paramsTuple?: []; params?: {} }
     'admin.stats': { paramsTuple?: []; params?: {} }
     'admin.data': { paramsTuple?: []; params?: {} }
+    'admin.reports': { paramsTuple?: []; params?: {} }
     'admin.profile': { paramsTuple?: []; params?: {} }
   }
   POST: {

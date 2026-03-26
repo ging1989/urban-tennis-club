@@ -7,13 +7,30 @@ const APP_TIMEZONE = 'Asia/Bangkok'
 
 export default class AdminReportsController {
 
-  async index({ view }: HttpContext) {
-    const allBookings = await Booking.query()
+  async index({ view, request }: HttpContext) {
+    const dateFrom     = (request.input('dateFrom', '')     as string).trim()
+    const dateTo       = (request.input('dateTo', '')       as string).trim()
+    const courtId      = (request.input('courtId', '')      as string).trim()
+    const customerType = (request.input('customerType', 'all') as string).trim()
+
+    const courts = await Court.all()
+
+    // ── Build query with DB-level filters ───────────────────
+    let bookingQuery = Booking.query()
       .preload('customer')
       .preload('court')
       .preload('payment')
 
-    const courts = await Court.all()
+    if (dateFrom) bookingQuery = bookingQuery.where('booking_date', '>=', dateFrom)
+    if (dateTo)   bookingQuery = bookingQuery.where('booking_date', '<=', dateTo)
+    if (courtId)  bookingQuery = bookingQuery.where('court_id', courtId)
+
+    let allBookings = await bookingQuery
+
+    // ── Filter by member / guest in JS ─────────────────────
+    if (customerType !== 'all') {
+      allBookings = allBookings.filter((b) => b.customer?.customerType === customerType)
+    }
 
     // ── Stats ──────────────────────────────────────────────
     const thisMonth = DateTime.now().setZone(APP_TIMEZONE).startOf('month').toISODate()!
@@ -92,6 +109,9 @@ export default class AdminReportsController {
       .sort((a, b) => b.totalSpent - a.totalSpent)
       .slice(0, 8)
 
+    const filters = { dateFrom, dateTo, courtId, customerType }
+    const hasFilter = !!(dateFrom || dateTo || courtId || customerType !== 'all')
+
     return view.render('pages/admin/reports/index', {
       stats: { totalRevenue, monthRevenue, totalBookings: allBookings.length, pendingCount, confirmedCount, cancelledCount },
       courts,
@@ -101,6 +121,8 @@ export default class AdminReportsController {
       peakHours,
       topCustomers,
       bookings: allBookings,
+      filters,
+      hasFilter,
       currentPage: 'reports',
       breadcrumb: 'Reports',
       pendingCount,

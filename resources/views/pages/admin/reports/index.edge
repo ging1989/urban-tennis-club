@@ -12,6 +12,45 @@
   </div>
 </div>
 
+{{-- Filter Bar --}}
+<div class="card mb-6">
+  <form method="GET" action="{{ route('admin.reports') }}" class="filter-bar">
+    <div>
+      <div class="form-label">From</div>
+      <input type="date" name="dateFrom" value="{{ filters.dateFrom }}" class="form-control" style="width:150px;">
+    </div>
+    <div>
+      <div class="form-label">To</div>
+      <input type="date" name="dateTo" value="{{ filters.dateTo }}" class="form-control" style="width:150px;">
+    </div>
+    <div>
+      <div class="form-label">Court</div>
+      <select name="courtId" class="form-control" style="width:160px;">
+        <option value="">All Courts</option>
+        @each(court in courts)
+          <option value="{{ court.courtId }}" @if(filters.courtId == String(court.courtId)) selected @endif>
+            {{ court.courtName }}
+          </option>
+        @end
+      </select>
+    </div>
+    <div>
+      <div class="form-label">Type</div>
+      <select name="customerType" class="form-control" style="width:130px;">
+        <option value="all"    @if(filters.customerType === 'all')    selected @endif>All</option>
+        <option value="member" @if(filters.customerType === 'member') selected @endif>Member</option>
+        <option value="guest"  @if(filters.customerType === 'guest')  selected @endif>Guest</option>
+      </select>
+    </div>
+    <div style="align-self:flex-end;display:flex;gap:8px;">
+      <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+      @if(hasFilter)
+        <a href="{{ route('admin.reports') }}" class="btn btn-secondary btn-sm">Clear</a>
+      @end
+    </div>
+  </form>
+</div>
+
 {{-- KPI Row --}}
 <div class="stat-grid mb-6">
   <div class="stat-card">

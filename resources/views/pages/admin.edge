@@ -235,6 +235,40 @@
         <div class="section-header">
           <h1 class="section-title">Reports</h1>
         </div>
+
+        {{-- Filter bar --}}
+        <div class="panel" style="margin-bottom:16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
+            <div>
+              <div class="form-label">From</div>
+              <input type="date" id="rpt-date-from" class="form-input" style="width:148px;">
+            </div>
+            <div>
+              <div class="form-label">To</div>
+              <input type="date" id="rpt-date-to" class="form-input" style="width:148px;">
+            </div>
+            <div>
+              <div class="form-label">Court</div>
+              <select id="rpt-court" class="form-input" style="width:160px;">
+                <option value="">All Courts</option>
+              </select>
+            </div>
+            <div>
+              <div class="form-label">Type</div>
+              <select id="rpt-type" class="form-input" style="width:130px;">
+                <option value="">All</option>
+                <option value="member">Member</option>
+                <option value="guest">Guest</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-primary" onclick="applyReportFilter()">Apply</button>
+              <button class="btn-secondary" onclick="clearReportFilter()">Clear</button>
+            </div>
+          </div>
+          <div id="rpt-count" style="margin-top:10px;font-size:12.5px;color:var(--muted);"></div>
+        </div>
+
         <div class="panel">
           <div class="panel-title">Recent Bookings (50 latest)</div>
           <div class="table-wrap">
@@ -254,7 +288,11 @@
               </thead>
               <tbody id="recent-bookings-tbody">
                 @each(b in recentBookings)
-                  <tr>
+                  <tr
+                    data-date="{{ b.bookingDate.toISODate() }}"
+                    data-court="{{ b.court ? b.court.courtName : '' }}"
+                    data-type="{{ b.customer ? b.customer.customerType : '' }}"
+                  >
                     <td class="td-muted">#{{ b.bookingId }}</td>
                     <td>{{ b.customer ? b.customer.customerName : '—' }}</td>
                     <td>{{ b.court ? b.court.courtName : '—' }}</td>
@@ -1643,6 +1681,53 @@
         refreshStats()
       }
     })
+
+    // ── Report Filter ──────────────────────────────────────
+    ;(function initReportFilter() {
+      const courtSel = document.getElementById('rpt-court')
+      const rows = Array.from(document.querySelectorAll('#recent-bookings-tbody tr'))
+
+      // populate court dropdown from row data
+      const courts = [...new Set(rows.map(r => r.dataset.court).filter(Boolean))].sort()
+      courts.forEach(name => {
+        const opt = document.createElement('option')
+        opt.value = name
+        opt.textContent = name
+        courtSel.appendChild(opt)
+      })
+    })()
+
+    function applyReportFilter() {
+      const from  = document.getElementById('rpt-date-from').value
+      const to    = document.getElementById('rpt-date-to').value
+      const court = document.getElementById('rpt-court').value
+      const type  = document.getElementById('rpt-type').value
+
+      let visible = 0
+      document.querySelectorAll('#recent-bookings-tbody tr').forEach(row => {
+        const date = row.dataset.date || ''
+        const matchFrom  = !from  || date >= from
+        const matchTo    = !to    || date <= to
+        const matchCourt = !court || row.dataset.court === court
+        const matchType  = !type  || row.dataset.type === type
+        const show = matchFrom && matchTo && matchCourt && matchType
+        row.style.display = show ? '' : 'none'
+        if (show) visible++
+      })
+
+      const total = document.querySelectorAll('#recent-bookings-tbody tr').length
+      document.getElementById('rpt-count').textContent =
+        visible === total ? '' : `Showing ${visible} of ${total} bookings`
+    }
+
+    function clearReportFilter() {
+      document.getElementById('rpt-date-from').value = ''
+      document.getElementById('rpt-date-to').value   = ''
+      document.getElementById('rpt-court').value     = ''
+      document.getElementById('rpt-type').value      = ''
+      document.querySelectorAll('#recent-bookings-tbody tr').forEach(r => r.style.display = '')
+      document.getElementById('rpt-count').textContent = ''
+    }
   </script>
 </body>
 </html>
