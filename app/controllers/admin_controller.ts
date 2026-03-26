@@ -214,7 +214,7 @@ export default class AdminController {
     customer.merge({
       customerName,
       customerEmail: customerEmail ?? null,
-      customerPhone: customerPhone ?? null,
+      customerPhone: customerPhone ?? '',
       customerType,
       tierId: tierId ?? null,
       userId: customerType === 'member' ? (userId ?? null) : null,

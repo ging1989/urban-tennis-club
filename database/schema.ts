@@ -107,8 +107,10 @@ export class CourtSchema extends BaseModel {
 }
 
 export class CustomerSchema extends BaseModel {
-  static $columns = ['createdAt', 'customerEmail', 'customerId', 'customerName', 'customerPhone', 'customerType', 'tierId', 'updatedAt', 'userId'] as const
+  static $columns = ['birthDate', 'createdAt', 'customerEmail', 'customerId', 'customerName', 'customerPhone', 'customerType', 'tierId', 'updatedAt', 'userId'] as const
   $columns = CustomerSchema.$columns
+  @column.date()
+  declare birthDate: DateTime | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column()

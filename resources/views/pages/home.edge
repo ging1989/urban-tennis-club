@@ -50,15 +50,6 @@
         </select>
       </div>
 
-      <div class="form-field">
-        <label for="qb-type">Type</label>
-        <select id="qb-type">
-          <option value="all">All courts</option>
-          <option value="outdoor">Outdoor</option>
-          <option value="indoor">Indoor</option>
-        </select>
-      </div>
-
       <button class="btn-check" onclick="quickBook()">Check availability</button>
 
     </div>
@@ -123,8 +114,6 @@
     function quickBook() {
       const date    = document.getElementById('qb-date').value
       const courtId = document.getElementById('qb-court').value
-      const type    = document.getElementById('qb-type').value
-
       if (!date) { alert('Please select a date.'); return }
 
       if (courtId) {
@@ -133,8 +122,7 @@
       }
 
       const params = new URLSearchParams({ date })
-      if (type && type !== 'all') params.append('type', type)
-      window.location.href = `/courts?${params.toString()}`
+window.location.href = `/courts?${params.toString()}`
     }
   </script>
 
