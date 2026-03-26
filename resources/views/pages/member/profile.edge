@@ -1,7 +1,7 @@
 @layout('layouts/master')
 @set('title', 'My Profile')
 
-@push('styles')
+@section('content')
 <style>
   .profile-wrap {
     min-height: calc(100vh - 68px);
@@ -191,9 +191,6 @@
     }
   }
 </style>
-@end
-
-@section('content')
 <div class="profile-wrap">
   <div class="profile-container">
     @if(flashMessages.has('success'))

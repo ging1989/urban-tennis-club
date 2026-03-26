@@ -102,7 +102,7 @@ async new({ request, view, response, auth }: HttpContext) {
       const trx = await db.transaction()
 
       try {
-        // ✅ ใช้ JS Date เพื่อความแม่นยำเรื่องเขตเวลา
+
         const expiryTime = DateTime.now().minus({ minutes: 30 }).toJSDate()
 
         const conflict = await Booking.query({ client: trx })
@@ -128,7 +128,6 @@ async new({ request, view, response, auth }: HttpContext) {
         }
 
         // --- (ส่วนคำนวณราคาและบันทึกข้อมูลคงเดิม) ---
-        // ... (ก๊อปปี้จากโค้ดเดิมของคุณมาวางได้เลยครับ)
         
         const [sh, sm] = data.bookingStart.split(':').map(Number)
         const [eh, em] = data.bookingEnd.split(':').map(Number)
@@ -151,7 +150,8 @@ async new({ request, view, response, auth }: HttpContext) {
           customerId = member.customerId
           discount = member.tier ? member.tier.tierDiscount / 100 : 0
         } else {
-          const guest = await Customer.create({ customerName: data.customerName, customerPhone: data.customerPhone, customerEmail: data.customerEmail || null, customerType: 'guest' }, { client: trx })
+          const guest = await Customer.create({ customerName: data.customerName, customerPhone: data.customerPhone, 
+            customerEmail: data.customerEmail || null, customerType: 'guest' }, { client: trx })
           customerId = guest.customerId
         }
 
@@ -170,9 +170,12 @@ async new({ request, view, response, auth }: HttpContext) {
         }
         const totalPrice = (courtPrice + coachPrice) * (1 - discount)
 
-        const booking = await Booking.create({ customerId, courtId: data.courtId, scheduleId, bookingDate: data.bookingDate, bookingStart: data.bookingStart, bookingEnd: data.bookingEnd, bookingCourtPrice: courtPrice, bookingCoachPrice: coachPrice || null, totalPrice, bookingStatus: 'pending' }, { client: trx })
+        const booking = await Booking.create({ customerId, courtId: data.courtId, scheduleId, 
+          bookingDate: data.bookingDate, bookingStart: data.bookingStart, bookingEnd: data.bookingEnd, 
+          bookingCourtPrice: courtPrice, bookingCoachPrice: coachPrice || null, totalPrice, bookingStatus: 'pending' }, { client: trx })
 
-        await Payment.create({ bookingId: booking.bookingId, paymentType: 'booking', amount: totalPrice, paymentMethod: data.paymentMethod, paymentStatus: 'pending' }, { client: trx })
+        await Payment.create({ bookingId: booking.bookingId, paymentType: 'booking', amount: totalPrice, 
+          paymentMethod: data.paymentMethod, paymentStatus: 'pending' }, { client: trx })
 
         await trx.commit()
         return response.redirect(`/bookings/${booking.bookingId}/confirmation`)
@@ -233,5 +236,37 @@ async new({ request, view, response, auth }: HttpContext) {
       .orderBy('booking_date', 'desc')
 
     return response.ok(bookings)
+  }
+
+  async statusForm({ view }: HttpContext) {
+    return view.render('pages/booking_status')
+  }
+
+  async statusLookup({ request, view }: HttpContext) {
+    const { bookingId, phone } = request.only(['bookingId', 'phone'])
+
+    if (!bookingId || !phone) {
+      return view.render('pages/booking_status', {
+        error: 'Please fill in both Booking ID and phone number.',
+        input: { bookingId, phone },
+      })
+    }
+
+    const booking = await Booking.query()
+      .where('booking_id', bookingId)
+      .preload('customer')
+      .preload('court')
+      .preload('coachSchedule', (q) => q.preload('coach'))
+      .preload('payment')
+      .first()
+
+    if (!booking || booking.customer.customerPhone !== phone.trim()) {
+      return view.render('pages/booking_status', {
+        error: 'Booking not found. Please check your Booking ID and phone number.',
+        input: { bookingId, phone },
+      })
+    }
+
+    return view.render('pages/booking_status', { booking })
   }
 }

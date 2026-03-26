@@ -28,6 +28,8 @@ export type ScannedRoutes = {
     'customers.register': { paramsTuple?: []; params?: {} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'customers.update_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'booking.status': { paramsTuple?: []; params?: {} }
+    'booking.status.lookup': { paramsTuple?: []; params?: {} }
     'payments.store': { paramsTuple?: []; params?: {} }
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
     'admin.login': { paramsTuple?: []; params?: {} }
@@ -71,6 +73,7 @@ export type ScannedRoutes = {
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'coaches.schedules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'booking.status': { paramsTuple?: []; params?: {} }
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
     'admin.login': { paramsTuple?: []; params?: {} }
     'admin': { paramsTuple?: []; params?: {} }
@@ -95,6 +98,7 @@ export type ScannedRoutes = {
     'coaches.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'coaches.schedules': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'booking.status': { paramsTuple?: []; params?: {} }
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
     'admin.login': { paramsTuple?: []; params?: {} }
     'admin': { paramsTuple?: []; params?: {} }
@@ -109,6 +113,7 @@ export type ScannedRoutes = {
     'bookings.store': { paramsTuple?: []; params?: {} }
     'member.profile.update': { paramsTuple?: []; params?: {} }
     'customers.register': { paramsTuple?: []; params?: {} }
+    'booking.status.lookup': { paramsTuple?: []; params?: {} }
     'payments.store': { paramsTuple?: []; params?: {} }
     'admin.login.store': { paramsTuple?: []; params?: {} }
     'admin.logout': { paramsTuple?: []; params?: {} }

@@ -181,6 +181,46 @@
   white-space: nowrap;
 }
 
+/* ---------- Quick Book Tabs ---------- */
+.qb-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--clay-border);
+}
+
+.qb-tab {
+  padding: 10px 24px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color .15s, border-color .15s;
+}
+
+.qb-tab:hover {
+  color: var(--clay);
+}
+
+.qb-tab.active {
+  color: var(--clay);
+  border-bottom-color: var(--clay);
+}
+
+.qb-panel {
+  animation: fadeIn .15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ---------- Courts Section ---------- */
 .section-courts {
   padding: 8px 48px 44px;

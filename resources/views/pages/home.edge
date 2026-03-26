@@ -32,26 +32,45 @@
 
   {{-- Quick Booking --}}
   <div class="quick-book">
-    <div class="quick-book-label">Quick booking</div>
-    <div class="quick-book-form">
+    <div class="qb-tabs">
+      <button class="qb-tab active" onclick="switchTab('book', this)">Quick Booking</button>
+      <button class="qb-tab" onclick="switchTab('status', this)">Check Booking Status</button>
+    </div>
 
-      <div class="form-field">
-        <label for="qb-date">Date</label>
-        <input type="date" id="qb-date">
+    {{-- Tab: Quick Booking --}}
+    <div id="tab-book" class="qb-panel">
+      <div class="quick-book-form">
+        <div class="form-field">
+          <label for="qb-date">Date</label>
+          <input type="date" id="qb-date">
+        </div>
+        <div class="form-field">
+          <label for="qb-court">Court</label>
+          <select id="qb-court">
+            <option value="">Any court</option>
+            @each(court in courts)
+              <option value="{{ court.courtId }}">{{ court.courtName }}</option>
+            @end
+          </select>
+        </div>
+        <button class="btn-check" onclick="quickBook()">Check availability</button>
       </div>
+    </div>
 
-      <div class="form-field">
-        <label for="qb-court">Court</label>
-        <select id="qb-court">
-          <option value="">Any court</option>
-          @each(court in courts)
-            <option value="{{ court.courtId }}">{{ court.courtName }}</option>
-          @end
-        </select>
-      </div>
-
-      <button class="btn-check" onclick="quickBook()">Check availability</button>
-
+    {{-- Tab: Check Booking Status --}}
+    <div id="tab-status" class="qb-panel" style="display:none;">
+      <form method="POST" action="/booking-status" class="quick-book-form">
+        {{ csrfField() }}
+        <div class="form-field">
+          <label for="bs-id">Booking ID</label>
+          <input type="number" id="bs-id" name="bookingId" placeholder="e.g. 42" required>
+        </div>
+        <div class="form-field">
+          <label for="bs-phone">Phone Number</label>
+          <input type="text" id="bs-phone" name="phone" placeholder="e.g. 0812345678" required>
+        </div>
+        <button type="submit" class="btn-check">Check status</button>
+      </form>
     </div>
   </div>
 
@@ -110,6 +129,13 @@
     const today = new Date().toISOString().split('T')[0]
     const dateInput = document.getElementById('qb-date')
     if (dateInput) dateInput.value = today
+
+    function switchTab(tab, btn) {
+      document.querySelectorAll('.qb-panel').forEach(p => p.style.display = 'none')
+      document.querySelectorAll('.qb-tab').forEach(t => t.classList.remove('active'))
+      document.getElementById('tab-' + tab).style.display = 'block'
+      btn.classList.add('active')
+    }
 
     function quickBook() {
       const date    = document.getElementById('qb-date').value

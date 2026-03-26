@@ -74,6 +74,10 @@ router.post('/customers/register',  [CustomersController, 'register'])
 router.get('/customers/:id',        [CustomersController, 'show'])
 router.patch('/customers/:id/tier', [CustomersController, 'updateTier'])
 
+// ── Booking Status (Guest) ────────────────────────────────────────────────
+router.get('/booking-status',  [BookingsController, 'statusForm']).as('booking.status')
+router.post('/booking-status', [BookingsController, 'statusLookup']).as('booking.status.lookup')
+
 // ── Payments ──────────────────────────────────────────────────────────────
 router.post('/payments',            [PaymentsController, 'store'])
 router.get('/payments/:bookingId',  [PaymentsController, 'show'])
