@@ -143,8 +143,10 @@ export default class AdminController {
   }
 
   async createCourt({ request, response }: HttpContext) {
-    const { courtName, courtPricePerHr, courtStatus } = request.only(['courtName', 'courtPricePerHr', 'courtStatus'])
-    const court = await Court.create({ courtName, courtPricePerHr, courtStatus: courtStatus ?? 'available' })
+    const { courtName, courtPricePerHr, courtStatus } = request.only(
+      ['courtName', 'courtPricePerHr', 'courtStatus'])
+    const court = await Court.create(
+      { courtName, courtPricePerHr, courtStatus: courtStatus ?? 'available' })
     return response.json(court)
   }
 
