@@ -14,8 +14,8 @@ const APP_TIMEZONE = 'Asia/Bangkok'
 async function getTodayStats() {
   const today = DateTime.now().setZone(APP_TIMEZONE).toISODate()!
 
-  const allBookings = await Booking.query()
-  const todayBookings = allBookings.filter((b) => b.bookingDate?.toISODate() === today)
+  const todayBookings = await Booking.query().where('booking_date', today)
+  const totalBookings = await Booking.query().count('* as total').firstOrFail()
 
   const todayRevenue = todayBookings
     .filter((b) => b.bookingStatus !== 'cancelled')
@@ -39,7 +39,7 @@ async function getTodayStats() {
     todayCoachRevenue,
     todayCustomers: todayCustomerIds.size,
     availableCourts: availableCourts.length,
-    totalBookings: allBookings.length,
+    totalBookings: Number(totalBookings.$extras.total),
     pendingCount,
     confirmedCount,
     cancelledCount,
@@ -84,7 +84,7 @@ export default class AdminController {
       }
     }
 
-    // ── bookings per day (7 วันล่าสุด) ──
+    // ── bookings per day (Last 7 days) ──
     const last7: { date: string; count: number }[] = []
     for (let i = 6; i >= 0; i--) {
       const d = DateTime.now().setZone(APP_TIMEZONE).minus({ days: i }).toISODate()!
@@ -92,7 +92,7 @@ export default class AdminController {
       last7.push({ date: d, count })
     }
 
-    // ── coach revenue per day (7 วันล่าสุด) ──
+    // ── coach revenue per day (Last 7 days) ──
     const last7CoachRevenue: { date: string; revenue: number }[] = []
     for (let i = 6; i >= 0; i--) {
       const d = DateTime.now().setZone(APP_TIMEZONE).minus({ days: i }).toISODate()!

@@ -134,7 +134,7 @@
         {{-- Charts Row --}}
         <div class="two-col">
           <div class="panel">
-            <div class="panel-title">Bookings — Last 7 Days</div>
+            <div class="panel-title">Bookings: Last 7 days</div>
             <div class="bar-chart">
               @each(day in last7)
                 <div class="bar-col">
@@ -150,7 +150,7 @@
           </div>
 
           <div class="panel">
-            <div class="panel-title">Booking Status Today</div>
+            <div class="panel-title">Booking Status: Today</div>
             <div class="status-row">
               <span class="status-dot dot-confirmed"></span>
               <span class="status-name">Confirmed</span>
@@ -183,7 +183,7 @@
 
           {{-- Line chart: coach revenue last 7 days --}}
           <div class="panel">
-            <div class="panel-title">Coach Revenue — Last 7 Days</div>
+            <div class="panel-title">Coach Revenue: Last 7 days</div>
             <div class="line-chart-wrap">
               <svg class="line-chart-svg" viewBox="0 0 420 90" preserveAspectRatio="none"
                 data-points="{{ last7CoachRevenue.map(d => d.revenue).join(',') }}">
@@ -206,7 +206,7 @@
 
           {{-- Bar chart: coach revenue today per coach --}}
           <div class="panel">
-            <div class="panel-title">Coach Revenue Today</div>
+            <div class="panel-title">Coach Revenue: Today</div>
             @if(coachRevenueToday.length === 0)
               <div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center">No coach bookings today</div>
             @else
