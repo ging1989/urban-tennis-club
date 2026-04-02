@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Payment from '#models/payment'
 import Booking from '#models/booking'
+import Customer from '#models/customer'
+import Tier from '#models/tier'
 import { DateTime } from 'luxon'
 
 export default class PaymentsController {
@@ -36,6 +38,30 @@ export default class PaymentsController {
     // อัปเดต booking status เป็น confirmed
     booking.bookingStatus = 'confirmed'
     await booking.save()
+
+    // อัปเดต tier ของ customer อัตโนมัติ
+    const customer = await Customer.query()
+      .where('customer_id', booking.customerId)
+      .preload('booking')
+      .first()
+
+    if (customer) {
+      const totalHours = customer.booking
+        .filter((b) => b.bookingStatus === 'confirmed')
+        .reduce((sum, b) => {
+          const [sh, sm] = b.bookingStart.split(':').map(Number)
+          const [eh, em] = b.bookingEnd.split(':').map(Number)
+          return sum + (eh * 60 + em - (sh * 60 + sm)) / 60
+        }, 0)
+
+      const tiers = await Tier.query().orderBy('min_hours', 'desc')
+      const newTier = tiers.find((t) => totalHours >= t.minHours)
+
+      if (newTier && newTier.tierId !== customer.tierId) {
+        customer.tierId = newTier.tierId
+        await customer.save()
+      }
+    }
 
     return response.created({
       message: 'Payment recorded successfully',

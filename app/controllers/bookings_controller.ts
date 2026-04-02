@@ -7,6 +7,7 @@ import CoachSchedule from '#models/coach_schedule'
 import Customer from '#models/customer'
 import Coach from '#models/coach'
 import Payment from '#models/payment'
+import Tier from '#models/tier'
 
 export default class BookingsController {
 
@@ -92,7 +93,7 @@ async new({ request, view, response, auth }: HttpContext) {
 
       const court = await Court.findOrFail(data.courtId)
       
-      // ✅ แก้ไขเงื่อนไข Status ให้ถูกต้อง (ตรวจสอบสถานะที่คุณมีใน DB จริงๆ)
+      // แก้ไขเงื่อนไข Status ให้ถูกต้อง
       const activeStatus = ['available', 'open', 'indoor', 'outdoor']
       if (!activeStatus.includes(court.courtStatus)) {
         session.flash('error', 'The court is not available at the moment.')
@@ -223,6 +224,31 @@ async new({ request, view, response, auth }: HttpContext) {
 
     booking.bookingStatus = status
     await booking.save()
+
+    if (status === 'confirmed' && booking.customerId) {
+      const customer = await Customer.query()
+        .where('customer_id', booking.customerId)
+        .preload('booking')
+        .first()
+
+      if (customer) {
+        const totalHours = customer.booking
+          .filter((b) => b.bookingStatus === 'confirmed')
+          .reduce((sum, b) => {
+            const [sh, sm] = b.bookingStart.split(':').map(Number)
+            const [eh, em] = b.bookingEnd.split(':').map(Number)
+            return sum + (eh * 60 + em - (sh * 60 + sm)) / 60
+          }, 0)
+
+        const tiers = await Tier.query().orderBy('min_hours', 'desc')
+        const newTier = tiers.find((t) => totalHours >= t.minHours)
+
+        if (newTier && newTier.tierId !== customer.tierId) {
+          customer.tierId = newTier.tierId
+          await customer.save()
+        }
+      }
+    }
 
     return response.ok({ message: 'Status updated', booking })
   }
