@@ -96,14 +96,45 @@
 
       <div class="adm-nav-section">Analytics</div>
 
-      <a href="{{ route('admin.reports') }}" class="adm-nav-item {{ currentPage === 'reports' ? 'active' : '' }}">
-        <svg class="adm-nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
-          <line x1="2" y1="20" x2="22" y2="20"/>
-        </svg>
-        Reports
-      </a>
+      {{-- Reports group with sub-menu --}}
+      @set('reportsOpen', currentPage === 'reports')
+      <div id="navGroupReports">
+        <div class="adm-nav-item {{ reportsOpen ? 'active' : '' }}"
+             style="cursor:pointer;"
+             onclick="toggleNavGroup('navGroupReports', 'reportsChevron')">
+          <svg class="adm-nav-icon" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+            <line x1="2" y1="20" x2="22" y2="20"/>
+          </svg>
+          <span style="flex:1;">Reports</span>
+          <svg id="reportsChevron" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+               style="transition:transform .2s; flex-shrink:0; {{ reportsOpen ? 'transform:rotate(180deg)' : '' }}">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+        <div id="reportsMenu" style="{{ reportsOpen ? '' : 'display:none;' }} padding-left:12px;">
+          <a href="{{ route('admin.reports') }}"
+             class="adm-nav-item {{ reportSubPage === 'overview' ? 'active' : '' }}"
+             style="font-size:13px; padding:6px 12px; gap:8px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            Overview
+          </a>
+          <a href="{{ route('admin.reports.coaches') }}"
+             class="adm-nav-item {{ reportSubPage === 'coaches' ? 'active' : '' }}"
+             style="font-size:13px; padding:6px 12px; gap:8px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Coach
+          </a>
+        </div>
+      </div>
 
       <div class="adm-nav-section">System</div>
 
@@ -231,6 +262,15 @@ document.getElementById('confirmOk').addEventListener('click', () => {
 document.getElementById('confirmDialog').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeConfirm()
 })
+
+// ── Nav group toggle ──────────────────────────────────────
+function toggleNavGroup(groupId, chevronId) {
+  const menu    = document.getElementById(groupId).querySelector('[id$="Menu"]')
+  const chevron = document.getElementById(chevronId)
+  const isOpen  = menu.style.display !== 'none'
+  menu.style.display    = isOpen ? 'none' : 'block'
+  chevron.style.transform = isOpen ? '' : 'rotate(180deg)'
+}
 
 // ── Action menus ──────────────────────────────────────────
 document.addEventListener('click', e => {

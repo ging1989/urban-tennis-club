@@ -115,6 +115,110 @@ export default class AdminController {
       return { name: coach.coachName, revenue }
     }).filter((c) => c.revenue > 0)
 
+    // ── Coach report: all-time stats ──
+    const coachBookings = await Booking.query()
+      .whereNotNull('schedule_id')
+      .preload('coachSchedule', (q) => q.preload('coach'))
+      .preload('customer')
+      .whereNot('booking_status', 'cancelled')
+
+    const coachStatsMap: Record<number, { coachName: string; sessions: number; revenue: number; hours: number }> = {}
+    for (const b of coachBookings) {
+      const coach = b.coachSchedule?.coach
+      if (!coach) continue
+      const id = coach.coachId
+      if (!coachStatsMap[id]) coachStatsMap[id] = { coachName: coach.coachName, sessions: 0, revenue: 0, hours: 0 }
+      coachStatsMap[id].sessions++
+      coachStatsMap[id].revenue += parseFloat(String(b.bookingCoachPrice)) || 0
+      if (b.bookingStart && b.bookingEnd) {
+        const [sh, sm] = b.bookingStart.split(':').map(Number)
+        const [eh, em] = b.bookingEnd.split(':').map(Number)
+        coachStatsMap[id].hours += (eh * 60 + em - (sh * 60 + sm)) / 60
+      }
+    }
+    const coachStatsAll = Object.values(coachStatsMap).sort((a, b) => b.revenue - a.revenue)
+
+    const monthlyCoachRevenue: { month: string; revenue: number }[] = []
+    for (let i = 5; i >= 0; i--) {
+      const dt = DateTime.now().setZone(APP_TIMEZONE).minus({ months: i })
+      const monthKey = dt.toFormat('yyyy-MM')
+      const label    = dt.toFormat('MMM yyyy')
+      const rev = coachBookings
+        .filter((b) => { const d = b.bookingDate?.toISODate() ?? ''; return d >= monthKey + '-01' && d <= monthKey + '-31' })
+        .reduce((sum, b) => sum + (parseFloat(String(b.bookingCoachPrice)) || 0), 0)
+      monthlyCoachRevenue.push({ month: label, revenue: rev })
+    }
+
+    const sessionsByDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((day, i) => ({
+      day,
+      count: coachBookings.filter((b) => b.bookingDate?.toJSDate().getDay() === i).length,
+    }))
+
+    const topCoachCustMap: Record<number, { customerName: string; sessions: number; totalSpent: number }> = {}
+    for (const b of coachBookings) {
+      if (!b.customer) continue
+      const id = b.customer.customerId
+      if (!topCoachCustMap[id]) topCoachCustMap[id] = { customerName: b.customer.customerName, sessions: 0, totalSpent: 0 }
+      topCoachCustMap[id].sessions++
+      topCoachCustMap[id].totalSpent += parseFloat(String(b.bookingCoachPrice)) || 0
+    }
+    const topCoachCustomers = Object.values(topCoachCustMap).sort((a, b) => b.totalSpent - a.totalSpent).slice(0, 8)
+
+    const thisMonthStr = DateTime.now().setZone(APP_TIMEZONE).startOf('month').toISODate()!
+    const totalCoachRevenueAll  = coachBookings.reduce((sum, b) => sum + (parseFloat(String(b.bookingCoachPrice)) || 0), 0)
+    const monthCoachRevenueAll  = coachBookings.filter((b) => (b.bookingDate?.toISODate() ?? '') >= thisMonthStr)
+      .reduce((sum, b) => sum + (parseFloat(String(b.bookingCoachPrice)) || 0), 0)
+    const uniqueCoachCount = new Set(coachBookings.map((b) => b.coachSchedule?.coachId).filter(Boolean)).size
+    const maxCoachRev = coachStatsAll.length > 0 ? coachStatsAll[0].revenue : 1
+
+    // ── Coach report: per-booking raw data for client-side filtering ──
+    const coachBookingRawData = coachBookings.map((b) => ({
+      date:      b.bookingDate?.toISODate() ?? '',
+      coachId:   b.coachSchedule?.coachId ?? 0,
+      coachName: b.coachSchedule?.coach?.coachName ?? 'Unknown',
+      revenue:   parseFloat(String(b.bookingCoachPrice)) || 0,
+      start:     b.bookingStart ?? '',
+      end:       b.bookingEnd ?? '',
+    }))
+
+    // ── Customer report ──
+    const customerBookings = await Booking.query()
+      .whereNot('booking_status', 'cancelled')
+      .preload('customer')
+    const custRptMap: Record<number, {
+      customerName: string; customerType: string
+      courtPrice: number; coachPrice: number; total: number; bookings: number
+    }> = {}
+    for (const b of customerBookings) {
+      if (!b.customer) continue
+      const id = b.customer.customerId
+      if (!custRptMap[id]) {
+        custRptMap[id] = {
+          customerName: b.customer.customerName,
+          customerType: b.customer.customerType,
+          courtPrice: 0, coachPrice: 0, total: 0, bookings: 0,
+        }
+      }
+      custRptMap[id].courtPrice += parseFloat(String(b.bookingCourtPrice)) || 0
+      custRptMap[id].coachPrice += parseFloat(String(b.bookingCoachPrice)) || 0
+      custRptMap[id].total      += parseFloat(String(b.totalPrice)) || 0
+      custRptMap[id].bookings++
+    }
+    const customerReportData = Object.values(custRptMap).sort((a, b) => b.total - a.total)
+
+    // ── Court report: per-booking data for client-side filtering ──
+    const courtBookingData = allBookings
+      .filter((b) => b.bookingStatus !== 'cancelled')
+      .map((b) => {
+        const court = courts.find((c) => c.courtId === b.courtId)
+        return {
+          date:      b.bookingDate?.toISODate() ?? '',
+          courtId:   court?.courtId ?? 0,
+          courtName: court?.courtName ?? 'Unknown',
+          revenue:   parseFloat(String(b.bookingCourtPrice)) || 0,
+        }
+      })
+
     return view.render('pages/admin', {
       recentBookings,
       stats,
@@ -129,6 +233,17 @@ export default class AdminController {
       last7,
       last7CoachRevenue,
       coachRevenueToday,
+      coachStatsAll,
+      monthlyCoachRevenue,
+      sessionsByDay,
+      topCoachCustomers,
+      totalCoachRevenueAll,
+      monthCoachRevenueAll,
+      uniqueCoachCount,
+      maxCoachRev,
+      coachBookingRawData,
+      courtBookingData,
+      customerReportData,
     })
   }
 

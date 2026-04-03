@@ -1,0 +1,195 @@
+@layout('layouts/admin')
+@set('title', 'Coach Report')
+@set('currentPage', 'reports')
+@set('reportSubPage', 'coaches')
+@set('breadcrumb', 'Reports / Coach')
+
+@section('content')
+
+<div class="pg-hdr">
+  <div>
+    <div class="pg-title">Coach Report</div>
+    <div class="pg-sub">Performance and revenue from coaching sessions</div>
+  </div>
+</div>
+
+{{-- Filter Bar --}}
+<div class="card mb-6">
+  <form method="GET" action="{{ route('admin.reports.coaches') }}" class="filter-bar">
+    <div>
+      <div class="form-label">From</div>
+      <input type="date" name="dateFrom" value="{{ filters.dateFrom }}" class="form-control" style="width:150px;">
+    </div>
+    <div>
+      <div class="form-label">To</div>
+      <input type="date" name="dateTo" value="{{ filters.dateTo }}" class="form-control" style="width:150px;">
+    </div>
+    <div>
+      <div class="form-label">Coach</div>
+      <select name="coachId" class="form-control" style="width:180px;">
+        <option value="">All Coaches</option>
+        @each(coach in coaches)
+          <option value="{{ coach.coachId }}" @if(filters.coachId == String(coach.coachId)) selected @endif>
+            {{ coach.coachName }}
+          </option>
+        @end
+      </select>
+    </div>
+    <div style="align-self:flex-end;display:flex;gap:8px;">
+      <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+      @if(hasFilter)
+        <a href="{{ route('admin.reports.coaches') }}" class="btn btn-secondary btn-sm">Clear</a>
+      @end
+    </div>
+  </form>
+</div>
+
+{{-- KPI Row --}}
+<div class="stat-grid mb-6">
+  <div class="stat-card">
+    <div class="stat-label">Total Coach Revenue</div>
+    <div class="stat-value">฿{{ stats.totalCoachRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">This Month</div>
+    <div class="stat-value">฿{{ stats.monthCoachRevenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Sessions</div>
+    <div class="stat-value">{{ stats.totalSessions }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Active Coaches</div>
+    <div class="stat-value text-green">{{ stats.uniqueCoaches }}</div>
+  </div>
+</div>
+
+{{-- Charts Row --}}
+<div class="grid-2 mb-6">
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">Monthly Coach Revenue (Last 6 Months)</div></div>
+    <div class="card-body">
+      <div class="chart-container" style="height:200px;">
+        <canvas id="monthlyCoachChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">Sessions by Day of Week</div></div>
+    <div class="card-body">
+      <div class="chart-container" style="height:200px;">
+        <canvas id="dayOfWeekChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{-- Coach Stats Table + Top Customers --}}
+<div class="grid-2 mb-6">
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">Revenue by Coach</div></div>
+    <div class="card-body" style="padding:0;">
+      @if(coachStats.length > 0)
+        @set('maxCoachRev', Math.max(...coachStats.map(c => c.revenue), 1))
+        @each(c in coachStats)
+          <div class="court-rev-row" style="padding:10px 20px;">
+            <span class="court-rev-name" style="min-width:120px;">{{ c.coachName }}</span>
+            <div class="court-rev-track">
+              <div class="court-rev-fill" style="width:{{ (c.revenue / maxCoachRev * 100).toFixed(0) }}%; background:rgba(124,58,237,.65);"></div>
+            </div>
+            <span class="court-rev-amt">฿{{ c.revenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</span>
+          </div>
+        @end
+      @else
+        <div class="empty" style="padding:24px;"><div class="empty-desc">No data</div></div>
+      @end
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><div class="card-title">Top Customers (Coach Sessions)</div></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Customer</th><th>Sessions</th><th>Coach Spend</th></tr></thead>
+        <tbody>
+          @each(c in topCoachCustomers)
+            <tr>
+              <td class="fw-6">{{ c.customerName }}</td>
+              <td class="tbl-muted">{{ c.sessions }}</td>
+              <td class="fw-6">฿{{ c.totalSpent.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
+            </tr>
+          @end
+          @if(topCoachCustomers.length === 0)
+            <tr><td colspan="3" style="text-align:center;color:var(--txt3);padding:24px;">No data</td></tr>
+          @end
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{{-- Coach Detail Table --}}
+<div class="card mb-6">
+  <div class="card-hdr"><div class="card-title">Coach Summary</div></div>
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>Coach</th>
+          <th>Sessions</th>
+          <th>Hours</th>
+          <th>Revenue</th>
+          <th>Avg per Session</th>
+        </tr>
+      </thead>
+      <tbody>
+        @each(c in coachStats)
+          <tr>
+            <td class="fw-6">{{ c.coachName }}</td>
+            <td class="tbl-muted">{{ c.sessions }}</td>
+            <td class="tbl-muted">{{ c.hours.toFixed(1) }} hrs</td>
+            <td class="fw-6">฿{{ c.revenue.toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
+            <td class="tbl-muted">฿{{ c.sessions > 0 ? (c.revenue / c.sessions).toLocaleString('th-TH', { maximumFractionDigits: 0 }) : 0 }}</td>
+          </tr>
+        @end
+        @if(coachStats.length === 0)
+          <tr><td colspan="5" style="text-align:center;color:var(--txt3);padding:24px;">No data</td></tr>
+        @end
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@end
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+const monthlyCoachData = {{{ JSON.stringify(monthlyCoachRevenue) }}}
+const dayOfWeekData    = {{{ JSON.stringify(sessionsByDay) }}}
+
+new Chart(document.getElementById('monthlyCoachChart'), {
+  type: 'bar',
+  data: {
+    labels: monthlyCoachData.map(d => d.month),
+    datasets: [{ label: 'Coach Revenue', data: monthlyCoachData.map(d => d.revenue),
+      backgroundColor: 'rgba(124,58,237,.7)', borderRadius: 4 }],
+  },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } },
+})
+
+new Chart(document.getElementById('dayOfWeekChart'), {
+  type: 'bar',
+  data: {
+    labels: dayOfWeekData.map(d => d.day),
+    datasets: [{ label: 'Sessions', data: dayOfWeekData.map(d => d.count),
+      backgroundColor: 'rgba(37,99,235,.65)', borderRadius: 4 }],
+  },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } },
+})
+</script>
+@end

@@ -8,6 +8,7 @@ export const controllers = {
   AdminSession: () => import('#controllers/admin_session_controller'),
   admin: {
     Bookings: () => import('#controllers/admin/bookings_controller'),
+    CoachReports: () => import('#controllers/admin/coach_reports_controller'),
     Courts: () => import('#controllers/admin/courts_controller'),
     Payments: () => import('#controllers/admin/payments_controller'),
     Profile: () => import('#controllers/admin/profile_controller'),

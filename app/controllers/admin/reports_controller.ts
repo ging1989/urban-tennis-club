@@ -15,7 +15,6 @@ export default class AdminReportsController {
 
     const courts = await Court.all()
 
-    // ── Build query with DB-level filters ───────────────────
     let bookingQuery = Booking.query()
       .preload('customer')
       .preload('court')
@@ -27,7 +26,6 @@ export default class AdminReportsController {
 
     let allBookings = await bookingQuery
 
-    // ── Filter by member / guest in JS ─────────────────────
     if (customerType !== 'all') {
       allBookings = allBookings.filter((b) => b.customer?.customerType === customerType)
     }
@@ -124,7 +122,8 @@ export default class AdminReportsController {
       filters,
       hasFilter,
       currentPage: 'reports',
-      breadcrumb: 'Reports',
+      reportSubPage: 'overview',
+      breadcrumb: 'Reports / Overview',
       pendingCount,
     })
   }

@@ -14,7 +14,8 @@ import router from '@adonisjs/core/services/router'
 import AdminController        from '#controllers/admin_controller'
 import AdminSessionController from '#controllers/admin_session_controller'
 import AdminProfileController from '#controllers/admin/profile_controller'
-import AdminReportsController from '#controllers/admin/reports_controller'
+import AdminReportsController      from '#controllers/admin/reports_controller'
+import AdminCoachReportsController from '#controllers/admin/coach_reports_controller'
 import HomeController      from '#controllers/home_controller'
 import CourtsController    from '#controllers/courts_controller'
 import BookingsController  from '#controllers/bookings_controller'
@@ -94,7 +95,8 @@ router
     router.get('/admin',                [AdminController, 'index']).as('admin')
     router.get('/admin/stats',          [AdminController, 'statsJson']).as('admin.stats')
     router.get('/admin/data',           [AdminController, 'dataJson']).as('admin.data')
-    router.get('/admin/reports',        [AdminReportsController, 'index']).as('admin.reports')
+    router.get('/admin/reports',         [AdminReportsController, 'index']).as('admin.reports')
+    router.get('/admin/reports/coaches', [AdminCoachReportsController, 'index']).as('admin.reports.coaches')
     router.get('/admin/profile',        [AdminProfileController, 'index']).as('admin.profile')
     router.post('/admin/profile',       [AdminProfileController, 'update']).as('admin.profile.update')
     router.post('/admin/profile/password', [AdminProfileController, 'password']).as('admin.profile.password')
