@@ -353,7 +353,7 @@
                     data-court="{{ b.court ? b.court.courtName : '' }}"
                     data-type="{{ b.customer ? b.customer.customerType : '' }}"
                   >
-                    <td class="td-muted">{{ b.bookingRef ?? ('#' + b.bookingId) }}</td>
+                    <td class="td-muted">{{ b.bookingNumber ?? ('#' + b.bookingId) }}</td>
                     <td>{{ b.customer ? b.customer.customerName : '—' }}</td>
                     <td>{{ b.court ? b.court.courtName : '—' }}</td>
                     <td class="td-muted">{{ b.bookingDate.toFormat('dd-MM-yyyy') }}</td>
@@ -1059,7 +1059,7 @@
                 @else
                   @each(p in slipPayments)
                     <tr style="border-bottom:1px solid #f1f5f9;">
-                      <td style="padding:14px 20px;color:#3b82f6;font-weight:600;">{{ p.booking.bookingRef ?? ('#' + p.booking.bookingId) }}</td>
+                      <td style="padding:14px 20px;color:#3b82f6;font-weight:600;">{{ p.booking.bookingNumber ?? ('#' + p.booking.bookingId) }}</td>
                       <td style="padding:14px 20px;color:#0f172a;">{{ p.booking.customer ? p.booking.customer.customerName : '—' }}</td>
                       <td style="padding:14px 20px;color:#0f172a;">{{ p.booking.court ? p.booking.court.courtName : '—' }}</td>
                       <td style="padding:14px 20px;color:#3b82f6;">{{ p.booking.bookingDate ? p.booking.bookingDate.toFormat('dd-MM-yyyy') : '—' }}</td>
@@ -1078,7 +1078,7 @@
                             {{ csrfField() }}
                             <button type="submit"
                               style="padding:5px 14px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;"
-                              onclick="return confirm('Confirm payment for booking {{ p.booking.bookingRef ?? p.booking.bookingId }}?')">
+                              onclick="return confirm('Confirm payment for booking {{ p.booking.bookingNumber ?? p.booking.bookingId }}?')">
                               ✓ Verify
                             </button>
                           </form>
@@ -1127,7 +1127,7 @@
                 @else
                   @each(h in slipHistory)
                     <tr style="border-bottom:1px solid #f1f5f9;">
-                      <td style="padding:14px 20px;color:#3b82f6;font-weight:600;">{{ h.booking.bookingRef ?? ('#' + h.booking.bookingId) }}</td>
+                      <td style="padding:14px 20px;color:#3b82f6;font-weight:600;">{{ h.booking.bookingNumber ?? ('#' + h.booking.bookingId) }}</td>
                       <td style="padding:14px 20px;color:#0f172a;">{{ h.booking.customer ? h.booking.customer.customerName : '—' }}</td>
                       <td style="padding:14px 20px;color:#0f172a;">{{ h.booking.court ? h.booking.court.courtName : '—' }}</td>
                       <td style="padding:14px 20px;color:#3b82f6;">{{ h.booking.bookingDate ? h.booking.bookingDate.toFormat('dd-MM-yyyy') : '—' }}</td>
@@ -1680,7 +1680,7 @@
       if (!tbody) return
       tbody.innerHTML = rows.map((b) => `
         <tr>
-          <td class="td-muted">${b.bookingRef ?? ('#' + b.bookingId)}</td>
+          <td class="td-muted">${b.bookingNumber ?? ('#' + b.bookingId)}</td>
           <td>${escapeHtml(b.customer ? b.customer.customerName : '—')}</td>
           <td>${escapeHtml(b.court ? b.court.courtName : '—')}</td>
           <td class="td-muted">${escapeHtml(formatDate(b.bookingDate))}</td>

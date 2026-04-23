@@ -8,7 +8,7 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class BookingSchema extends BaseModel {
-  static $columns = ['bookingCoachPrice', 'bookingCourtPrice', 'bookingDate', 'bookingEnd', 'bookingId', 'bookingRef', 'bookingStart', 'bookingStatus', 'courtId', 'createdAt', 'customerId', 'scheduleId', 'totalPrice', 'updatedAt'] as const
+  static $columns = ['bookingCoachPrice', 'bookingCourtPrice', 'bookingDate', 'bookingEnd', 'bookingId', 'bookingNumber', 'bookingStart', 'bookingStatus', 'courtId', 'createdAt', 'customerId', 'scheduleId', 'totalPrice', 'updatedAt'] as const
   $columns = BookingSchema.$columns
   @column()
   declare bookingCoachPrice: string | null
@@ -21,7 +21,7 @@ export class BookingSchema extends BaseModel {
   @column({ isPrimary: true })
   declare bookingId: number
   @column()
-  declare bookingRef: string | null
+  declare bookingNumber: string | null
   @column()
   declare bookingStart: string | null
   @column()

@@ -37,7 +37,7 @@
           <tr data-customer="{{ b.customer ? b.customer.customerName.toLowerCase() : '' }}"
               data-court="{{ b.court ? b.court.courtName.toLowerCase() : '' }}"
               data-status="{{ b.bookingStatus }}">
-            <td class="tbl-muted">{{ b.bookingRef ?? ('#' + b.bookingId) }}</td>
+            <td class="tbl-muted">{{ b.bookingNumber ?? ('#' + b.bookingId) }}</td>
             <td class="fw-6">{{ b.customer ? b.customer.customerName : '—' }}</td>
             <td class="tbl-muted">{{ b.court ? b.court.courtName : '—' }}</td>
             <td class="tbl-muted">{{ b.bookingDate ? b.bookingDate.toFormat('dd-MM-yyyy') : '—' }}</td>
@@ -47,9 +47,9 @@
             <td>
               <select class="form-control" style="width:130px;font-size:12px;padding:4px 8px;"
                       onchange="changeStatus({{ b.bookingId }}, this.value, this)">
-                <option value="pending"   {{ b.bookingStatus === 'pending'   ? 'selected' : '' }}>Pending</option>
-                <option value="confirmed" {{ b.bookingStatus === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                <option value="cancelled" {{ b.bookingStatus === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                <option value="Pending"   {{ b.bookingStatus === 'pending'   ? 'selected' : '' }}>Pending</option>
+                <option value="Confirmed" {{ b.bookingStatus === 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                <option value="Cancelled" {{ b.bookingStatus === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
               </select>
             </td>
           </tr>

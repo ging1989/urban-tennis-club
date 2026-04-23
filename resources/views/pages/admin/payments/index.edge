@@ -39,7 +39,7 @@
           <tr data-customer="{{ p.booking && p.booking.customer ? p.booking.customer.customerName.toLowerCase() : '' }}"
               data-method="{{ p.paymentMethod ?? '' }}">
             <td class="tbl-muted">#{{ p.paymentId }}</td>
-            <td class="tbl-muted">{{ p.booking ? (p.booking.bookingRef ?? ('#' + p.booking.bookingId)) : '—' }}</td>
+            <td class="tbl-muted">{{ p.booking ? (p.booking.bookingNumber ?? ('#' + p.booking.bookingId)) : '—' }}</td>
             <td class="fw-6">{{ p.booking && p.booking.customer ? p.booking.customer.customerName : '—' }}</td>
             <td class="tbl-muted">{{ p.booking && p.booking.court ? p.booking.court.courtName : '—' }}</td>
             <td class="fw-6">฿{{ parseFloat(p.amount).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>

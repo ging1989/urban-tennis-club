@@ -194,15 +194,14 @@ async new({ request, view, response, auth }: HttpContext) {
         const totalPrice = (courtPrice + coachPrice) * (1 - discount)
 
         const datePrefix = DateTime.fromISO(data.bookingDate).toFormat('yyMMdd')
-        const countResult = await Booking.query({ client: trx })
-          .whereRaw('DATE(booking_date) = ?', [data.bookingDate])
-          .count('* as total')
-          .firstOrFail()
-        const seq = Number(countResult.$extras.total) + 1
-        const bookingRef = datePrefix + String(seq).padStart(3, '0')
+        let bookingNumber: string
+        do {
+          const rand = String(Math.floor(Math.random() * 9000) + 1000)
+          bookingNumber = datePrefix + rand
+        } while (await Booking.query({ client: trx }).where('booking_number', bookingNumber).first())
 
         const booking = await Booking.create({ customerId, courtId: data.courtId, scheduleId,
-          bookingRef,
+          bookingNumber,
           bookingDate: data.bookingDate, bookingStart: data.bookingStart, bookingEnd: data.bookingEnd,
           bookingCourtPrice: courtPrice, bookingCoachPrice: coachPrice || null, totalPrice, bookingStatus: 'pending' }, { client: trx })
 
@@ -323,7 +322,7 @@ async new({ request, view, response, auth }: HttpContext) {
 
     const booking = await Booking.query()
       .where((q) => {
-        q.where('booking_ref', bookingId).orWhere('booking_id', isNaN(Number(bookingId)) ? -1 : Number(bookingId))
+        q.where('booking_number', bookingId).orWhere('booking_id', isNaN(Number(bookingId)) ? -1 : Number(bookingId))
       })
       .preload('customer')
       .preload('court')

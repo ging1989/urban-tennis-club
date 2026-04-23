@@ -38,7 +38,7 @@
   @if(booking)
   <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,0.08);padding:32px;margin-top:24px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <h3 style="margin:0;font-size:18px;font-weight:700;">Booking {{ booking.bookingRef ?? ('#' + booking.bookingId) }}</h3>
+      <h3 style="margin:0;font-size:18px;font-weight:700;">Booking {{ booking.bookingNumber ?? ('#' + booking.bookingId) }}</h3>
       @if(booking.bookingStatus === 'confirmed')
         <span style="background:#e8f5e9;color:#2e7d32;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600;">Confirmed</span>
       @elseif(booking.bookingStatus === 'pending')
@@ -69,7 +69,7 @@
       @end
       <div style="background:#f8f9fa;border-radius:10px;padding:14px;">
         <div style="font-size:11px;color:#888;text-transform:uppercase;margin-bottom:4px;">Payment</div>
-        <div style="font-weight:600;">{{ booking.payment.paymentStatus }}</div>
+        <div style="font-weight:600;text-transform:capitalize;">{{ booking.payment.paymentStatus }}</div>
       </div>
       <div style="background:#f8f9fa;border-radius:10px;padding:14px;">
         <div style="font-size:11px;color:#888;text-transform:uppercase;margin-bottom:4px;">Total</div>
