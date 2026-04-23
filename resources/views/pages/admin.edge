@@ -2081,7 +2081,17 @@
       customerPhone.value   = phone
       customerType.value    = type
       customerTier.value    = tier
-      customerUser.value    = user
+
+      if (user) {
+        customerUser.value = user
+      } else {
+        // auto-match จาก email ใน options
+        const opts = Array.from(customerUser.options)
+        const emailLower = (email || '').toLowerCase()
+        const matched = opts.find(o => o.value && o.text.toLowerCase().includes(emailLower) && emailLower)
+        customerUser.value = matched ? matched.value : ''
+      }
+
       toggleUserGroup()
       customerOverlay.style.display = 'flex'
     }

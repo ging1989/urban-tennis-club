@@ -380,13 +380,22 @@ export default class AdminController {
     const { customerName, customerEmail, customerPhone, customerType, tierId, userId } = request.only([
       'customerName', 'customerEmail', 'customerPhone', 'customerType', 'tierId', 'userId',
     ])
+
+    let resolvedUserId: number | null = customerType === 'member' ? (userId ?? null) : null
+
+    // auto-link: ถ้า type เป็น member แต่ยังไม่ได้ระบุ userId ให้หา user จาก email
+    if (customerType === 'member' && !resolvedUserId && customerEmail) {
+      const matched = await User.findBy('email', customerEmail)
+      if (matched) resolvedUserId = matched.id
+    }
+
     customer.merge({
       customerName,
       customerEmail: customerEmail ?? null,
       customerPhone: customerPhone ?? '',
       customerType,
       tierId: tierId ?? null,
-      userId: customerType === 'member' ? (userId ?? null) : null,
+      userId: resolvedUserId,
     })
     await customer.save()
     return response.json(customer)
