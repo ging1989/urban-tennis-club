@@ -15,6 +15,9 @@ export default class Booking extends BaseModel {
     declare bookingId: number
 
     @column()
+    declare bookingRef: string | null
+
+    @column()
     declare customerId: number
 
     @column()

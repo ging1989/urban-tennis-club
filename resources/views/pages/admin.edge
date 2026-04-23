@@ -88,6 +88,15 @@
         </span>
         User Management
       </a>
+      <a href="/admin?section=slips" class="nav-item" data-section="slips">
+        <span class="nav-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="11" x2="15" y2="11"/></svg>
+        </span>
+        Slip Verify
+        @if(pendingSlipsCount > 0)
+          <span style="margin-left:auto;background:#16a34a;color:#fff;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700;">{{ pendingSlipsCount }}</span>
+        @end
+      </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -344,7 +353,7 @@
                     data-court="{{ b.court ? b.court.courtName : '' }}"
                     data-type="{{ b.customer ? b.customer.customerType : '' }}"
                   >
-                    <td class="td-muted">#{{ b.bookingId }}</td>
+                    <td class="td-muted">{{ b.bookingRef ?? ('#' + b.bookingId) }}</td>
                     <td>{{ b.customer ? b.customer.customerName : '—' }}</td>
                     <td>{{ b.court ? b.court.courtName : '—' }}</td>
                     <td class="td-muted">{{ b.bookingDate.toFormat('dd-MM-yyyy') }}</td>
@@ -1005,6 +1014,176 @@
         </div>
       </section>
 
+      {{-- ══ SLIP VERIFY ══ --}}
+      <section id="section-slips" class="admin-section">
+        <div class="section-header">
+          <h1 class="section-title">Slip Verification</h1>
+        </div>
+
+        @if(flashMessages.has('success'))
+          <div style="margin-bottom:16px;padding:12px 16px;background:#ecfdf5;border:1px solid #86efac;border-radius:12px;color:#166534;font-weight:600;">
+            {{ flashMessages.get('success') }}
+          </div>
+        @end
+        @if(flashMessages.has('error'))
+          <div style="margin-bottom:16px;padding:12px 16px;background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;color:#991b1b;font-weight:600;">
+            {{ flashMessages.get('error') }}
+          </div>
+        @end
+
+        {{-- ── Pending Verification ── --}}
+        <div class="panel" style="padding:0;overflow:hidden;margin-bottom:20px;">
+          <div style="padding:16px 20px;border-bottom:1px solid #e8edf3;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:15px;font-weight:700;color:#0f172a;">Pending Verification</span>
+            <span style="background:#e53e3e;color:#fff;font-size:11px;font-weight:700;min-width:20px;height:20px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px;">{{ slipPayments.length }}</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              <thead>
+                <tr style="border-bottom:1px solid #e8edf3;">
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Booking #</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Customer</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Court</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Date</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Amount</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Method</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Slip</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if(slipPayments.length === 0)
+                  <tr>
+                    <td colspan="8" style="padding:32px 20px;text-align:center;color:#94a3b8;font-size:14px;">No slips pending verification.</td>
+                  </tr>
+                @else
+                  @each(p in slipPayments)
+                    <tr style="border-bottom:1px solid #f1f5f9;">
+                      <td style="padding:14px 20px;color:#3b82f6;font-weight:600;">{{ p.booking.bookingRef ?? ('#' + p.booking.bookingId) }}</td>
+                      <td style="padding:14px 20px;color:#0f172a;">{{ p.booking.customer ? p.booking.customer.customerName : '—' }}</td>
+                      <td style="padding:14px 20px;color:#0f172a;">{{ p.booking.court ? p.booking.court.courtName : '—' }}</td>
+                      <td style="padding:14px 20px;color:#3b82f6;">{{ p.booking.bookingDate ? p.booking.bookingDate.toFormat('dd-MM-yyyy') : '—' }}</td>
+                      <td style="padding:14px 20px;color:#0f172a;font-weight:600;">฿{{ parseFloat(String(p.amount)).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
+                      <td style="padding:14px 20px;color:#3b82f6;">{{ p.paymentMethod }}</td>
+                      <td style="padding:14px 20px;">
+                        @if(p.slipUrl)
+                          <a href="#" onclick="openSlipModal('{{ p.slipUrl }}');return false;" style="color:#2563eb;font-weight:600;text-decoration:underline;font-size:13px;">View slip</a>
+                        @else
+                          <span style="color:#94a3b8;">—</span>
+                        @end
+                      </td>
+                      <td style="padding:14px 20px;">
+                        <div style="display:flex;gap:6px;align-items:center;">
+                          <form action="{{ route('admin.slips.verify', [p.paymentId]) }}" method="POST" style="margin:0;">
+                            {{ csrfField() }}
+                            <button type="submit"
+                              style="padding:5px 14px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;"
+                              onclick="return confirm('Confirm payment for booking {{ p.booking.bookingRef ?? p.booking.bookingId }}?')">
+                              ✓ Verify
+                            </button>
+                          </form>
+                          <form action="{{ route('admin.slips.reject', [p.paymentId]) }}" method="POST" style="margin:0;">
+                            {{ csrfField() }}
+                            <button type="submit"
+                              style="padding:5px 14px;background:#fff5f5;color:#e53e3e;border:1px solid #fed7d7;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;"
+                              onclick="return confirm('Reject this slip? The customer will need to re-upload.')">
+                              ✗ Reject
+                            </button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  @end
+                @end
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {{-- ── Verification History ── --}}
+        <div class="panel" style="padding:0;overflow:hidden;">
+          <div style="padding:16px 20px;border-bottom:1px solid #e8edf3;">
+            <span style="font-size:15px;font-weight:700;color:#0f172a;">Verification History</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              <thead>
+                <tr style="border-bottom:1px solid #e8edf3;">
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Booking #</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Customer</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Court</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Date</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Amount</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Method</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Verified At</th>
+                  <th style="padding:10px 20px;text-align:left;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">Slip</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if(slipHistory.length === 0)
+                  <tr>
+                    <td colspan="8" style="padding:40px 20px;text-align:center;color:#94a3b8;font-size:14px;">No verified slips yet</td>
+                  </tr>
+                @else
+                  @each(h in slipHistory)
+                    <tr style="border-bottom:1px solid #f1f5f9;">
+                      <td style="padding:14px 20px;color:#3b82f6;font-weight:600;">{{ h.booking.bookingRef ?? ('#' + h.booking.bookingId) }}</td>
+                      <td style="padding:14px 20px;color:#0f172a;">{{ h.booking.customer ? h.booking.customer.customerName : '—' }}</td>
+                      <td style="padding:14px 20px;color:#0f172a;">{{ h.booking.court ? h.booking.court.courtName : '—' }}</td>
+                      <td style="padding:14px 20px;color:#3b82f6;">{{ h.booking.bookingDate ? h.booking.bookingDate.toFormat('dd-MM-yyyy') : '—' }}</td>
+                      <td style="padding:14px 20px;color:#0f172a;font-weight:600;">฿{{ parseFloat(String(h.amount)).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}</td>
+                      <td style="padding:14px 20px;color:#3b82f6;">{{ h.paymentMethod }}</td>
+                      <td style="padding:14px 20px;color:#64748b;">{{ h.paymentTime ? h.paymentTime.toFormat('dd-MM-yyyy HH:mm') : '—' }}</td>
+                      <td style="padding:14px 20px;">
+                        @if(h.slipUrl)
+                          <a href="#" onclick="openSlipModal('{{ h.slipUrl }}');return false;" style="color:#2563eb;font-weight:600;text-decoration:underline;font-size:13px;">View slip</a>
+                        @else
+                          <span style="color:#94a3b8;">—</span>
+                        @end
+                      </td>
+                    </tr>
+                  @end
+                @end
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      {{-- ══ SLIP IMAGE MODAL ══ --}}
+      <div id="slip-modal-overlay" onclick="closeSlipModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;align-items:center;justify-content:center;">
+        <div onclick="event.stopPropagation()" style="position:relative;max-width:90vw;max-height:90vh;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);">
+          <button onclick="closeSlipModal()" style="position:absolute;top:10px;right:12px;background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1;line-height:1;">&times;</button>
+          <img id="slip-modal-img" src="" alt="Payment Slip" style="display:block;max-width:90vw;max-height:88vh;object-fit:contain;">
+          <iframe id="slip-modal-pdf" src="" style="display:none;width:80vw;height:88vh;border:none;"></iframe>
+        </div>
+      </div>
+      <script>
+        function openSlipModal(url) {
+          const overlay = document.getElementById('slip-modal-overlay')
+          const img = document.getElementById('slip-modal-img')
+          const pdf = document.getElementById('slip-modal-pdf')
+          overlay.style.display = 'flex'
+          if (url.toLowerCase().endsWith('.pdf')) {
+            img.style.display = 'none'
+            pdf.style.display = 'block'
+            pdf.src = url
+          } else {
+            pdf.style.display = 'none'
+            img.style.display = 'block'
+            img.src = url
+          }
+        }
+        function closeSlipModal() {
+          const overlay = document.getElementById('slip-modal-overlay')
+          overlay.style.display = 'none'
+          document.getElementById('slip-modal-img').src = ''
+          document.getElementById('slip-modal-pdf').src = ''
+        }
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSlipModal() })
+      </script>
+
       {{-- ══ USER MODAL (Add / Edit) ══ --}}
       <div id="user-modal-overlay" class="modal-overlay" style="display:none">
         <div class="modal">
@@ -1120,9 +1299,9 @@
 
     navItems.forEach(item => {
       item.addEventListener('click', e => {
-        e.preventDefault()
         const target = item.dataset.section
         if (!target) return
+        e.preventDefault()
         activateSection(target)
         history.replaceState(null, '', '#' + target)
       })
@@ -1416,9 +1595,13 @@
       renderCoachReport(fromEl.value, toEl.value)
     }
 
-    // restore section from URL hash on load
+    // restore section from URL query/hash on load
+    const sectionQuery = new URLSearchParams(window.location.search).get('section')
     const hash = window.location.hash.replace('#', '')
-    if (hash === 'report-coach') {
+    if (sectionQuery) {
+      activateSection(sectionQuery)
+      history.replaceState(null, '', '#' + sectionQuery)
+    } else if (hash === 'report-coach') {
       activateSection('report')
       switchReportSub('coach')
     } else if (hash) {
@@ -1497,11 +1680,13 @@
       if (!tbody) return
       tbody.innerHTML = rows.map((b) => `
         <tr>
-          <td class="td-muted">#${b.bookingId}</td>
+          <td class="td-muted">${b.bookingRef ?? ('#' + b.bookingId)}</td>
           <td>${escapeHtml(b.customer ? b.customer.customerName : '—')}</td>
           <td>${escapeHtml(b.court ? b.court.courtName : '—')}</td>
           <td class="td-muted">${escapeHtml(formatDate(b.bookingDate))}</td>
           <td class="td-muted">${escapeHtml(b.bookingStart)} – ${escapeHtml(b.bookingEnd)}</td>
+          <td class="td-muted">฿${formatMoney(b.bookingCourtPrice || 0)}</td>
+          <td class="td-muted">${b.bookingCoachPrice ? '฿' + formatMoney(b.bookingCoachPrice) : '—'}</td>
           <td>฿${formatMoney(b.totalPrice)}</td>
           <td class="td-muted">${escapeHtml(b.payment ? b.payment.paymentMethod : '—')}</td>
           <td><span class="badge badge-${escapeHtml(b.bookingStatus)}">${escapeHtml(b.bookingStatus)}</span></td>

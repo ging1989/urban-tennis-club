@@ -297,7 +297,7 @@
         </div>
         @each(b in bookings)
           <div class="booking-row">
-            <span style="color:#6b7a99;">{{ b.bookingId }}</span>
+            <span style="color:#6b7a99;">{{ b.bookingRef ?? b.bookingId }}</span>
             <span>{{ b.court.courtName }}</span>
             <span>
               {{ b.bookingDate.toFormat('dd MMM yyyy') }}<br>

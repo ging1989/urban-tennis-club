@@ -37,7 +37,7 @@
           <tr data-customer="{{ b.customer ? b.customer.customerName.toLowerCase() : '' }}"
               data-court="{{ b.court ? b.court.courtName.toLowerCase() : '' }}"
               data-status="{{ b.bookingStatus }}">
-            <td class="tbl-muted">#{{ b.bookingId }}</td>
+            <td class="tbl-muted">{{ b.bookingRef ?? ('#' + b.bookingId) }}</td>
             <td class="fw-6">{{ b.customer ? b.customer.customerName : '—' }}</td>
             <td class="tbl-muted">{{ b.court ? b.court.courtName : '—' }}</td>
             <td class="tbl-muted">{{ b.bookingDate ? b.bookingDate.toFormat('dd-MM-yyyy') : '—' }}</td>

@@ -1,4 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import { join } from 'node:path'
 import Payment from '#models/payment'
 import Booking from '#models/booking'
 import Customer from '#models/customer'
@@ -67,6 +68,44 @@ export default class PaymentsController {
       message: 'Payment recorded successfully',
       payment,
     })
+  }
+
+  /**
+   * POST /bookings/:bookingId/slip
+   * อัพโหลดสลิปการชำระเงิน
+   */
+  async uploadSlip({ params, request, response, session }: HttpContext) {
+    const payment = await Payment.query().where('booking_id', params.bookingId).firstOrFail()
+
+    const slip = request.file('slip', {
+      size: '5mb',
+      extnames: ['jpg', 'jpeg', 'png', 'pdf'],
+    })
+
+    if (!slip) {
+      session.flash('error', 'Please select a file.')
+      return response.redirect().back()
+    }
+
+    if (!slip.isValid) {
+      session.flash('error', slip.errors[0]?.message ?? 'Invalid file. Use JPG, PNG or PDF under 5MB.')
+      return response.redirect().back()
+    }
+
+    const filename = `slip_${params.bookingId}_${Date.now()}.${slip.extname}`
+    const uploadDir = join(process.cwd(), 'public', 'uploads', 'slips')
+    await slip.move(uploadDir, { name: filename })
+
+    if (slip.state !== 'moved') {
+      session.flash('error', 'Failed to save file. Please try again.')
+      return response.redirect().back()
+    }
+
+    payment.slipUrl = `/uploads/slips/${filename}`
+    payment.paymentStatus = 'slip_uploaded'
+    await payment.save()
+
+    return response.redirect(`/bookings/${params.bookingId}/confirmation`)
   }
 
   /**

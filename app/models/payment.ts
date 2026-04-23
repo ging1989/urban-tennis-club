@@ -25,6 +25,9 @@ export default class Payment extends BaseModel {
     @column()
     declare paymentStatus: string
 
+    @column()
+    declare slipUrl: string | null
+
     @column.dateTime()
     declare paymentTime: DateTime
 

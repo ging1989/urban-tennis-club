@@ -18,7 +18,7 @@
       {{ csrfField() }}
       <div style="margin-bottom:16px;">
         <label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#333;">Booking ID</label>
-        <input type="number" name="bookingId" placeholder="e.g. 42"
+        <input type="text" name="bookingId" placeholder="e.g. 250423001"
           style="width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;"
           value="{{ input?.bookingId ?? '' }}" required>
       </div>
@@ -38,7 +38,7 @@
   @if(booking)
   <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,0.08);padding:32px;margin-top:24px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <h3 style="margin:0;font-size:18px;font-weight:700;">Booking #{{ booking.bookingId }}</h3>
+      <h3 style="margin:0;font-size:18px;font-weight:700;">Booking {{ booking.bookingRef ?? ('#' + booking.bookingId) }}</h3>
       @if(booking.bookingStatus === 'confirmed')
         <span style="background:#e8f5e9;color:#2e7d32;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600;">Confirmed</span>
       @elseif(booking.bookingStatus === 'pending')

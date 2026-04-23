@@ -13,9 +13,15 @@ import router from '@adonisjs/core/services/router'
 
 import AdminController        from '#controllers/admin_controller'
 import AdminSessionController from '#controllers/admin_session_controller'
-import AdminProfileController from '#controllers/admin/profile_controller'
+import AdminProfileController  from '#controllers/admin/profile_controller'
 import AdminReportsController      from '#controllers/admin/reports_controller'
 import AdminCoachReportsController from '#controllers/admin/coach_reports_controller'
+import AdminSlipsController        from '#controllers/admin/slips_controller'
+import AdminBookingsController from '#controllers/admin/bookings_controller'
+import AdminCourtsController   from '#controllers/admin/courts_controller'
+import AdminUsersController    from '#controllers/admin/users_controller'
+import AdminPaymentsController from '#controllers/admin/payments_controller'
+import AdminSettingsController from '#controllers/admin/settings_controller'
 import HomeController      from '#controllers/home_controller'
 import CourtsController    from '#controllers/courts_controller'
 import BookingsController  from '#controllers/bookings_controller'
@@ -81,8 +87,10 @@ router.get('/booking-status',  [BookingsController, 'statusForm']).as('booking.s
 router.post('/booking-status', [BookingsController, 'statusLookup']).as('booking.status.lookup')
 
 // ── Payments ──────────────────────────────────────────────────────────────
-router.post('/payments',            [PaymentsController, 'store'])
-router.get('/payments/:bookingId',  [PaymentsController, 'show'])
+router.post('/payments',                      [PaymentsController, 'store'])
+router.get('/payments/:bookingId',            [PaymentsController, 'show'])
+router.post('/bookings/:bookingId/slip',      [PaymentsController, 'uploadSlip'])
+router.get('/bookings/:id/payment-status',   [BookingsController, 'checkPaymentStatus'])
 
 // ── Admin Auth ─────────────────────────────────────────────────────────
 router.get('/admin/login',  [AdminSessionController, 'create']).as('admin.login')
@@ -95,14 +103,40 @@ router
     router.get('/admin',                [AdminController, 'index']).as('admin')
     router.get('/admin/stats',          [AdminController, 'statsJson']).as('admin.stats')
     router.get('/admin/data',           [AdminController, 'dataJson']).as('admin.data')
+
+    // ── Admin sub-pages ────────────────────────────────────────────────────
+    router.get('/admin/bookings',              [AdminBookingsController, 'index']).as('admin.bookings')
+    router.post('/admin/bookings/:id/status',  [AdminBookingsController, 'updateStatus']).as('admin.bookings.status')
+
+    router.get('/admin/courts',                [AdminCourtsController,   'index']).as('admin.courts')
+    router.get('/admin/courts/create',         [AdminCourtsController,   'create']).as('admin.courts.create')
+    router.get('/admin/courts/:id/edit',       [AdminCourtsController,   'edit']).as('admin.courts.edit')
+
+    router.get('/admin/users',                 [AdminUsersController,    'index']).as('admin.users')
+    router.patch('/admin/users/:id/role',      [AdminUsersController,    'update']).as('admin.users.update')
+    router.delete('/admin/users/:id/delete',   [AdminUsersController,    'destroy']).as('admin.users.destroy')
+
+    router.get('/admin/payments',              [AdminPaymentsController, 'index']).as('admin.payments')
+    router.get('/admin/settings',              [AdminSettingsController, 'index']).as('admin.settings')
+
+    // ── Reports ────────────────────────────────────────────────────────────
     router.get('/admin/reports',         [AdminReportsController, 'index']).as('admin.reports')
     router.get('/admin/reports/coaches', [AdminCoachReportsController, 'index']).as('admin.reports.coaches')
-    router.get('/admin/profile',        [AdminProfileController, 'index']).as('admin.profile')
-    router.post('/admin/profile',       [AdminProfileController, 'update']).as('admin.profile.update')
-    router.post('/admin/profile/password', [AdminProfileController, 'password']).as('admin.profile.password')
-    router.post('/admin/courts',        [AdminController, 'createCourt'])
-    router.patch('/admin/courts/:id',   [AdminController, 'updateCourt'])
-    router.delete('/admin/courts/:id',  [AdminController, 'deleteCourt'])
+
+    // ── Slip verify ────────────────────────────────────────────────────────
+    router.get('/admin/slips',             [AdminSlipsController, 'index']).as('admin.slips')
+    router.post('/admin/slips/:id/verify', [AdminSlipsController, 'verify']).as('admin.slips.verify')
+    router.post('/admin/slips/:id/reject', [AdminSlipsController, 'reject']).as('admin.slips.reject')
+
+    // ── Profile ────────────────────────────────────────────────────────────
+    router.get('/admin/profile',             [AdminProfileController, 'index']).as('admin.profile')
+    router.post('/admin/profile',            [AdminProfileController, 'update']).as('admin.profile.update')
+    router.post('/admin/profile/password',   [AdminProfileController, 'password']).as('admin.profile.password')
+
+    // ── JSON API (used by main admin SPA via fetch) ────────────────────────
+    router.post('/admin/courts',        [AdminController, 'createCourt']).as('admin.courts.store')
+    router.patch('/admin/courts/:id',   [AdminController, 'updateCourt']).as('admin.courts.update')
+    router.delete('/admin/courts/:id',  [AdminController, 'deleteCourt']).as('admin.courts.destroy')
     router.post('/admin/coaches',                          [AdminController, 'createCoach'])
     router.patch('/admin/coaches/:id',                     [AdminController, 'updateCoach'])
     router.put('/admin/coaches/:coachId/schedule',         [AdminController, 'upsertCoachSchedule'])

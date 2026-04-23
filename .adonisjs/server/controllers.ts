@@ -14,6 +14,7 @@ export const controllers = {
     Profile: () => import('#controllers/admin/profile_controller'),
     Reports: () => import('#controllers/admin/reports_controller'),
     Settings: () => import('#controllers/admin/settings_controller'),
+    Slips: () => import('#controllers/admin/slips_controller'),
     Users: () => import('#controllers/admin/users_controller'),
   },
   Bookings: () => import('#controllers/bookings_controller'),

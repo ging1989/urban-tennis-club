@@ -62,8 +62,8 @@ async function getAdminCollections() {
 
 export default class AdminController {
 
-  async index({ view }: HttpContext) {
-    const stats = await getTodayStats()
+  async index({ view, request }: HttpContext) {
+    const todayStats = await getTodayStats()
     const { recentBookings, customers, users } = await getAdminCollections()
 
     const allBookings = await Booking.query()
@@ -72,6 +72,52 @@ export default class AdminController {
     const coachPricings = await CoachPricing.all()
     const tiers = await Tier.query().preload('members').orderBy('min_hours', 'asc')
     const memberUsers = users.filter((u) => u.role === 'member')
+    const slipPayments = await (await import('#models/payment')).default.query()
+      .where('payment_status', 'slip_uploaded')
+      .preload('booking', (q) => {
+        q.preload('customer')
+        q.preload('court')
+      })
+      .orderBy('created_at', 'asc')
+
+    const slipHistory = await (await import('#models/payment')).default.query()
+      .where('payment_status', 'paid')
+      .whereNotNull('slip_url')
+      .preload('booking', (q) => {
+        q.preload('customer')
+        q.preload('court')
+      })
+      .orderBy('payment_time', 'desc')
+      .limit(100)
+    const thisMonthStart = DateTime.now().setZone(APP_TIMEZONE).startOf('month').toISODate()!
+
+    const totalRevenue = allBookings
+      .filter((b) => b.bookingStatus !== 'cancelled')
+      .reduce((sum, b) => sum + (parseFloat(String(b.totalPrice)) || 0), 0)
+
+    const monthRevenue = allBookings
+      .filter((b) => {
+        const bookingDate = b.bookingDate?.toISODate() ?? ''
+        return bookingDate >= thisMonthStart && b.bookingStatus !== 'cancelled'
+      })
+      .reduce((sum, b) => sum + (parseFloat(String(b.totalPrice)) || 0), 0)
+
+    const pendingCount = allBookings.filter((b) => b.bookingStatus === 'pending').length
+    const confirmedCount = allBookings.filter((b) => b.bookingStatus === 'confirmed').length
+    const cancelledCount = allBookings.filter((b) => b.bookingStatus === 'cancelled').length
+    const totalStatusCount = pendingCount + confirmedCount + cancelledCount
+    const pendingSlipsCount = slipPayments.length
+    const initialSection = request.input('section')
+
+    const stats = {
+      ...todayStats,
+      totalRevenue,
+      monthRevenue,
+      todayCount: todayStats.todayBookings,
+      pendingCount,
+      confirmedCount,
+      cancelledCount,
+    }
 
     // ── revenue per court ──
     const courtRevenue: Record<string, number> = {}
@@ -83,6 +129,7 @@ export default class AdminController {
         }
       }
     }
+    const maxCourtRevenue = Math.max(...Object.values(courtRevenue), 1)
 
     // ── bookings per day (Last 7 days) ──
     const last7: { date: string; count: number }[] = []
@@ -164,9 +211,8 @@ export default class AdminController {
     }
     const topCoachCustomers = Object.values(topCoachCustMap).sort((a, b) => b.totalSpent - a.totalSpent).slice(0, 8)
 
-    const thisMonthStr = DateTime.now().setZone(APP_TIMEZONE).startOf('month').toISODate()!
     const totalCoachRevenueAll  = coachBookings.reduce((sum, b) => sum + (parseFloat(String(b.bookingCoachPrice)) || 0), 0)
-    const monthCoachRevenueAll  = coachBookings.filter((b) => (b.bookingDate?.toISODate() ?? '') >= thisMonthStr)
+    const monthCoachRevenueAll  = coachBookings.filter((b) => (b.bookingDate?.toISODate() ?? '') >= thisMonthStart)
       .reduce((sum, b) => sum + (parseFloat(String(b.bookingCoachPrice)) || 0), 0)
     const uniqueCoachCount = new Set(coachBookings.map((b) => b.coachSchedule?.coachId).filter(Boolean)).size
     const maxCoachRev = coachStatsAll.length > 0 ? coachStatsAll[0].revenue : 1
@@ -229,7 +275,13 @@ export default class AdminController {
       tiers,
       users,
       memberUsers,
+      slipPayments,
+      slipHistory,
       courtRevenue,
+      maxCourtRevenue,
+      totalStatusCount,
+      pendingSlipsCount,
+      initialSection,
       last7,
       last7CoachRevenue,
       coachRevenueToday,

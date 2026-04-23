@@ -151,8 +151,30 @@ async new({ request, view, response, auth }: HttpContext) {
           customerId = member.customerId
           discount = member.tier ? member.tier.tierDiscount / 100 : 0
         } else {
-          const guest = await Customer.create({ customerName: data.customerName, customerPhone: data.customerPhone, 
-            customerEmail: data.customerEmail || null, customerType: 'guest' }, { client: trx })
+          // Logic: ค้นหาลูกค้าเดิมจากตาราง customers โดยใช้ customer_phone หรือ customer_email
+          let guest = await Customer.query({ client: trx })
+            .where((q) => {
+              q.where('customer_phone', data.customerPhone)
+              if (data.customerEmail) q.orWhere('customer_email', data.customerEmail)
+            }).first()
+
+          // Decision: ถ้าไม่เจอ (New) ให้ทำการ INSERT ใหม่
+          if (!guest) {
+            guest = await Customer.create({ customerName: data.customerName, customerPhone: data.customerPhone, 
+              customerEmail: data.customerEmail || null, customerType: 'guest' }, { client: trx })
+          } else {
+            let isUpdated = false
+            if (data.customerName && guest.customerName !== data.customerName) {
+              guest.customerName = data.customerName
+              isUpdated = true
+            }
+            if (data.customerEmail && guest.customerEmail !== data.customerEmail) {
+              guest.customerEmail = data.customerEmail
+              isUpdated = true
+            }
+            
+            if (isUpdated) await guest.save()
+          }
           customerId = guest.customerId
         }
 
@@ -171,8 +193,17 @@ async new({ request, view, response, auth }: HttpContext) {
         }
         const totalPrice = (courtPrice + coachPrice) * (1 - discount)
 
-        const booking = await Booking.create({ customerId, courtId: data.courtId, scheduleId, 
-          bookingDate: data.bookingDate, bookingStart: data.bookingStart, bookingEnd: data.bookingEnd, 
+        const datePrefix = DateTime.fromISO(data.bookingDate).toFormat('yyMMdd')
+        const countResult = await Booking.query({ client: trx })
+          .whereRaw('DATE(booking_date) = ?', [data.bookingDate])
+          .count('* as total')
+          .firstOrFail()
+        const seq = Number(countResult.$extras.total) + 1
+        const bookingRef = datePrefix + String(seq).padStart(3, '0')
+
+        const booking = await Booking.create({ customerId, courtId: data.courtId, scheduleId,
+          bookingRef,
+          bookingDate: data.bookingDate, bookingStart: data.bookingStart, bookingEnd: data.bookingEnd,
           bookingCourtPrice: courtPrice, bookingCoachPrice: coachPrice || null, totalPrice, bookingStatus: 'pending' }, { client: trx })
 
         await Payment.create({ bookingId: booking.bookingId, paymentType: 'booking', amount: totalPrice, 
@@ -264,6 +295,18 @@ async new({ request, view, response, auth }: HttpContext) {
     return response.ok(bookings)
   }
 
+  async checkPaymentStatus({ params, response }: HttpContext) {
+    const booking = await Booking.query()
+      .where('booking_id', params.id)
+      .preload('payment')
+      .firstOrFail()
+
+    return response.json({
+      bookingStatus: booking.bookingStatus,
+      paymentStatus: booking.payment?.paymentStatus ?? null,
+    })
+  }
+
   async statusForm({ view }: HttpContext) {
     return view.render('pages/booking_status')
   }
@@ -279,7 +322,9 @@ async new({ request, view, response, auth }: HttpContext) {
     }
 
     const booking = await Booking.query()
-      .where('booking_id', bookingId)
+      .where((q) => {
+        q.where('booking_ref', bookingId).orWhere('booking_id', isNaN(Number(bookingId)) ? -1 : Number(bookingId))
+      })
       .preload('customer')
       .preload('court')
       .preload('coachSchedule', (q) => q.preload('coach'))
