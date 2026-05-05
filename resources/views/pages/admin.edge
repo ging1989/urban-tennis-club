@@ -1678,11 +1678,15 @@
     function renderRecentBookings(rows) {
       const tbody = document.getElementById('recent-bookings-tbody')
       if (!tbody) return
-      tbody.innerHTML = rows.map((b) => `
-        <tr>
+      tbody.innerHTML = rows.map((b) => {
+        const isoDate = b.bookingDate ? String(b.bookingDate).slice(0, 10) : ''
+        const courtName = b.court ? b.court.courtName : ''
+        const custType  = b.customer ? b.customer.customerType : ''
+        return `
+        <tr data-date="${isoDate}" data-court="${escapeHtml(courtName)}" data-type="${escapeHtml(custType)}">
           <td class="td-muted">${b.bookingNumber ?? ('#' + b.bookingId)}</td>
           <td>${escapeHtml(b.customer ? b.customer.customerName : '—')}</td>
-          <td>${escapeHtml(b.court ? b.court.courtName : '—')}</td>
+          <td>${escapeHtml(courtName || '—')}</td>
           <td class="td-muted">${escapeHtml(formatDate(b.bookingDate))}</td>
           <td class="td-muted">${escapeHtml(b.bookingStart)} – ${escapeHtml(b.bookingEnd)}</td>
           <td class="td-muted">฿${formatMoney(b.bookingCourtPrice || 0)}</td>
@@ -1690,9 +1694,10 @@
           <td>฿${formatMoney(b.totalPrice)}</td>
           <td class="td-muted">${escapeHtml(b.payment ? b.payment.paymentMethod : '—')}</td>
           <td><span class="badge badge-${escapeHtml(b.bookingStatus)}">${escapeHtml(b.bookingStatus)}</span></td>
-          <td class="td-muted">${escapeHtml(b.customer ? b.customer.customerType : '—')}</td>
+          <td class="td-muted">${escapeHtml(custType || '—')}</td>
         </tr>
-      `).join('')
+      `
+      }).join('')
     }
 
     function renderCustomers(rows) {
