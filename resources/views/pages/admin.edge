@@ -1680,10 +1680,14 @@
       const tbody = document.getElementById('recent-bookings-tbody')
       if (!tbody) return
       tbody.innerHTML = rows.map((b) => `
-        <tr>
+        <tr
+          data-date="${String(b.bookingDate || '').slice(0, 10)}"
+          data-court="${escapeHtml(b.court ? b.court.courtName : '')}"
+          data-type="${escapeHtml(b.customer ? b.customer.customerType : '')}"
+        >
           <td class="td-muted">${b.bookingNumber ?? ('#' + b.bookingId)}</td>
           <td>${escapeHtml(b.customer ? b.customer.customerName : '—')}</td>
-          <td>${escapeHtml(courtName || '—')}</td>
+          <td>${escapeHtml(b.court ? b.court.courtName : '—')}</td>
           <td class="td-muted">${escapeHtml(formatDate(b.bookingDate))}</td>
           <td class="td-muted">${escapeHtml(b.bookingStart)} – ${escapeHtml(b.bookingEnd)}</td>
           <td class="td-muted">฿${formatMoney(b.bookingCourtPrice || 0)}</td>
@@ -1691,10 +1695,9 @@
           <td>฿${formatMoney(b.totalPrice)}</td>
           <td class="td-muted">${escapeHtml(b.payment ? b.payment.paymentMethod : '—')}</td>
           <td><span class="badge badge-${escapeHtml(b.bookingStatus)}">${escapeHtml(b.bookingStatus)}</span></td>
-          <td class="td-muted">${escapeHtml(custType || '—')}</td>
+          <td class="td-muted">${escapeHtml(b.customer ? b.customer.customerType : '—')}</td>
         </tr>
-      `
-      }).join('')
+      `).join('')
     }
 
     function renderCustomers(rows) {
