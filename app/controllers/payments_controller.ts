@@ -29,7 +29,6 @@ export default class PaymentsController {
 
     const payment = await Payment.create({
       bookingId,
-      paymentType: 'total',
       amount,
       paymentMethod,
       paymentStatus: 'paid',

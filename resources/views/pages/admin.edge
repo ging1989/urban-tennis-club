@@ -328,7 +328,7 @@
         </div>
 
         <div class="panel">
-          <div class="panel-title">Recent Bookings (50 latest)</div>
+          <div class="panel-title">All Bookings</div>
           <div class="table-wrap">
             <table>
               <thead>
@@ -1303,7 +1303,7 @@
         if (!target) return
         e.preventDefault()
         activateSection(target)
-        history.replaceState(null, '', '#' + target)
+        history.replaceState(null, '', window.location.pathname + '#' + target)
       })
     })
 
@@ -1324,7 +1324,7 @@
       if (e) e.preventDefault()
       activateSection('report')
       switchReportSub(sub)
-      history.replaceState(null, '', '#report-' + sub)
+      history.replaceState(null, '', window.location.pathname + '#report-' + sub)
     }
 
     function switchReportSub(sub) {
@@ -1601,9 +1601,10 @@
     if (sectionQuery) {
       activateSection(sectionQuery)
       history.replaceState(null, '', '#' + sectionQuery)
-    } else if (hash === 'report-coach') {
+    } else if (hash.startsWith('report-')) {
+      const sub = hash.slice('report-'.length)
       activateSection('report')
-      switchReportSub('coach')
+      switchReportSub(sub)
     } else if (hash) {
       activateSection(hash)
     }
@@ -1679,7 +1680,11 @@
       const tbody = document.getElementById('recent-bookings-tbody')
       if (!tbody) return
       tbody.innerHTML = rows.map((b) => `
-        <tr>
+        <tr
+          data-date="${String(b.bookingDate || '').slice(0, 10)}"
+          data-court="${escapeHtml(b.court ? b.court.courtName : '')}"
+          data-type="${escapeHtml(b.customer ? b.customer.customerType : '')}"
+        >
           <td class="td-muted">${b.bookingNumber ?? ('#' + b.bookingId)}</td>
           <td>${escapeHtml(b.customer ? b.customer.customerName : '—')}</td>
           <td>${escapeHtml(b.court ? b.court.courtName : '—')}</td>

@@ -14,9 +14,6 @@ export default class Payment extends BaseModel {
     declare bookingId: number
 
     @column()
-    declare paymentType: string
-
-    @column()
     declare amount: number
 
     @column()

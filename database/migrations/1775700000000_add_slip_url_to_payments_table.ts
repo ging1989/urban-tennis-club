@@ -4,9 +4,12 @@ export default class extends BaseSchema {
   protected tableName = 'payments'
 
   async up() {
-    this.schema.alterTable(this.tableName, (table) => {
-      table.string('slip_url').nullable()
-    })
+    const hasColumn = await this.schema.hasColumn(this.tableName, 'slip_url')
+    if (!hasColumn) {
+      this.schema.alterTable(this.tableName, (table) => {
+        table.string('slip_url').nullable()
+      })
+    }
   }
 
   async down() {

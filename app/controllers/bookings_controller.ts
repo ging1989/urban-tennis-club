@@ -205,7 +205,7 @@ async new({ request, view, response, auth }: HttpContext) {
           bookingDate: data.bookingDate, bookingStart: data.bookingStart, bookingEnd: data.bookingEnd,
           bookingCourtPrice: courtPrice, bookingCoachPrice: coachPrice || null, totalPrice, bookingStatus: 'pending' }, { client: trx })
 
-        await Payment.create({ bookingId: booking.bookingId, paymentType: 'booking', amount: totalPrice, 
+        await Payment.create({ bookingId: booking.bookingId, amount: totalPrice,
           paymentMethod: data.paymentMethod, paymentStatus: 'pending' }, { client: trx })
 
         await trx.commit()

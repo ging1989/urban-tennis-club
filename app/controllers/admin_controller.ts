@@ -52,7 +52,6 @@ async function getAdminCollections() {
     .preload('court')
     .preload('payment')
     .orderBy('created_at', 'desc')
-    .limit(50)
 
   const customers = await Customer.query().preload('tier').orderBy('created_at', 'desc')
   const users = await User.query().preload('customer', (q) => q.preload('tier')).orderBy('id', 'asc')

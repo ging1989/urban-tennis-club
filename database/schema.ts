@@ -134,7 +134,7 @@ export class CustomerSchema extends BaseModel {
 }
 
 export class PaymentSchema extends BaseModel {
-  static $columns = ['amount', 'bookingId', 'createdAt', 'paymentId', 'paymentMethod', 'paymentStatus', 'paymentTime', 'paymentType', 'slipUrl', 'slipVerified', 'updatedAt', 'verifiedAt', 'verifiedByUserId'] as const
+  static $columns = ['amount', 'bookingId', 'createdAt', 'paymentId', 'paymentMethod', 'paymentStatus', 'paymentTime', 'slipUrl', 'slipVerified', 'updatedAt', 'verifiedAt', 'verifiedByUserId'] as const
   $columns = PaymentSchema.$columns
   @column()
   declare amount: string | null
@@ -150,8 +150,6 @@ export class PaymentSchema extends BaseModel {
   declare paymentStatus: string | null
   @column.dateTime()
   declare paymentTime: DateTime | null
-  @column()
-  declare paymentType: string | null
   @column()
   declare slipUrl: string | null
   @column()
