@@ -74,7 +74,7 @@ export default class PaymentsController {
    * อัพโหลดสลิปการชำระเงิน
    */
   async uploadSlip({ params, request, response, session }: HttpContext) {
-    const payment = await Payment.query().where('booking_id', params.bookingId).firstOrFail()
+    const payment = await Payment.query().where('booking_id', params.bookingId).preload('booking').firstOrFail()
 
     const slip = request.file('slip', {
       size: '5mb',
@@ -104,7 +104,7 @@ export default class PaymentsController {
     payment.paymentStatus = 'slip_uploaded'
     await payment.save()
 
-    return response.redirect(`/bookings/${params.bookingId}/confirmation`)
+    return response.redirect(`/bookings/${payment.booking.bookingNumber}/confirmation`)
   }
 
   /**

@@ -244,89 +244,86 @@
   text-decoration: none;
 }
 
-.courts-grid {
+/* availability grid */
+.avail-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.avail-header h2 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--clay);
+}
+
+.avail-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 20px;
 }
 
-.court-card {
+.avail-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
   border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid var(--clay-border);
-  background: white;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
 }
 
-.court-card-thumbnail {
-  height: 120px;
-  background: linear-gradient(150deg, #A83010, #C4520A);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.court-card-icon {
-  width: 88px;
-  height: 66px;
-  border: 2.5px solid rgba(255,255,255,.5);
-  position: relative;
-}
-
-.court-card-icon::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1.5px;
-  background: rgba(255,255,255,.38);
-}
-
-.court-card-icon::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: -3px;
-  right: -3px;
-  height: 2.5px;
-  background: rgba(255,255,255,.85);
-}
-
-.court-card-body {
-  padding: 12px 14px;
-}
-
-.court-card-name {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 6px;
-}
-
-.court-card-footer {
+.avail-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 14px;
 }
 
-.court-card-price {
-  font-size: 14px;
+.avail-card-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.slot {
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.slot--open {
+  background: #fff;
+  color: var(--clay);
+  text-decoration: none;
+  display: block;
+  border: 1px solid var(--clay-border);
+  transition: background .15s;
+}
+
+.slot--open:hover {
+  background: var(--clay-pale);
+}
+
+.slot--booked {
+  background: #f0f0f0;
+  color: #b8b8b8;
+  cursor: not-allowed;
+}
+
+.avail-price {
+  font-size: 13px;
   font-weight: 500;
   color: var(--clay);
 }
 
-.court-card-price span {
-  font-size: 11px;
+.avail-price span {
   font-weight: 400;
-  color: var(--muted);
-}
-
-.btn-book {
-  font-size: 12px;
-  padding: 6px 14px;
-  background: var(--clay);
-  color: white;
-  border-radius: 6px;
-  text-decoration: none;
 }
 
 /* ---------- Coaches Section ---------- */

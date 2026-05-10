@@ -209,19 +209,19 @@ async new({ request, view, response, auth }: HttpContext) {
           paymentMethod: data.paymentMethod, paymentStatus: 'pending' }, { client: trx })
 
         await trx.commit()
-        return response.redirect(`/bookings/${booking.bookingId}/confirmation`)
+        return response.redirect(`/bookings/${booking.bookingNumber}/confirmation`)
 
       } catch (error) {
         if (typeof trx !== 'undefined') await trx.rollback()
         console.error('Booking Error:', error)
-        session.flash('error', 'Error: ' + error.message)
+        session.flash('error', 'Something went wrong. Please try again.')
         return response.redirect().toPath(redirectUrl)
       }
     }
 
   async confirmation({ params, view }: HttpContext) {
     const booking = await Booking.query()
-      .where('booking_id', params.id)
+      .where('booking_number', params.bookingNumber)
       .preload('customer')
       .preload('court')
       .preload('coachSchedule', (q) => q.preload('coach'))

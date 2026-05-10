@@ -11,10 +11,9 @@ export type ScannedRoutes = {
     'session.destroy': { paramsTuple?: []; params?: {} }
     'home': { paramsTuple?: []; params?: {} }
     'courts.index': { paramsTuple?: []; params?: {} }
-    'courts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'courts.availability': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.new': { paramsTuple?: []; params?: {} }
-    'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'bookingNumber': ParamValue} }
     'bookings.store': { paramsTuple?: []; params?: {} }
     'bookings.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -78,10 +77,9 @@ export type ScannedRoutes = {
     'session.create': { paramsTuple?: []; params?: {} }
     'home': { paramsTuple?: []; params?: {} }
     'courts.index': { paramsTuple?: []; params?: {} }
-    'courts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'courts.availability': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.new': { paramsTuple?: []; params?: {} }
-    'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'bookingNumber': ParamValue} }
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
     'member.profile': { paramsTuple?: []; params?: {} }
@@ -114,10 +112,9 @@ export type ScannedRoutes = {
     'session.create': { paramsTuple?: []; params?: {} }
     'home': { paramsTuple?: []; params?: {} }
     'courts.index': { paramsTuple?: []; params?: {} }
-    'courts.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'courts.availability': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.new': { paramsTuple?: []; params?: {} }
-    'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'bookings.confirmation': { paramsTuple: [ParamValue]; params: {'bookingNumber': ParamValue} }
     'bookings.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'bookings.by_customer': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
     'member.profile': { paramsTuple?: []; params?: {} }

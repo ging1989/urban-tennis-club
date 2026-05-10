@@ -1360,7 +1360,7 @@
     // ── Customer Chart (lazy) ──
     function initCustomerChart() {
       window._customerChartInited = true
-      const data   = {{{ JSON.stringify(customerReportData) }}}
+      const data   = {{{ JSON.stringify(customerReportData).replace(/</g, '\\u003c').replace(/>/g, '\\u003e') }}}
       const top5   = data.slice(0, 5)
       const labels = top5.map(c => c.customerName)
       const values = top5.map(c => c.total)
@@ -1393,7 +1393,7 @@
     }
 
     // ── Court Report ──
-    const _courtBookingData = {{{ JSON.stringify(courtBookingData) }}}
+    const _courtBookingData = {{{ JSON.stringify(courtBookingData).replace(/</g, '\\u003c').replace(/>/g, '\\u003e') }}}
 
     let _courtChart = null
 
@@ -1491,7 +1491,7 @@
     }
 
     // ── Coach Report ──
-    const _coachBookingRawData = {{{ JSON.stringify(coachBookingRawData) }}}
+    const _coachBookingRawData = {{{ JSON.stringify(coachBookingRawData).replace(/</g, '\\u003c').replace(/>/g, '\\u003e') }}}
     let _coachChart = null
 
     function renderCoachReport(from, to) {

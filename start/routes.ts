@@ -50,14 +50,13 @@ router.get('/', [HomeController, 'index']).as('home')
 
 // ── Courts ────────────────────────────────────────────────────────────────
 router.get('/courts',                    [CourtsController, 'index'])
-router.get('/courts/:id',               [CourtsController, 'show'])
 router.get('/courts/:id/availability',  [CourtsController, 'availability'])
 
 // ── Bookings ──────────────────────────────────────────────────────────────
 // NOTE: /bookings/new ต้องอยู่ก่อน /bookings/:id เพราะ AdonisJS match top-down
 // ถ้า :id อยู่ก่อน จะดัก "new" เป็น id แทน
 router.get('/bookings/new',                  [BookingsController, 'new'])
-router.get('/bookings/:id/confirmation',     [BookingsController, 'confirmation'])
+router.get('/bookings/:bookingNumber/confirmation', [BookingsController, 'confirmation'])
 router.post('/bookings',                     [BookingsController, 'store'])
 
 router.patch('/bookings/:id/status',         [BookingsController, 'updateStatus'])

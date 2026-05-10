@@ -76,23 +76,25 @@
 
   {{-- Courts --}}
   <section id="courts" class="section-courts">
-    <div class="section-header">
-      <h2>Available Courts</h2>
-      <a href="/courts">View all →</a>
+    <div class="avail-header">
+      <h2>Available Courts on {{ todayFormatted }}</h2>
     </div>
 
-    <div class="courts-grid">
+    <div class="avail-grid">
       @each(court in courts)
-        <div class="court-card">
-          <div class="court-card-thumbnail">
-            <div class="court-card-icon"></div>
+        <div class="avail-card">
+          <div class="avail-card-header">
+            <div class="avail-card-name">{{ court.courtName }}</div>
+            <span class="avail-price">฿{{ court.courtPricePerHr }}<span>/hr</span></span>
           </div>
-          <div class="court-card-body">
-            <div class="court-card-name">{{ court.courtName }}</div>
-            <div class="court-card-footer">
-              <span class="court-card-price">฿{{ court.courtPricePerHr }}<span>/hr</span></span>
-              <a href="/bookings/new?courtId={{ court.courtId }}" class="btn-book">Book →</a>
-            </div>
+          <div class="slot-grid">
+            @each(hour in hours)
+              @if(bookedSlots[court.courtId][hour])
+                <div class="slot slot--booked">{{ String(hour).padStart(2, '0') + ':00' }}</div>
+              @else
+                <a href="/bookings/new?courtId={{ court.courtId }}&date={{ today }}" class="slot slot--open">{{ String(hour).padStart(2, '0') + ':00' }}</a>
+              @end
+            @end
           </div>
         </div>
       @end
