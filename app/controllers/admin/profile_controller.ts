@@ -61,7 +61,7 @@ export default class AdminProfileController {
       return response.redirect().back()
     }
 
-    user.password = await hash.make(newPassword)
+    user.password = newPassword
     await user.save()
 
     session.flash('success', 'Password changed successfully.')

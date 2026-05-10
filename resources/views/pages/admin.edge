@@ -2230,8 +2230,11 @@
           closeUserModal()
           location.reload()
         } else {
-          const err = await res.json().catch(() => ({}))
-          alert(err.message || 'Error saving user')
+          const raw = await res.text().catch(() => '')
+          let msg = 'Error saving user'
+          try { msg = JSON.parse(raw).message || msg } catch {}
+          if (msg === 'Error saving user') msg = `[${res.status}] ${raw.slice(0, 300)}`
+          alert(msg)
         }
       } finally {
         userSubmit.disabled = false

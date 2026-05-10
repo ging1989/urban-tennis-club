@@ -446,36 +446,47 @@ export default class AdminController {
   }
 
   async updateUser({ params, request, response }: HttpContext) {
-    const user = await User.findOrFail(params.id)
-    const { fullName, username, email, password, role } = request.only(['fullName', 'username', 'email', 'password', 'role'])
-    user.merge({ fullName: fullName ?? null, username: username ?? null, email, role })
-    if (password) user.password = password
-    await user.save()
+    try {
+      const user = await User.findOrFail(params.id)
+      const { fullName, username, email, password, role } = request.only(['fullName', 'username', 'email', 'password', 'role'])
 
-    let customer = await Customer.query().where('user_id', user.id).first()
+      if (!email) return response.status(422).json({ message: 'Email is required.' })
 
-    if (user.role === 'member') {
-      if (!customer) {
-        const defaultTier = await Tier.query().where('min_hours', 0).first()
-        customer = await Customer.create({
-          customerName: user.fullName ?? user.username ?? user.email,
-          customerEmail: user.email,
-          customerPhone: '',
-          customerType: 'member',
-          userId: user.id,
-          tierId: defaultTier?.tierId ?? null,
-        })
-      } else {
-        customer.merge({
-          customerName: user.fullName ?? user.username ?? user.email,
-          customerEmail: user.email,
-          customerType: 'member',
-        })
-        await customer.save()
+      user.merge({ fullName: fullName ?? null, username: username ?? null, email, role })
+      if (password) user.password = password
+      await user.save()
+
+      let customer = await Customer.query().where('user_id', user.id).first()
+
+      if (user.role === 'member') {
+        if (!customer) {
+          const defaultTier = await Tier.query().where('min_hours', 0).first()
+          customer = await Customer.create({
+            customerName: user.fullName ?? user.username ?? user.email,
+            customerEmail: user.email,
+            customerPhone: '-',
+            customerType: 'member',
+            userId: user.id,
+            tierId: defaultTier?.tierId ?? null,
+          })
+        } else {
+          customer.merge({
+            customerName: user.fullName ?? user.username ?? user.email,
+            customerEmail: user.email,
+            customerType: 'member',
+          })
+          await customer.save()
+        }
       }
-    }
 
-    return response.json(user)
+      return response.json(user)
+    } catch (error) {
+      console.error('updateUser error:', error)
+      const msg = error?.code === 'ER_DUP_ENTRY'
+        ? 'Email or username already exists.'
+        : (error?.message ?? 'Failed to save user.')
+      return response.status(500).json({ message: msg })
+    }
   }
 
   async deleteUser({ params, auth, response }: HttpContext) {
