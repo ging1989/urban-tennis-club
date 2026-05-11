@@ -58,15 +58,18 @@ async new({ request, view, response, auth }: HttpContext) {
         ? await Customer.query().where('user_id', auth.user.id).preload('tier').first()
         : null
 
+      const nowBkk = DateTime.now().setZone('Asia/Bangkok')
       return view.render('pages/booking', {
         court,
         bookingDate,
-        bookedSlotsJson: JSON.stringify(bookedSlots), 
-        minDate: DateTime.now().setZone('Asia/Bangkok').toISODate(),
+        bookedSlotsJson: JSON.stringify(bookedSlots),
+        minDate: nowBkk.toISODate(),
         coaches,
         discount: memberProfile?.tier ? memberProfile.tier.tierDiscount : 0,
         user: auth.user,
         memberProfile,
+        today: nowBkk.toISODate(),
+        currentHour: nowBkk.hour,
       })
 
     } catch (error) {

@@ -246,6 +246,8 @@
     price: {{ court.courtPricePerHr }},
   }
   const BOOKING_DATE = '{{ bookingDate }}'
+  const TODAY = '{{ today }}'
+  const CURRENT_HOUR = {{ currentHour }}
   const DISCOUNT = {{ discount ?? 0 }} / 100
   const BOOKED_SLOTS = {{{ bookedSlotsJson }}}
   const ALL_SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00']
@@ -276,12 +278,19 @@
       grid.innerHTML = '<div class="sidebar-empty" style="grid-column:1/-1;">Select a play date to view available time slots</div>'
       return
     }
+    var pastHour = (bk.date === TODAY) ? CURRENT_HOUR : -1
     var html = ''
     for (var i = 0; i < ALL_SLOTS.length; i++) {
       var s = ALL_SLOTS[i]
       var endH = String(parseInt(s) + 1).padStart(2, '0')
+      var isPast = parseInt(s) < pastHour
       var isBooked = BOOKED_SLOTS.indexOf(s) !== -1
-      if (isBooked) {
+      if (isPast) {
+        html += '<div class="ts unavail" id="slot-' + s + '" style="pointer-events:none;cursor:default;background:#f0f0f0;color:#b8b8b8;">'
+          + '<div class="ts-main" style="text-decoration:line-through;">' + s + '</div>'
+          + '<div class="ts-sub" style="text-decoration:line-through;">–' + endH + ':00</div>'
+          + '</div>'
+      } else if (isBooked) {
         html += '<div class="ts unavail" id="slot-' + s + '" style="pointer-events:none;opacity:0.45;cursor:not-allowed;background:#eee;">'
           + '<div class="ts-main">' + s + '</div>'
           + '<div class="ts-sub">Booked</div>'
@@ -302,6 +311,8 @@
   }
 
   function pickSlot(s) {
+    var pastHour = (bk.date === TODAY) ? CURRENT_HOUR : -1
+    if (parseInt(s) < pastHour) return
     if (BOOKED_SLOTS.indexOf(s) !== -1) return
     if (bk.slots.indexOf(s) !== -1) {
       bk.slots = []
@@ -312,7 +323,7 @@
       var fi = ALL_SLOTS.indexOf(combined[0])
       var li = ALL_SLOTS.indexOf(combined[combined.length-1])
       var range = ALL_SLOTS.slice(fi, li+1)
-      var valid = range.length <= 3 && range.every(function(x){ return BOOKED_SLOTS.indexOf(x) === -1 })
+      var valid = range.length <= 3 && range.every(function(x){ return BOOKED_SLOTS.indexOf(x) === -1 && parseInt(x) >= pastHour })
       bk.slots = valid ? range : [s]
     }
     renderSlots()

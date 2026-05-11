@@ -89,7 +89,9 @@
           </div>
           <div class="slot-grid">
             @each(hour in hours)
-              @if(bookedSlots[court.courtId][hour])
+              @if(hour < currentHour)
+                <div class="slot slot--past">{{ String(hour).padStart(2, '0') + ':00' }}</div>
+              @elseif(bookedSlots[court.courtId][hour])
                 <div class="slot slot--booked">{{ String(hour).padStart(2, '0') + ':00' }}</div>
               @else
                 <a href="/bookings/new?courtId={{ court.courtId }}&date={{ today }}" class="slot slot--open">{{ String(hour).padStart(2, '0') + ':00' }}</a>
