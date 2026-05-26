@@ -19,7 +19,7 @@ export default class AdminCoachReportsController {
       .whereNotNull('schedule_id')
       .preload('customer')
       .preload('court')
-      .preload('coachSchedule', (q) => q.preload('coach', (c) => c.preload('coachPricing')))
+      .preload('coachSchedule', (q) => q.preload('coach', (c: any) => c.preload('coachPricing')))
 
     if (dateFrom) bookingQuery = bookingQuery.where('booking_date', '>=', dateFrom)
     if (dateTo)   bookingQuery = bookingQuery.where('booking_date', '<=', dateTo)

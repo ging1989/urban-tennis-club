@@ -38,7 +38,7 @@ async new({ request, view, response, auth }: HttpContext) {
             q.where('booking_status', 'confirmed')
               .orWhere((inner) => {
                 inner.where('booking_status', 'pending')
-                     .andWhere('created_at', '>', expiryTime.toSQL())
+                     .andWhere('created_at', '>', expiryTime.toSQL()!)
               })
           })
 
@@ -209,7 +209,7 @@ async new({ request, view, response, auth }: HttpContext) {
           const schedule = await CoachSchedule.query({ client: trx })
             .where('coach_id', data.coachId)
             .where('avail_date', dayOfWeek)
-            .preload('coach', (q) => q.preload('coachPricing'))
+            .preload('coach', (q: any) => q.preload('coachPricing'))
             .firstOrFail()
           scheduleId = schedule.scheduleId
           coachPrice = schedule.coach.coachPricing.coachPrice * hours

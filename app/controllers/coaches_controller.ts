@@ -35,7 +35,7 @@ export default class CoachesController {
     const schedules = await CoachSchedule.query()
       .where('coach_id', params.id)
       .where('avail_date', dayOfWeek)
-      .preload('coach', (q) => q.preload('coachPricing'))
+      .preload('coach', (q: any) => q.preload('coachPricing'))
 
     return response.ok(schedules)
   }

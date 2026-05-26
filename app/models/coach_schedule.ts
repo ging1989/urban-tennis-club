@@ -1,5 +1,6 @@
 import { column, BaseModel, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import { DateTime } from 'luxon'
 import Coach from './coach.js'
 import Booking from './booking.js'
 

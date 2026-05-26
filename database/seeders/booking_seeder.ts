@@ -11,7 +11,7 @@ export default class extends BaseSeeder {
       {
         customerId: 1, // สมมติว่ามีลูกค้า id 1 อยู่แล้ว
         courtId: 1,
-        bookingDate: DateTime.now().toISODate(), // วันนี้
+        bookingDate: DateTime.now(),
         bookingStart: '09:00:00',
         bookingEnd: '11:00:00',
         bookingCourtPrice: 500,
@@ -21,7 +21,7 @@ export default class extends BaseSeeder {
       {
         customerId: 2,
         courtId: 1,
-        bookingDate: DateTime.fromISO('2026-04-04')
+        bookingDate: DateTime.fromISO('2026-04-04'),
         bookingStart: '14:00:00',
         bookingEnd: '15:00:00',
         bookingCourtPrice: 250,

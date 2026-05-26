@@ -92,7 +92,7 @@ export default class PaymentsController {
       return response.redirect().back()
     }
 
-    const filename = `slip_${params.bookingId}_${Date.now()}.${slip.extname}`
+    const filename = `slip_${booking.bookingId}_${Date.now()}.${slip.extname}`
     const uploadDir = join(process.cwd(), 'public', 'uploads', 'slips')
     await slip.move(uploadDir, { name: filename })
 
