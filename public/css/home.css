@@ -317,10 +317,11 @@
 }
 
 .slot--past {
-  background: #f8f8f8;
+  background: #f5f5f5;
   color: #c8c8c8;
-  cursor: not-allowed;
+  cursor: default;
   text-decoration: line-through;
+  opacity: .6;
 }
 
 .avail-price {
