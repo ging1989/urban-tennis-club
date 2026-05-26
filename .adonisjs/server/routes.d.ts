@@ -31,7 +31,7 @@ export type ScannedRoutes = {
     'booking.status.lookup': { paramsTuple?: []; params?: {} }
     'payments.store': { paramsTuple?: []; params?: {} }
     'payments.show': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
-    'payments.upload_slip': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
+    'payments.upload_slip': { paramsTuple: [ParamValue]; params: {'bookingNumber': ParamValue} }
     'bookings.check_payment_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.login': { paramsTuple?: []; params?: {} }
     'admin.login.store': { paramsTuple?: []; params?: {} }
@@ -49,6 +49,7 @@ export type ScannedRoutes = {
     'admin.users.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.payments': { paramsTuple?: []; params?: {} }
     'admin.settings': { paramsTuple?: []; params?: {} }
+    'admin.settings.update': { paramsTuple?: []; params?: {} }
     'admin.reports': { paramsTuple?: []; params?: {} }
     'admin.reports.coaches': { paramsTuple?: []; params?: {} }
     'admin.slips': { paramsTuple?: []; params?: {} }
@@ -62,6 +63,7 @@ export type ScannedRoutes = {
     'admin.courts.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.create_coach': { paramsTuple?: []; params?: {} }
     'admin.update_coach': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.delete_coach': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.upsert_coach_schedule': { paramsTuple: [ParamValue]; params: {'coachId': ParamValue} }
     'admin.delete_coach_schedule': { paramsTuple: [ParamValue,ParamValue]; params: {'coachId': ParamValue,'day': ParamValue} }
     'admin.update_customer': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -151,10 +153,11 @@ export type ScannedRoutes = {
     'customers.register': { paramsTuple?: []; params?: {} }
     'booking.status.lookup': { paramsTuple?: []; params?: {} }
     'payments.store': { paramsTuple?: []; params?: {} }
-    'payments.upload_slip': { paramsTuple: [ParamValue]; params: {'bookingId': ParamValue} }
+    'payments.upload_slip': { paramsTuple: [ParamValue]; params: {'bookingNumber': ParamValue} }
     'admin.login.store': { paramsTuple?: []; params?: {} }
     'admin.logout': { paramsTuple?: []; params?: {} }
     'admin.bookings.status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.settings.update': { paramsTuple?: []; params?: {} }
     'admin.slips.verify': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.slips.reject': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.profile.update': { paramsTuple?: []; params?: {} }
@@ -177,6 +180,7 @@ export type ScannedRoutes = {
   DELETE: {
     'admin.users.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.courts.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.delete_coach': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.delete_coach_schedule': { paramsTuple: [ParamValue,ParamValue]; params: {'coachId': ParamValue,'day': ParamValue} }
     'admin.delete_user': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.delete_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

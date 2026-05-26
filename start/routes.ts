@@ -88,7 +88,7 @@ router.post('/booking-status', [BookingsController, 'statusLookup']).as('booking
 // ── Payments ──────────────────────────────────────────────────────────────
 router.post('/payments',                      [PaymentsController, 'store'])
 router.get('/payments/:bookingId',            [PaymentsController, 'show'])
-router.post('/bookings/:bookingId/slip',      [PaymentsController, 'uploadSlip'])
+router.post('/bookings/:bookingNumber/slip',  [PaymentsController, 'uploadSlip'])
 router.get('/bookings/:id/payment-status',   [BookingsController, 'checkPaymentStatus'])
 
 // ── Admin Auth ─────────────────────────────────────────────────────────
@@ -117,6 +117,7 @@ router
 
     router.get('/admin/payments',              [AdminPaymentsController, 'index']).as('admin.payments')
     router.get('/admin/settings',              [AdminSettingsController, 'index']).as('admin.settings')
+    router.post('/admin/settings',             [AdminSettingsController, 'update']).as('admin.settings.update')
 
     // ── Reports ────────────────────────────────────────────────────────────
     router.get('/admin/reports',         [AdminReportsController, 'index']).as('admin.reports')
@@ -138,6 +139,7 @@ router
     router.delete('/admin/courts/:id',  [AdminController, 'deleteCourt']).as('admin.courts.destroy')
     router.post('/admin/coaches',                          [AdminController, 'createCoach'])
     router.patch('/admin/coaches/:id',                     [AdminController, 'updateCoach'])
+    router.delete('/admin/coaches/:id',                    [AdminController, 'deleteCoach'])
     router.put('/admin/coaches/:coachId/schedule',         [AdminController, 'upsertCoachSchedule'])
     router.delete('/admin/coaches/:coachId/schedule/:day', [AdminController, 'deleteCoachSchedule'])
     router.patch('/admin/customers/:id', [AdminController, 'updateCustomer'])

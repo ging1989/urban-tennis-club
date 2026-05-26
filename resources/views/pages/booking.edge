@@ -248,6 +248,8 @@
   const BOOKING_DATE = '{{ bookingDate }}'
   const DISCOUNT = {{ discount ?? 0 }} / 100
   const BOOKED_SLOTS = {{{ bookedSlotsJson }}}
+  const TODAY = '{{ today }}'
+  const CURRENT_HOUR = {{ currentHour }}
   const ALL_SLOTS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00']
 
   let bk = {
@@ -265,7 +267,13 @@
   let currentStep = 1
 
   document.addEventListener('DOMContentLoaded', function() {
+    var preStart = new URLSearchParams(window.location.search).get('start')
+    if (preStart && ALL_SLOTS.indexOf(preStart) !== -1 && BOOKED_SLOTS.indexOf(preStart) === -1
+        && !(bk.date === TODAY && parseInt(preStart) <= CURRENT_HOUR)) {
+      bk.slots = [preStart]
+    }
     buildSlots()
+    renderSlots()
     updateSidebar()
   })
 
@@ -276,15 +284,22 @@
       grid.innerHTML = '<div class="sidebar-empty" style="grid-column:1/-1;">Select a play date to view available time slots</div>'
       return
     }
+    var isToday = bk.date === TODAY
     var html = ''
     for (var i = 0; i < ALL_SLOTS.length; i++) {
       var s = ALL_SLOTS[i]
       var endH = String(parseInt(s) + 1).padStart(2, '0')
       var isBooked = BOOKED_SLOTS.indexOf(s) !== -1
+      var isPast   = isToday && parseInt(s) <= CURRENT_HOUR
       if (isBooked) {
         html += '<div class="ts unavail" id="slot-' + s + '" style="pointer-events:none;opacity:0.45;cursor:not-allowed;background:#eee;">'
           + '<div class="ts-main">' + s + '</div>'
           + '<div class="ts-sub">Booked</div>'
+          + '</div>'
+      } else if (isPast) {
+        html += '<div class="ts unavail" id="slot-' + s + '" style="pointer-events:none;opacity:0.35;cursor:not-allowed;background:#f8f8f8;text-decoration:line-through;">'
+          + '<div class="ts-main">' + s + '</div>'
+          + '<div class="ts-sub">Past</div>'
           + '</div>'
       } else {
         html += '<div class="ts" id="slot-' + s + '" onclick="pickSlot(\'' + s + '\')">'
@@ -303,6 +318,7 @@
 
   function pickSlot(s) {
     if (BOOKED_SLOTS.indexOf(s) !== -1) return
+    if (bk.date === TODAY && parseInt(s) <= CURRENT_HOUR) return
     if (bk.slots.indexOf(s) !== -1) {
       bk.slots = []
     } else if (bk.slots.length === 0) {

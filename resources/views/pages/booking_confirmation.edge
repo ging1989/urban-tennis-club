@@ -10,13 +10,26 @@
 <div class="booking-wrap" style="max-width:600px;">
   <div class="panel" style="text-align:center;padding:40px 24px;">
 
-    <div class="success-icon">✓</div>
-    <div class="success-title">Booking confirmed!</div>
+    @if(booking.bookingStatus === 'confirmed')
+      <div class="success-icon">✓</div>
+      <div class="success-title">Booking Confirmed!</div>
+    @else
+      <div class="success-icon" style="background:#f57f17;">⏳</div>
+      <div class="success-title">Booking Received</div>
+    @end
     <div class="success-ref">{{ booking.bookingNumber ?? booking.bookingId }}</div>
-    <div class="expiry-alert-box" style="margin: 24px 0; padding: 20px; background: #fff5f5; border: 1px solid #ffcccc; border-radius: 12px;">
+
+    @if(booking.bookingStatus !== 'confirmed')
+    <div id="expiry-alert-box" style="margin: 24px 0; padding: 20px; background: #fff5f5; border: 1px solid #ffcccc; border-radius: 12px;">
       <p style="margin: 0; font-size: 14px; color: #666;">Please complete your payment by:</p>
       <h1 id="timer" style="margin: 8px 0; font-size: 48px; color: #d9534f; font-weight: bold;">30:00</h1>
       <p style="margin: 0; font-size: 12px; color: #d9534f;">If the payment is not completed on time, the court will be available for others to book immediately.</p>
+    </div>
+    @end
+
+    <div id="confirmed-banner" style="display:{{ booking.bookingStatus === 'confirmed' ? 'block' : 'none' }};margin:24px 0;padding:20px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:12px;">
+      <div style="font-size:22px;font-weight:700;color:#2e7d32;">✓ Payment Confirmed!</div>
+      <div style="font-size:14px;color:#555;margin-top:6px;">Your booking has been verified and confirmed.</div>
     </div>
 
     <div class="success-grid">
@@ -97,7 +110,7 @@
         @end
         <div style="padding:16px;border:1px dashed #ccc;border-radius:12px;background:#fafafa;">
           <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#333;">Upload Payment Slip</div>
-          <form action="/bookings/{{ booking.bookingId }}/slip" method="POST" enctype="multipart/form-data">
+          <form action="/bookings/{{ booking.bookingNumber }}/slip" method="POST" enctype="multipart/form-data">
             {{ csrfField() }}
             <div style="margin-bottom:12px;">
               <label style="font-size:13px;color:#555;display:block;margin-bottom:6px;">Select slip image or PDF (max 5MB)</label>
@@ -135,30 +148,56 @@
     } catch (e) {}
   }
 
+  let countdownInterval = null
+
+  function showConfirmed() {
+    if (countdownInterval) {
+      clearInterval(countdownInterval)
+      countdownInterval = null
+    }
+    const expiryBox = document.getElementById('expiry-alert-box')
+    if (expiryBox) expiryBox.style.display = 'none'
+    const banner = document.getElementById('confirmed-banner')
+    if (banner) {
+      banner.style.transition = 'opacity .3s'
+      banner.style.opacity = '0'
+      banner.style.display = 'block'
+      setTimeout(() => { banner.style.opacity = '1' }, 20)
+    }
+    const statusBox = document.getElementById('payment-status-box')
+    if (statusBox) {
+      statusBox.style.transition = 'opacity .3s'
+      statusBox.style.opacity = '0'
+      setTimeout(() => { statusBox.style.display = 'none' }, 300)
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     broadcastAdminRefresh('booking_created')
 
-    // ดึงเวลาสร้างจากฐานข้อมูล (ส่งมาเป็น Timestamp มิลลิวินาที)
+    const timerDisplay = document.getElementById('timer')
+    if (!timerDisplay) return  // already confirmed — no timer to run
+
     const createdAt = {{ booking.createdAt.toMillis() }};
     const expiryTime = createdAt + (30 * 60 * 1000);
-    const timerDisplay = document.getElementById('timer');
 
-    const countdown = setInterval(() => {
+    countdownInterval = setInterval(() => {
       const now = Date.now();
       const distance = expiryTime - now;
 
       if (distance < 0) {
-        clearInterval(countdown);
-        timerDisplay.innerHTML = "Your booking has expired";
-        timerDisplay.style.color = "#999";
+        clearInterval(countdownInterval);
+        countdownInterval = null
+        timerDisplay.innerHTML = 'Expired';
+        timerDisplay.style.color = '#999';
+        timerDisplay.style.fontSize = '24px';
         return;
       }
 
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-      timerDisplay.innerHTML = 
-        String(minutes).padStart(2, '0') + ":" + 
+      timerDisplay.innerHTML =
+        String(minutes).padStart(2, '0') + ':' +
         String(seconds).padStart(2, '0');
     }, 1000);
   });
@@ -188,26 +227,7 @@
         const data = await res.json()
         if (data.bookingStatus === 'confirmed') {
           clearInterval(interval)
-          const box = document.getElementById('payment-status-box')
-          if (box) {
-            box.style.transition = 'opacity .3s'
-            box.style.opacity = '0'
-            setTimeout(() => {
-              box.innerHTML = `
-                <div style="color:#2e7d32;font-weight:700;font-size:17px;">✓ Payment Confirmed!</div>
-                <div style="font-size:13px;color:#555;margin-top:4px;">Your booking has been confirmed by admin.</div>
-              `
-              box.style.background = '#e8f5e9'
-              box.style.border = '1px solid #a5d6a7'
-              box.style.opacity = '1'
-            }, 300)
-          }
-          // หยุด countdown timer
-          const timer = document.getElementById('timer')
-          if (timer) {
-            timer.closest('[style*="background: #fff5f5"]') && (timer.closest('[style*="background: #fff5f5"]').style.display = 'none')
-            timer.style.display = 'none'
-          }
+          showConfirmed()
         }
       } catch (e) {}
     }, 5000)

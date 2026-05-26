@@ -74,7 +74,8 @@ export default class PaymentsController {
    * อัพโหลดสลิปการชำระเงิน
    */
   async uploadSlip({ params, request, response, session }: HttpContext) {
-    const payment = await Payment.query().where('booking_id', params.bookingId).preload('booking').firstOrFail()
+    const booking = await Booking.query().where('booking_number', params.bookingNumber).firstOrFail()
+    const payment = await Payment.query().where('booking_id', booking.bookingId).preload('booking').firstOrFail()
 
     const slip = request.file('slip', {
       size: '5mb',

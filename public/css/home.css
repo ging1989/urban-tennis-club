@@ -316,6 +316,13 @@
   cursor: not-allowed;
 }
 
+.slot--past {
+  background: #f8f8f8;
+  color: #c8c8c8;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
 .avail-price {
   font-size: 13px;
   font-weight: 500;

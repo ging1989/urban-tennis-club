@@ -85,14 +85,16 @@
         <div class="avail-card">
           <div class="avail-card-header">
             <div class="avail-card-name">{{ court.courtName }}</div>
-            <span class="avail-price">฿{{ court.courtPricePerHr }}<span>/hr</span></span>
+            <span class="avail-price">฿{{ Number(court.courtPricePerHr).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}<span>/hr</span></span>
           </div>
           <div class="slot-grid">
             @each(hour in hours)
               @if(bookedSlots[court.courtId][hour])
                 <div class="slot slot--booked">{{ String(hour).padStart(2, '0') + ':00' }}</div>
+              @elseif(hour <= currentHour)
+                <div class="slot slot--past">{{ String(hour).padStart(2, '0') + ':00' }}</div>
               @else
-                <a href="/bookings/new?courtId={{ court.courtId }}&date={{ today }}" class="slot slot--open">{{ String(hour).padStart(2, '0') + ':00' }}</a>
+                <a href="/bookings/new?courtId={{ court.courtId }}&date={{ today }}&start={{ String(hour).padStart(2, '0') + ':00' }}" class="slot slot--open">{{ String(hour).padStart(2, '0') + ':00' }}</a>
               @end
             @end
           </div>
@@ -114,7 +116,7 @@
           <div class="coach-card-avatar">{{ coach.coachName.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() }}</div>
           <div class="coach-card-name">{{ coach.coachName }}</div>
           <div class="coach-card-level">{{ coach.coachPricing.coachLevelDesc }}</div>
-          <div class="coach-card-price">฿{{ coach.coachPricing.coachPrice }}<span>/hr</span></div>
+          <div class="coach-card-price">฿{{ Number(coach.coachPricing.coachPrice).toLocaleString('th-TH', { maximumFractionDigits: 0 }) }}<span>/hr</span></div>
           <div class="coach-card-status">
             @if(coach.coachStatus === 'available')
               <span class="status-dot status-available"></span>Available today

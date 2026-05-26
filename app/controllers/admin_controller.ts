@@ -348,6 +348,16 @@ export default class AdminController {
     return response.json(coach)
   }
 
+  async deleteCoach({ params, response }: HttpContext) {
+    const coach = await Coach.findOrFail(params.id)
+    try {
+      await coach.delete()
+      return response.json({ message: 'Coach deleted' })
+    } catch {
+      return response.status(409).json({ message: 'Cannot delete coach: they have existing bookings.' })
+    }
+  }
+
   async upsertCoachSchedule({ params, request, response }: HttpContext) {
     // params.coachId, body: { dayOfWeek, startTime, endTime }
     const { dayOfWeek, startTime, endTime } = request.only(['dayOfWeek', 'startTime', 'endTime'])
@@ -425,24 +435,32 @@ export default class AdminController {
   }
 
   async createUser({ request, response }: HttpContext) {
-    const { fullName, username, email, password, role } = request.only(['fullName', 'username', 'email', 'password', 'role'])
-    const existing = await User.findBy('email', email)
-    if (existing) return response.status(409).json({ message: 'Email already in use.' })
-    const user = await User.create({ fullName: fullName ?? null, username: username ?? null, email, password, role: role ?? 'member' })
+    try {
+      const { fullName, username, email, password, role } = request.only(['fullName', 'username', 'email', 'password', 'role'])
+      const existing = await User.findBy('email', email)
+      if (existing) return response.status(409).json({ message: 'Email already in use.' })
+      const user = await User.create({ fullName: fullName ?? null, username: username ?? null, email, password, role: role ?? 'member' })
 
-    if (user.role === 'member') {
-      const defaultTier = await Tier.query().where('min_hours', 0).first()
-      await Customer.create({
-        customerName: user.fullName ?? user.username ?? user.email,
-        customerEmail: user.email,
-        customerPhone: '',
-        customerType: 'member',
-        userId: user.id,
-        tierId: defaultTier?.tierId ?? null,
-      })
+      if (user.role === 'member') {
+        const defaultTier = await Tier.query().where('min_hours', 0).first()
+        await Customer.create({
+          customerName: user.fullName ?? user.username ?? user.email,
+          customerEmail: user.email,
+          customerPhone: '-',
+          customerType: 'member',
+          userId: user.id,
+          tierId: defaultTier?.tierId ?? null,
+        })
+      }
+
+      return response.json(user)
+    } catch (error) {
+      console.error('createUser error:', error)
+      const msg = error?.code === 'ER_DUP_ENTRY'
+        ? 'Email or username already exists.'
+        : (error?.message ?? 'Failed to create user.')
+      return response.status(500).json({ message: msg })
     }
-
-    return response.json(user)
   }
 
   async updateUser({ params, request, response }: HttpContext) {

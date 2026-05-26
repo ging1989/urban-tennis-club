@@ -58,11 +58,14 @@ async new({ request, view, response, auth }: HttpContext) {
         ? await Customer.query().where('user_id', auth.user.id).preload('tier').first()
         : null
 
+      const nowBkk = DateTime.now().setZone('Asia/Bangkok')
       return view.render('pages/booking', {
         court,
         bookingDate,
-        bookedSlotsJson: JSON.stringify(bookedSlots), 
-        minDate: DateTime.now().setZone('Asia/Bangkok').toISODate(),
+        bookedSlotsJson: JSON.stringify(bookedSlots),
+        minDate: nowBkk.toISODate(),
+        today: nowBkk.toISODate(),
+        currentHour: nowBkk.hour,
         coaches,
         discount: memberProfile?.tier ? memberProfile.tier.tierDiscount : 0,
         user: auth.user,
@@ -89,6 +92,26 @@ async new({ request, view, response, auth }: HttpContext) {
       if (!data.bookingDate) {
         session.flash('error', 'Please select the play date before booking.')
         return response.redirect().toPath(`/bookings/new?courtId=${data.courtId}`)
+      }
+
+      const nowBkk = DateTime.now().setZone('Asia/Bangkok')
+      const today = nowBkk.toISODate()!
+      if (data.bookingDate < today) {
+        session.flash('error', 'Cannot book a date in the past.')
+        return response.redirect().toPath(redirectUrl)
+      }
+
+      if (data.bookingStart && data.bookingEnd && data.bookingStart >= data.bookingEnd) {
+        session.flash('error', 'End time must be after start time.')
+        return response.redirect().toPath(redirectUrl)
+      }
+
+      if (data.bookingDate === today && data.bookingStart) {
+        const startHour = parseInt(data.bookingStart.split(':')[0])
+        if (startHour <= nowBkk.hour) {
+          session.flash('error', 'This time slot has already passed.')
+          return response.redirect().toPath(redirectUrl)
+        }
       }
 
       const court = await Court.findOrFail(data.courtId)

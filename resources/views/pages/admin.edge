@@ -2231,9 +2231,8 @@
           location.reload()
         } else {
           const raw = await res.text().catch(() => '')
-          let msg = 'Error saving user'
+          let msg = 'Error saving user.'
           try { msg = JSON.parse(raw).message || msg } catch {}
-          if (msg === 'Error saving user') msg = `[${res.status}] ${raw.slice(0, 300)}`
           alert(msg)
         }
       } finally {

@@ -57,6 +57,7 @@ export default class HomeController {
       bookedSlots,
       hours,
       todayFormatted,
+      currentHour: now.hour,
     })
   }
 }
