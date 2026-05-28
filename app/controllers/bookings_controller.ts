@@ -25,6 +25,8 @@ async new({ request, view, response, auth }: HttpContext) {
     const rawBookingDate = request.input('date')
     const bookingDate = rawBookingDate && rawBookingDate !== 'null' ? rawBookingDate : ''
 
+    await auth.check()
+
     try {
       const court = await Court.findOrFail(courtId)
       const expiryTime = DateTime.now().setZone('Asia/Bangkok').minus({ minutes: 30 })
@@ -54,9 +56,24 @@ async new({ request, view, response, auth }: HttpContext) {
       }
 
       const coaches = await Coach.query().preload('coachPricing').orderBy('coach_id', 'asc')
-      const memberProfile = auth.user && auth.user.role === 'member'
-        ? await Customer.query().where('user_id', auth.user.id).preload('tier').first()
-        : null
+
+      let memberProfile = null
+      if (auth.user && auth.user.role === 'member') {
+        let customer = await Customer.query().where('user_id', auth.user.id).preload('tier').first()
+        if (!customer) {
+          const defaultTier = await Tier.query().orderBy('min_hours', 'asc').first()
+          customer = await Customer.create({
+            customerName: auth.user.fullName ?? auth.user.username ?? auth.user.email,
+            customerPhone: '',
+            customerEmail: auth.user.email,
+            customerType: 'member',
+            userId: auth.user.id,
+            tierId: defaultTier?.tierId ?? null,
+          })
+          await customer.load('tier')
+        }
+        memberProfile = customer
+      }
 
       const nowBkk = DateTime.now().setZone('Asia/Bangkok')
       return view.render('pages/booking', {
@@ -81,6 +98,7 @@ async new({ request, view, response, auth }: HttpContext) {
    * บันทึกการจอง (พร้อมระบบ Transaction)
    */
   async store({ request, response, session, auth }: HttpContext) {
+      await auth.check()
       const data = request.only([
         'courtId', 'coachId', 'bookingDate',
         'bookingStart', 'bookingEnd', 'customerName',

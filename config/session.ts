@@ -1,6 +1,8 @@
 import env from '#start/env'
-import app from '@adonisjs/core/services/app'
 import { defineConfig, stores } from '@adonisjs/session'
+
+// secure cookie ใช้ก็ต่อเมื่อ APP_URL เป็น https จริงๆ เท่านั้น
+const isHttps = env.get('APP_URL', '').startsWith('https')
 
 /**
  * Session configuration.
@@ -50,7 +52,7 @@ const sessionConfig = defineConfig({
      * When true, the cookie is only sent over HTTPS connections.
      * Enabled in production for security.
      */
-    secure: app.inProduction,
+    secure: isHttps,
 
     /**
      * Controls when cookies are sent with cross-site requests.
