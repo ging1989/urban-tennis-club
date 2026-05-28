@@ -7,7 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('schedule_id')
       table.integer('coach_id').unsigned().references('coach_id').inTable('coaches')
-      table.date('avail_date')
+      table.tinyint('avail_date').unsigned().comment('0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat')
       table.time('start_time')
       table.time('end_time')
       table.timestamps(true)

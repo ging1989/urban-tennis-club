@@ -8,10 +8,12 @@ export default class extends BaseSchema {
       table.increments('customer_id')
       table.string('customer_name').notNullable()
       table.string('customer_phone').notNullable()
-      table.string('customer_email')
+      table.string('customer_email').nullable()
+      table.date('birth_date').nullable()
       table.string('customer_type')
       table.integer('tier_id').unsigned().nullable().references('tier_id').inTable('tiers').onDelete('SET NULL')
-      table.timestamps(true)
+      table.integer('user_id').unsigned().nullable().references('id').inTable('users').onDelete('SET NULL')
+      table.timestamp('created_at', { useTz: false })
     })
   }
 
