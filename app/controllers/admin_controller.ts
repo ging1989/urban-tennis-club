@@ -97,15 +97,16 @@ export default class AdminController {
       })
       .orderBy('created_at', 'asc')
 
-    const slipHistory = await (await import('#models/payment')).default.query()
+    const slipHistory = (await (await import('#models/payment')).default.query()
       .where('payment_status', 'paid')
       .whereNotNull('slip_url')
+      .whereHas('booking', (q) => q.whereNotNull('booking_id'))
       .preload('booking', (q) => {
         q.preload('customer')
         q.preload('court')
       })
       .orderBy('payment_time', 'desc')
-      .limit(100)
+      .limit(100)).filter((p) => p.booking !== null)
     const thisMonthStart = DateTime.now().setZone(APP_TIMEZONE).startOf('month').toISODate()!
 
     const totalRevenue = allBookings
@@ -432,6 +433,30 @@ export default class AdminController {
     })
     await customer.save()
     return response.json(customer)
+  }
+
+  async createCoachPricing({ request, response }: HttpContext) {
+    const { coachLevelDesc, coachPrice } = request.only(['coachLevelDesc', 'coachPrice'])
+    const pricing = await CoachPricing.create({ coachLevelDesc, coachPrice })
+    return response.json(pricing)
+  }
+
+  async updateCoachPricing({ params, request, response }: HttpContext) {
+    const pricing = await CoachPricing.findOrFail(params.id)
+    const { coachLevelDesc, coachPrice } = request.only(['coachLevelDesc', 'coachPrice'])
+    pricing.merge({ coachLevelDesc, coachPrice })
+    await pricing.save()
+    return response.json(pricing)
+  }
+
+  async deleteCoachPricing({ params, response }: HttpContext) {
+    const pricing = await CoachPricing.findOrFail(params.id)
+    try {
+      await pricing.delete()
+      return response.json({ message: 'Coach pricing deleted' })
+    } catch {
+      return response.status(409).json({ message: 'Cannot delete: coaches are using this pricing level.' })
+    }
   }
 
   async createTier({ request, response }: HttpContext) {

@@ -73,6 +73,9 @@ export type ScannedRoutes = {
     'admin.create_tier': { paramsTuple?: []; params?: {} }
     'admin.update_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.delete_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.create_coach_pricing': { paramsTuple?: []; params?: {} }
+    'admin.update_coach_pricing': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.delete_coach_pricing': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   GET: {
     'new_account.create': { paramsTuple?: []; params?: {} }
@@ -166,6 +169,7 @@ export type ScannedRoutes = {
     'admin.create_coach': { paramsTuple?: []; params?: {} }
     'admin.create_user': { paramsTuple?: []; params?: {} }
     'admin.create_tier': { paramsTuple?: []; params?: {} }
+    'admin.create_coach_pricing': { paramsTuple?: []; params?: {} }
   }
   PATCH: {
     'bookings.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -176,6 +180,7 @@ export type ScannedRoutes = {
     'admin.update_customer': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.update_user': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.update_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.update_coach_pricing': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
     'admin.users.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -184,6 +189,7 @@ export type ScannedRoutes = {
     'admin.delete_coach_schedule': { paramsTuple: [ParamValue,ParamValue]; params: {'coachId': ParamValue,'day': ParamValue} }
     'admin.delete_user': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.delete_tier': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.delete_coach_pricing': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   PUT: {
     'admin.upsert_coach_schedule': { paramsTuple: [ParamValue]; params: {'coachId': ParamValue} }

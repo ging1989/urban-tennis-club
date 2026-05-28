@@ -40,16 +40,19 @@ node ace migration:rollback
 # ดู migration status
 node ace migration:status
 
-# Run seeder
-node ace db:seed --files=database/seeders/admin_seeder.ts
+# Run seeder (สร้าง admin + test users)
+node ace db:seed --files=database/seeders/user_seeder.ts
 
-# Reset admin password (ถ้า login ไม่ได้)
-node ace db:seed --files=database/seeders/admin_seeder.ts
+# Reset password (ถ้า login ไม่ได้)
+node ace db:seed --files=database/seeders/user_seeder.ts
 ```
 
-**Admin credentials (default):**
-- Email: `admin@urbantennis.com`
-- Password: `Admin1234`
+**Credentials (default):**
+| Role | Email | Username | Password |
+|------|-------|----------|----------|
+| Admin | `admin01@urbantennis.com` | `admin` | `Admin1234` |
+| Member | `user@test.com` | `user01` | `User1234` |
+| Member (Silver) | `member02@test.com` | `member02` | `Member1234` |
 
 ---
 

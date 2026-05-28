@@ -4,7 +4,7 @@ import User from '#models/user'
 export default class extends BaseSeeder {
   async run() {
     await User.updateOrCreate(
-      { email: 'admin01@urbantennis.com' },
+      { username: 'admin' },
       {
         fullName: 'Admin',
         username: 'admin',
@@ -15,12 +15,23 @@ export default class extends BaseSeeder {
     )
 
     await User.updateOrCreate(
-      { email: 'user@test.com' },
+      { username: 'member01' },
       {
-        fullName: 'User_01',
-        username: 'user01',
-        email: 'user@test.com',
-        password: 'User1234',
+        fullName: 'Member 01',
+        username: 'member01',
+        email: 'member01@test.com',
+        password: 'Member1234',
+        role: 'member',
+      }
+    )
+
+    await User.updateOrCreate(
+      { username: 'member02' },
+      {
+        fullName: 'Member 02',
+        username: 'member02',
+        email: 'member02@test.com',
+        password: 'Member1234',
         role: 'member',
       }
     )
