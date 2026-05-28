@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Booking from '#models/booking'
+import Payment from '#models/payment'
 import Court from '#models/court'
 import Coach from '#models/coach'
 import CoachSchedule from '#models/coach_schedule'
@@ -7,9 +8,25 @@ import CoachPricing from '#models/coach_pricing'
 import Customer from '#models/customer'
 import Tier from '#models/tier'
 import User from '#models/user'
+import hash from '@adonisjs/core/services/hash'
 import { DateTime } from 'luxon'
 
 const APP_TIMEZONE = 'Asia/Bangkok'
+const BOOKING_EXPIRY_MINUTES = 30
+
+async function autoExpireBookings() {
+  const threshold = DateTime.now().minus({ minutes: BOOKING_EXPIRY_MINUTES }).toSQL()!
+
+  const expired = await Booking.query()
+    .where('booking_status', 'pending')
+    .where('created_at', '<', threshold)
+
+  if (expired.length === 0) return
+
+  const ids = expired.map((b) => b.bookingId)
+  await Booking.query().whereIn('booking_id', ids).update({ booking_status: 'cancelled' })
+  await Payment.query().whereIn('booking_id', ids).update({ payment_status: 'cancelled' })
+}
 
 async function getTodayStats() {
   const today = DateTime.now().setZone(APP_TIMEZONE).toISODate()!
@@ -62,6 +79,7 @@ async function getAdminCollections() {
 export default class AdminController {
 
   async index({ view, request }: HttpContext) {
+    await autoExpireBookings()
     const todayStats = await getTodayStats()
     const { recentBookings, customers, users } = await getAdminCollections()
 
@@ -329,8 +347,11 @@ export default class AdminController {
     try {
       await court.delete()
       return response.json({ message: 'Court deleted' })
-    } catch {
-      return response.status(409).json({ message: 'Cannot delete court: it has existing bookings.' })
+    } catch (error: any) {
+      if (error?.code === 'ER_ROW_IS_REFERENCED_2') {
+        return response.status(409).json({ message: 'Cannot delete court: it has existing bookings.' })
+      }
+      throw error
     }
   }
 
@@ -353,8 +374,11 @@ export default class AdminController {
     try {
       await coach.delete()
       return response.json({ message: 'Coach deleted' })
-    } catch {
-      return response.status(409).json({ message: 'Cannot delete coach: they have existing bookings.' })
+    } catch (error: any) {
+      if (error?.code === 'ER_ROW_IS_REFERENCED_2') {
+        return response.status(409).json({ message: 'Cannot delete coach: they have existing bookings.' })
+      }
+      throw error
     }
   }
 
@@ -454,12 +478,13 @@ export default class AdminController {
       }
 
       return response.json(user)
-    } catch (error) {
+    } catch (error: any) {
       console.error('createUser error:', error)
       const msg = error?.code === 'ER_DUP_ENTRY'
         ? 'Email or username already exists.'
         : (error?.message ?? 'Failed to create user.')
-      return response.status(500).json({ message: msg })
+      const status = error?.code === 'ER_DUP_ENTRY' ? 409 : 500
+      return response.status(status).json({ message: msg })
     }
   }
 
@@ -471,8 +496,11 @@ export default class AdminController {
       if (!email) return response.status(422).json({ message: 'Email is required.' })
 
       user.merge({ fullName: fullName ?? null, username: username ?? null, email, role })
-      if (password) user.password = password
       await user.save()
+
+      if (password) {
+        await User.query().where('id', user.id).update({ password: await hash.make(password) })
+      }
 
       let customer = await Customer.query().where('user_id', user.id).first()
 
@@ -498,7 +526,7 @@ export default class AdminController {
       }
 
       return response.json(user)
-    } catch (error) {
+    } catch (error: any) {
       console.error('updateUser error:', error)
       const msg = error?.code === 'ER_DUP_ENTRY'
         ? 'Email or username already exists.'

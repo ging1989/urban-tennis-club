@@ -24,7 +24,8 @@ export default class AdminSessionController {
 
       await auth.use('web').login(user)
       return response.redirect().toRoute('admin')
-    } catch {
+    } catch (error) {
+      console.error('Admin login error:', error)
       session.flash('error', 'Invalid username, email, or password.')
       session.flashExcept(['password'])
       return response.redirect().back()

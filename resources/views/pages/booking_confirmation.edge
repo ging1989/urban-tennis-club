@@ -110,6 +110,11 @@
         @end
         <div style="padding:16px;border:1px dashed #ccc;border-radius:12px;background:#fafafa;">
           <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:#333;">Upload Payment Slip</div>
+          @if(!booking.bookingNumber)
+            <div style="padding:10px 14px;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;color:#f57f17;font-size:13px;">
+              Cannot upload slip — booking reference number is missing. Please contact staff.
+            </div>
+          @else
           <form action="/bookings/{{ booking.bookingNumber }}/slip" method="POST" enctype="multipart/form-data">
             {{ csrfField() }}
             <div style="margin-bottom:12px;">
@@ -126,6 +131,7 @@
               </button>
             </div>
           </form>
+          @end
         </div>
       </div>
     @end
