@@ -5,21 +5,21 @@ import CoachSchedule from '#models/coach_schedule'
 
 export default class extends BaseSeeder {
   async run() {
-    const basic    = await CoachPricing.findByOrFail('coach_level_desc', 'Basic')
-    const advanced = await CoachPricing.findByOrFail('coach_level_desc', 'Advanced')
-    const pro      = await CoachPricing.findByOrFail('coach_level_desc', 'Pro')
+    const coach    = await CoachPricing.findByOrFail('coach_level_desc', 'Coach')
+    const master = await CoachPricing.findByOrFail('coach_level_desc', 'Master')
+    const elite      = await CoachPricing.findByOrFail('coach_level_desc', 'Elite')
 
     const coach1 = await Coach.updateOrCreate(
-      { coachName: 'Coach Somchai' },
-      { coachName: 'Coach Somchai', coachLevelId: basic.coachLevelId, coachStatus: 'available' }
+      { coachName: 'Anan' },
+      { coachName: 'Anan', coachLevelId: coach.coachLevelId, coachStatus: 'available' }
     )
     const coach2 = await Coach.updateOrCreate(
-      { coachName: 'Coach Napat' },
-      { coachName: 'Coach Napat', coachLevelId: advanced.coachLevelId, coachStatus: 'available' }
+      { coachName: 'Ben' },
+      { coachName: 'Ben', coachLevelId: master.coachLevelId, coachStatus: 'available' }
     )
     const coach3 = await Coach.updateOrCreate(
-      { coachName: 'Coach Panya' },
-      { coachName: 'Coach Panya', coachLevelId: pro.coachLevelId, coachStatus: 'available' }
+      { coachName: 'Chris' },
+    { coachName: 'Chris', coachLevelId: elite.coachLevelId, coachStatus: 'available' }
     )
 
     // Coach 1: Mon–Fri 09:00–17:00

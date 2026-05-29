@@ -12,30 +12,33 @@ export default class PaymentsController {
    * บันทึกการชำระเงิน
    */
   async store({ request, response }: HttpContext) {
-    const { bookingId, paymentMethod, amount } = request.only([
-      'bookingId',
-      'paymentMethod',
-      'amount',
-    ])
+    const { bookingId, paymentMethod } = request.only(['bookingId', 'paymentMethod'])
 
-    // เช็คว่า booking มีอยู่จริง
     const booking = await Booking.findOrFail(bookingId)
 
-    // เช็คว่ายังไม่ได้จ่ายไปแล้ว
-    const existing = await Payment.findBy('booking_id', bookingId)
-    if (existing) {
-      return response.conflict({ message: 'Payment already exists for this booking' })
+    if (booking.bookingStatus === 'confirmed') {
+      return response.conflict({ message: 'Booking is already confirmed' })
     }
 
-    const payment = await Payment.create({
-      bookingId,
-      amount,
-      paymentMethod,
-      paymentStatus: 'paid',
-      paymentTime: DateTime.now()
-    })
+    if (booking.bookingStatus === 'cancelled') {
+      return response.conflict({ message: 'Cannot pay for a cancelled booking' })
+    }
 
-    // อัปเดต booking status เป็น confirmed
+    const payment = await Payment.query().where('booking_id', bookingId).first()
+
+    if (!payment) {
+      return response.notFound({ message: 'Payment record not found for this booking' })
+    }
+
+    if (payment.paymentStatus === 'paid') {
+      return response.conflict({ message: 'Payment already recorded for this booking' })
+    }
+
+    if (paymentMethod) payment.paymentMethod = paymentMethod
+    payment.paymentStatus = 'paid'
+    payment.paymentTime = DateTime.now()
+    await payment.save()
+
     booking.bookingStatus = 'confirmed'
     await booking.save()
 
@@ -63,7 +66,7 @@ export default class PaymentsController {
       }
     }
 
-    return response.created({
+    return response.ok({
       message: 'Payment recorded successfully',
       payment,
     })

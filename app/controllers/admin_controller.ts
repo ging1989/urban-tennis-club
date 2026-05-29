@@ -35,11 +35,11 @@ async function getTodayStats() {
   const totalBookings = await Booking.query().count('* as total').firstOrFail()
 
   const todayRevenue = todayBookings
-    .filter((b) => b.bookingStatus !== 'cancelled')
+    .filter((b) => b.bookingStatus === 'confirmed')
     .reduce((sum, b) => sum + (parseFloat(String(b.totalPrice)) || 0), 0)
 
   const todayCoachRevenue = todayBookings
-    .filter((b) => b.bookingStatus !== 'cancelled')
+    .filter((b) => b.bookingStatus === 'confirmed')
     .reduce((sum, b) => sum + (parseFloat(String(b.bookingCoachPrice)) || 0), 0)
 
   const todayCustomerIds = new Set(todayBookings.map((b) => b.customerId))
@@ -70,7 +70,7 @@ async function getAdminCollections() {
     .preload('payment')
     .orderBy('created_at', 'desc')
 
-  const customers = await Customer.query().preload('tier').orderBy('created_at', 'desc')
+  const customers = await Customer.query().preload('tier').orderBy('customer_id', 'asc')
   const users = await User.query().preload('customer', (q) => q.preload('tier')).orderBy('id', 'asc')
 
   return { recentBookings, customers, users }
@@ -86,7 +86,7 @@ export default class AdminController {
     const allBookings = await Booking.query()
     const courts   = await Court.query().orderBy('court_id', 'asc')
     const coaches  = (await Coach.query().preload('coachPricing').preload('coachSchedules')).sort((a, b) => a.coachId - b.coachId)
-    const coachPricings = await CoachPricing.all()
+    const coachPricings = await CoachPricing.query().preload('coaches').orderBy('coach_level_id', 'asc')
     const tiers = await Tier.query().preload('members').orderBy('min_hours', 'asc')
     const memberUsers = users.filter((u) => u.role === 'member')
     const slipPayments = await (await import('#models/payment')).default.query()
@@ -110,13 +110,13 @@ export default class AdminController {
     const thisMonthStart = DateTime.now().setZone(APP_TIMEZONE).startOf('month').toISODate()!
 
     const totalRevenue = allBookings
-      .filter((b) => b.bookingStatus !== 'cancelled')
+      .filter((b) => b.bookingStatus === 'confirmed')
       .reduce((sum, b) => sum + (parseFloat(String(b.totalPrice)) || 0), 0)
 
     const monthRevenue = allBookings
       .filter((b) => {
         const bookingDate = b.bookingDate?.toISODate() ?? ''
-        return bookingDate >= thisMonthStart && b.bookingStatus !== 'cancelled'
+        return bookingDate >= thisMonthStart && b.bookingStatus === 'confirmed'
       })
       .reduce((sum, b) => sum + (parseFloat(String(b.totalPrice)) || 0), 0)
 
@@ -207,9 +207,10 @@ export default class AdminController {
     for (let i = 5; i >= 0; i--) {
       const dt = DateTime.now().setZone(APP_TIMEZONE).minus({ months: i })
       const monthKey = dt.toFormat('yyyy-MM')
+      const nextMonthKey = dt.plus({ months: 1 }).toFormat('yyyy-MM')
       const label    = dt.toFormat('MMM yyyy')
       const rev = coachBookings
-        .filter((b) => { const d = b.bookingDate?.toISODate() ?? ''; return d >= monthKey + '-01' && d <= monthKey + '-31' })
+        .filter((b) => { const d = b.bookingDate?.toISODate() ?? ''; return d >= monthKey + '-01' && d < nextMonthKey + '-01' })
         .reduce((sum, b) => sum + (parseFloat(String(b.bookingCoachPrice)) || 0), 0)
       monthlyCoachRevenue.push({ month: label, revenue: rev })
     }

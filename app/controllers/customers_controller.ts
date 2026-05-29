@@ -124,9 +124,9 @@ export default class CustomersController {
     const totalHours = customer.booking
       .filter((b) => b.bookingStatus === 'confirmed')
       .reduce((sum, b) => {
-        const [sh] = b.bookingStart.split(':').map(Number)
-        const [eh] = b.bookingEnd.split(':').map(Number)
-        return sum + (eh - sh)
+        const [sh, sm] = b.bookingStart.split(':').map(Number)
+        const [eh, em] = b.bookingEnd.split(':').map(Number)
+        return sum + (eh * 60 + em - (sh * 60 + sm)) / 60
       }, 0)
 
     const tiers = await Tier.query().orderBy('min_hours', 'desc')

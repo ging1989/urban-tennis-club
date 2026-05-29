@@ -1,5 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Booking from '#models/booking'
+import Customer from '#models/customer'
+import Tier from '#models/tier'
 
 export default class AdminBookingsController {
 
@@ -32,6 +34,31 @@ export default class AdminBookingsController {
 
     booking.bookingStatus = status
     await booking.save()
+
+    if (status === 'confirmed' && booking.customerId) {
+      const customer = await Customer.query()
+        .where('customer_id', booking.customerId)
+        .preload('booking')
+        .first()
+
+      if (customer) {
+        const totalHours = customer.booking
+          .filter((b) => b.bookingStatus === 'confirmed')
+          .reduce((sum, b) => {
+            const [sh, sm] = b.bookingStart.split(':').map(Number)
+            const [eh, em] = b.bookingEnd.split(':').map(Number)
+            return sum + (eh * 60 + em - (sh * 60 + sm)) / 60
+          }, 0)
+
+        const tiers = await Tier.query().orderBy('min_hours', 'desc')
+        const newTier = tiers.find((t) => totalHours >= t.minHours)
+
+        if (newTier && newTier.tierId !== customer.tierId) {
+          customer.tierId = newTier.tierId
+          await customer.save()
+        }
+      }
+    }
 
     session.flash('success', `Booking #${booking.bookingId} status updated to ${status}.`)
     return response.redirect().back()
