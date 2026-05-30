@@ -188,7 +188,7 @@
 
         @if(!memberProfile)
           <div class="or-divider">or</div>
-          <a href="/login" class="member-login-link">Login as member to get discount →</a>
+          <a href="/login?redirect={{ encodeURIComponent(request.url(true) + (request.url(true).includes('step=') ? '' : '&step=3')) }}" class="member-login-link">Login as member to get discount →</a>
         @end
 
         <div class="btn-row">
@@ -267,7 +267,10 @@
   let currentStep = 1
 
   document.addEventListener('DOMContentLoaded', function() {
-    var preStart = new URLSearchParams(window.location.search).get('start')
+    var params   = new URLSearchParams(window.location.search)
+    var preStart = params.get('start')
+    var preStep  = parseInt(params.get('step') || '1')
+
     if (preStart && ALL_SLOTS.indexOf(preStart) !== -1 && BOOKED_SLOTS.indexOf(preStart) === -1
         && !(bk.date === TODAY && parseInt(preStart) <= CURRENT_HOUR)) {
       bk.slots = [preStart]
@@ -275,6 +278,13 @@
     buildSlots()
     renderSlots()
     updateSidebar()
+
+    if (preStep === 3 && bk.date && bk.slots.length > 0) {
+      document.getElementById('step-1').style.display = 'none'
+      document.getElementById('step-3').style.display = 'block'
+      currentStep = 3
+      updateStepper(3)
+    }
   })
 
   function buildSlots() {
