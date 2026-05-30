@@ -59,12 +59,13 @@ export default class AdminReportsController {
     for (let i = 5; i >= 0; i--) {
       const dt = DateTime.now().setZone(APP_TIMEZONE).minus({ months: i })
       const monthKey = dt.toFormat('yyyy-MM')
+      const nextMonthKey = dt.plus({ months: 1 }).toFormat('yyyy-MM')
       const label = dt.toFormat('MMM yyyy')
       const rev = allBookings
         .filter((b) => {
           if (b.bookingStatus === 'cancelled') return false
           const bDate = b.bookingDate?.toISODate() ?? ''
-          return bDate >= monthKey + '-01' && bDate <= monthKey + '-31'
+          return bDate >= monthKey + '-01' && bDate < nextMonthKey + '-01'
         })
         .reduce((sum, b) => sum + (parseFloat(String(b.totalPrice)) || 0), 0)
       monthlyRevenue.push({ month: label, revenue: rev })

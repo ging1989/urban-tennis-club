@@ -89,8 +89,20 @@ export default class AdminCourtsController {
   async destroy({ params, response, session }: HttpContext) {
     const court = await Court.findOrFail(params.id)
     const name = court.courtName
-    await court.delete()
-    session.flash('success', `Court "${name}" deleted.`)
+    try {
+      await court.delete()
+      session.flash('success', `Court "${name}" deleted.`)
+    } catch (error: any) {
+      const isFkError =
+        error?.code === 'ER_ROW_IS_REFERENCED_2' ||
+        error?.code === 'SQLITE_CONSTRAINT' ||
+        String(error?.message).includes('FOREIGN KEY')
+      if (isFkError) {
+        session.flash('error', `Cannot delete court "${name}": it has existing bookings.`)
+      } else {
+        throw error
+      }
+    }
     return response.redirect().toRoute('admin.courts')
   }
 }

@@ -11,7 +11,7 @@ export default class AdminSettingsController {
   }
 
   async update({ session, response }: HttpContext) {
-    session.flash('success', 'Settings saved successfully.')
+    session.flash('error', 'Settings persistence is not yet implemented.')
     return response.redirect().back()
   }
 }

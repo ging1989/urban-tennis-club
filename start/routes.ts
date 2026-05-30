@@ -59,7 +59,7 @@ router.get('/bookings/new',                  [BookingsController, 'new'])
 router.get('/bookings/:bookingNumber/confirmation', [BookingsController, 'confirmation'])
 router.post('/bookings',                     [BookingsController, 'store'])
 
-router.patch('/bookings/:id/status',         [BookingsController, 'updateStatus'])
+router.patch('/bookings/:id/status',         [BookingsController, 'updateStatus']).use(middleware.admin())
 
 router
   .group(() => {
@@ -86,7 +86,7 @@ router.get('/booking-status',  [BookingsController, 'statusForm']).as('booking.s
 router.post('/booking-status', [BookingsController, 'statusLookup']).as('booking.status.lookup')
 
 // ── Payments ──────────────────────────────────────────────────────────────
-router.post('/payments',                      [PaymentsController, 'store'])
+router.post('/payments',                      [PaymentsController, 'store']).use(middleware.admin())
 router.get('/payments/:bookingId',            [PaymentsController, 'show'])
 router.post('/bookings/:bookingNumber/slip',  [PaymentsController, 'uploadSlip'])
 router.get('/bookings/:id/payment-status',   [BookingsController, 'checkPaymentStatus'])

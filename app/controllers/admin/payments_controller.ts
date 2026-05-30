@@ -9,7 +9,7 @@ export default class AdminPaymentsController {
       .orderBy('created_at', 'desc')
 
     const totalRevenue = payments
-      .filter((p) => p.booking?.bookingStatus !== 'cancelled')
+      .filter((p) => p.paymentStatus === 'paid')
       .reduce((sum, p) => sum + (parseFloat(String(p.amount)) || 0), 0)
 
     const pendingCount = await (await import('#models/booking')).default

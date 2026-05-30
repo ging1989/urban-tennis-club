@@ -9,7 +9,7 @@ export default class extends BaseSeeder {
         fullName: 'Admin',
         username: 'admin',
         email: 'admin01@urbantennis.com',
-        password: 'Admin1234',
+        password: 'Admin@1234',
         role: 'admin',
       }
     )
@@ -36,6 +36,9 @@ export default class extends BaseSeeder {
       }
     )
 
-    console.log('Admin user created: admin01@urbantennis.com / Admin1234')
+    console.log('Seeded users:')
+    console.log('  admin    → admin01@urbantennis.com')
+    console.log('  member01 → member01@test.com')
+    console.log('  member02 → member02@test.com')
   }
 }

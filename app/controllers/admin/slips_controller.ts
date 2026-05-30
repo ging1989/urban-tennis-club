@@ -56,11 +56,17 @@ export default class AdminSlipsController {
   async reject({ params, response, session }: HttpContext) {
     const payment = await Payment.query()
       .where('payment_id', params.id)
+      .preload('booking')
       .firstOrFail()
 
     payment.paymentStatus = 'pending'
     payment.slipUrl = null
     await payment.save()
+
+    // Reset booking expiry so customer gets another 30 minutes to re-upload
+    const booking = payment.booking
+    booking.createdAt = DateTime.now()
+    await booking.save()
 
     session.flash('success', 'Slip rejected. Customer must re-upload.')
     return response.redirect('/admin?section=slips')
